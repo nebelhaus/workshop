@@ -150,7 +150,7 @@ cmd_ship() {
       read -r holder input source <<<"$edge"
       [ "$holder" = "$name" ] || continue
       if [ "$(locked_rev "$holder" "$input")" != "$(head_rev "$source")" ]; then
-        say "$name: updating lock for $input…"
+        say "$name: updating lock for ${input}…"
         (cd "$dir" && nix flake update "$input")
         bumped+=("$input")
       fi
@@ -174,7 +174,7 @@ cmd_ship() {
 
 cmd_rebuild() {
   local host; host="$(host_name)"
-  say "pinned rebuild of $host from $CONSUMER…"
+  say "pinned rebuild of $host from ${CONSUMER}…"
   (cd "$CONSUMER" \
     && nix build ".#darwinConfigurations.$host.system" \
     && sudo ./result/sw/bin/darwin-rebuild switch --flake ".#$host")
@@ -185,7 +185,7 @@ cmd_pull() {
   for name in "${FAMILY[@]}" consumer; do
     local dir; dir="$(repo_dir "$name")"
     [ -d "$dir/.git" ] || continue
-    say "pulling $name…"
+    say "pulling ${name}…"
     git -C "$dir" pull --ff-only || warn "$name: couldn't fast-forward; resolve by hand"
   done
 }
@@ -197,7 +197,7 @@ cmd_clone() {
     if [ -d "$ROOT/$name/.git" ]; then
       say "$name already here"
     else
-      say "cloning $name…"
+      say "cloning ${name}…"
       git clone "https://github.com/$GH_ORG/$repo.git" "$ROOT/$name"
     fi
   done
