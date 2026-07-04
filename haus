@@ -1,0 +1,214 @@
+#!/usr/bin/env bash
+# haus — the workshop CLI for the nebelhaus family.
+#
+# The family is a chain of flakes, each pinning the one before it:
+#
+#   nebelung (theme) ──> pounce (palette app) ──> nebelhaus (the rice) ──> ~/.config/nix (your machine)
+#                └────────────────────────────────────┘
+#
+# Editing upstream means nothing until the downstream locks catch up. This
+# script exists so you never have to remember that dance:
+#
+#   haus status    where is everything? (git state + every lock edge)
+#   haus try       build YOUR machine against the LOCAL checkouts — no pushes
+#   haus try switch    …and activate it (still no pushes; prod untouched)
+#   haus ship      push everything in dependency order, rippling lock updates
+#   haus rebuild   a plain, pinned rebuild of your machine (the normal day)
+#   haus pull      fast-forward every repo
+#   haus clone     fetch any family repo missing from this directory
+#
+# Rule of thumb: hack freely, `haus try` until happy, commit, `haus ship`.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONSUMER="${HAUS_CONSUMER:-$HOME/.config/nix}"
+
+# Dependency order matters: upstream first, so lock bumps can see pushed revs.
+FAMILY=(nebelung pounce nebelhaus)
+GH_ORG="nebelhaus"
+
+say()  { printf '\033[38;5;103m🌫  %s\033[0m\n' "$*"; }
+warn() { printf '\033[38;5;179m⚠  %s\033[0m\n' "$*"; }
+die()  { printf '\033[38;5;167m✗  %s\033[0m\n' "$*" >&2; exit 1; }
+
+repo_dir() { # repo_dir <name> — family repos live here; the consumer elsewhere
+  if [ "$1" = "consumer" ]; then echo "$CONSUMER"; else echo "$ROOT/$1"; fi
+}
+
+head_rev() { git -C "$(repo_dir "$1")" rev-parse HEAD 2>/dev/null || echo "?"; }
+
+locked_rev() { # locked_rev <repo> <input> — what rev <repo>'s flake.lock pins <input> at
+  python3 - "$(repo_dir "$1")/flake.lock" "$2" <<'EOF'
+import json, sys
+try:
+    lock = json.load(open(sys.argv[1]))
+    print(lock["nodes"][sys.argv[2]]["locked"]["rev"])
+except Exception:
+    print("?")
+EOF
+}
+
+# The lock edges of the family graph: "<consumer-repo> <input-name> <source-repo>"
+EDGES=(
+  "pounce nebelung nebelung"
+  "nebelhaus nebelung nebelung"
+  "nebelhaus pounce pounce"
+  "consumer nebelhaus nebelhaus"
+)
+
+host_name() { # the darwinConfiguration to build in the consumer flake
+  if [ -n "${HAUS_HOST:-}" ]; then echo "$HAUS_HOST"; return; fi
+  nix eval --json "$CONSUMER#darwinConfigurations" --apply builtins.attrNames 2>/dev/null \
+    | python3 -c 'import json,sys; print(json.load(sys.stdin)[0])' 2>/dev/null \
+    || hostname -s
+}
+
+overrides() { # every family input redirected at the local checkouts
+  echo "--override-input nebelhaus path:$ROOT/nebelhaus \
+        --override-input nebelhaus/nebelung path:$ROOT/nebelung \
+        --override-input nebelhaus/pounce path:$ROOT/pounce"
+}
+
+cmd_status() {
+  say "repos"
+  printf '  %-12s %-8s %-7s %s\n' "repo" "branch" "dirty" "vs origin"
+  for name in "${FAMILY[@]}" consumer; do
+    local dir; dir="$(repo_dir "$name")"
+    [ -d "$dir/.git" ] || { printf '  %-12s (missing — haus clone)\n' "$name"; continue; }
+    local branch dirty ahead behind
+    branch="$(git -C "$dir" branch --show-current)"
+    dirty="$(git -C "$dir" status --porcelain | wc -l | tr -d ' ')"
+    [ "$dirty" = "0" ] && dirty="·" || dirty="${dirty} files"
+    git -C "$dir" fetch -q 2>/dev/null || true
+    ahead="$(git -C "$dir" rev-list --count '@{u}..HEAD' 2>/dev/null || echo '?')"
+    behind="$(git -C "$dir" rev-list --count 'HEAD..@{u}' 2>/dev/null || echo '?')"
+    printf '  %-12s %-8s %-7s ↑%s ↓%s\n' "$name" "$branch" "$dirty" "$ahead" "$behind"
+  done
+
+  echo
+  say "lock edges (is anyone consuming an old version of anyone?)"
+  local stale=0
+  for edge in "${EDGES[@]}"; do
+    read -r holder input source <<<"$edge"
+    local want have label
+    want="$(head_rev "$source")"
+    have="$(locked_rev "$holder" "$input")"
+    label="$holder → $input"
+    [ "$holder" = "consumer" ] && label="you → $input"
+    if [ "$have" = "$want" ]; then
+      printf '  ✓ %-22s current (%s)\n' "$label" "${have:0:7}"
+    else
+      printf '  ⚠ %-22s STALE: locked %s, local %s\n' "$label" "${have:0:7}" "${want:0:7}"
+      stale=1
+    fi
+  done
+  echo
+  if [ "$stale" = "1" ]; then
+    warn "stale edges above. If the upstream work is committed: haus ship."
+    warn "To test it on this machine without pushing anything: haus try"
+  else
+    say "everything is current. The fog is even."
+  fi
+}
+
+cmd_try() {
+  local host; host="$(host_name)"
+  say "building $host against the LOCAL checkouts (uncommitted edits included)…"
+  # shellcheck disable=SC2046
+  (cd "$CONSUMER" && nix build ".#darwinConfigurations.$host.system" $(overrides))
+  say "build OK — nothing pushed, nothing activated."
+  if [ "${1:-}" = "switch" ]; then
+    say "switching (this activates the LOCAL build on this machine)…"
+    # shellcheck disable=SC2046
+    (cd "$CONSUMER" && sudo ./result/sw/bin/darwin-rebuild switch --flake ".#$host" $(overrides))
+    warn "you are now running unpushed code. When happy: commit + haus ship,"
+    warn "so a plain rebuild reproduces what you're running."
+  else
+    say "to activate it too: haus try switch"
+  fi
+}
+
+cmd_ship() {
+  # Walk the chain upstream→downstream. For each repo: refuse dirty trees
+  # (your commits are yours to write), bump any stale family locks, push.
+  for name in "${FAMILY[@]}" consumer; do
+    local dir; dir="$(repo_dir "$name")"
+    [ -d "$dir/.git" ] || continue
+    if [ -n "$(git -C "$dir" status --porcelain)" ]; then
+      git -C "$dir" status --short
+      die "$name has uncommitted changes — commit (or stash) them first, then re-run haus ship."
+    fi
+  done
+
+  for name in "${FAMILY[@]}" consumer; do
+    local dir; dir="$(repo_dir "$name")"
+    [ -d "$dir/.git" ] || continue
+
+    # Bump this repo's locks for any upstream family input that moved.
+    local bumped=()
+    for edge in "${EDGES[@]}"; do
+      read -r holder input source <<<"$edge"
+      [ "$holder" = "$name" ] || continue
+      if [ "$(locked_rev "$holder" "$input")" != "$(head_rev "$source")" ]; then
+        say "$name: updating lock for $input…"
+        (cd "$dir" && nix flake update "$input")
+        bumped+=("$input")
+      fi
+    done
+    if [ "${#bumped[@]}" -gt 0 ]; then
+      (cd "$dir" && git add flake.lock && git commit -m "Update flake inputs (${bumped[*]})")
+    fi
+
+    # Push if there's anywhere to push to and anything to push.
+    if git -C "$dir" rev-parse '@{u}' >/dev/null 2>&1; then
+      local ahead; ahead="$(git -C "$dir" rev-list --count '@{u}..HEAD')"
+      if [ "$ahead" != "0" ]; then
+        say "$name: pushing $ahead commit(s)…"
+        git -C "$dir" push
+      fi
+    fi
+  done
+
+  say "shipped. Apply it to this machine with: haus rebuild"
+}
+
+cmd_rebuild() {
+  local host; host="$(host_name)"
+  say "pinned rebuild of $host from $CONSUMER…"
+  (cd "$CONSUMER" \
+    && nix build ".#darwinConfigurations.$host.system" \
+    && sudo ./result/sw/bin/darwin-rebuild switch --flake ".#$host")
+  say "the house stands."
+}
+
+cmd_pull() {
+  for name in "${FAMILY[@]}" consumer; do
+    local dir; dir="$(repo_dir "$name")"
+    [ -d "$dir/.git" ] || continue
+    say "pulling $name…"
+    git -C "$dir" pull --ff-only || warn "$name: couldn't fast-forward; resolve by hand"
+  done
+}
+
+cmd_clone() {
+  for name in "${FAMILY[@]}" org-profile; do
+    local repo="$name"
+    [ "$name" = "org-profile" ] && repo=".github"
+    if [ -d "$ROOT/$name/.git" ]; then
+      say "$name already here"
+    else
+      say "cloning $name…"
+      git clone "https://github.com/$GH_ORG/$repo.git" "$ROOT/$name"
+    fi
+  done
+}
+
+case "${1:-status}" in
+  status)  cmd_status ;;
+  try)     cmd_try "${2:-}" ;;
+  ship)    cmd_ship ;;
+  rebuild) cmd_rebuild ;;
+  pull)    cmd_pull ;;
+  clone)   cmd_clone ;;
+  *)       sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
+esac
