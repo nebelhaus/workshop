@@ -9,15 +9,25 @@
 # Editing upstream means nothing until the downstream locks catch up. This
 # script exists so you never have to remember that dance:
 #
-#   haus status    where is everything? (git state + every lock edge)
+#   haus status    where is everything? (git state, lock edges, agent worktrees)
 #   haus try       build YOUR machine against the LOCAL checkouts — no pushes
 #   haus try switch    …and activate it (still no pushes; prod untouched)
 #   haus ship      push everything in dependency order, rippling lock updates
 #   haus rebuild   a plain, pinned rebuild of your machine (the normal day)
 #   haus pull      fast-forward every repo
 #   haus clone     fetch any family repo missing from this directory
+#   haus release   tag v<version> (read from the repo, never typed) — CI then
+#                  publishes the GitHub release and bumps the Homebrew tap
 #
 # Rule of thumb: hack freely, `haus try` until happy, commit, `haus ship`.
+#
+# Agent worktrees: Claude Code sessions spawn into git worktrees of the family
+# repos (branch `worktree-*`), so parallel agents never fight over a checkout's
+# branch. `haus try` is worktree-aware — run it from inside a worktree and that
+# repo's override points at the WORKTREE instead of the main checkout, so an
+# agent can verify its own branch builds. `haus try switch` refuses from a
+# worktree (only main-checkout code gets activated); `haus status` lists agent
+# worktrees and unmerged agent branches; `haus ship` warns about them.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -63,10 +73,40 @@ host_name() { # the darwinConfiguration to build in the consumer flake
     || hostname -s
 }
 
+# If we're running from inside a LINKED worktree of a family repo (a Claude
+# agent's isolated checkout), note which repo and where. Works wherever the
+# worktree physically lives: --git-common-dir always points at the main
+# checkout's .git, and a linked worktree is exactly "toplevel != main".
+WT_REPO="" WT_PATH=""
+detect_worktree() {
+  local top common main name
+  top="$(git rev-parse --show-toplevel 2>/dev/null)" || return 0
+  common="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || return 0
+  main="$(dirname "$common")"
+  [ "$top" = "$main" ] && return 0
+  for name in "${FAMILY[@]}"; do
+    if [ "$main" = "$ROOT/$name" ]; then WT_REPO="$name" WT_PATH="$top"; return 0; fi
+  done
+}
+
+local_src() { # local_src <repo> — the checkout to build against (worktree-aware)
+  if [ "$1" = "$WT_REPO" ]; then echo "$WT_PATH"; else echo "$ROOT/$1"; fi
+}
+
 overrides() { # every family input redirected at the local checkouts
-  echo "--override-input nebelhaus path:$ROOT/nebelhaus \
-        --override-input nebelhaus/nebelung path:$ROOT/nebelung \
-        --override-input nebelhaus/pounce path:$ROOT/pounce"
+  echo "--override-input nebelhaus path:$(local_src nebelhaus) \
+        --override-input nebelhaus/nebelung path:$(local_src nebelung) \
+        --override-input nebelhaus/pounce path:$(local_src pounce)"
+}
+
+# Agent worktree bookkeeping, shared by status + ship.
+list_worktrees() { # list_worktrees <repo> — linked worktree paths, one per line
+  git -C "$(repo_dir "$1")" worktree list --porcelain 2>/dev/null \
+    | awk '$1 == "worktree" { print $2 }' | tail -n +2
+}
+unmerged_agent_branches() { # worktree-* branches not merged into the current HEAD
+  git -C "$(repo_dir "$1")" branch --list 'worktree-*' --no-merged HEAD \
+    --format='%(refname:short)' 2>/dev/null
 }
 
 cmd_status() {
@@ -84,6 +124,31 @@ cmd_status() {
     behind="$(git -C "$dir" rev-list --count 'HEAD..@{u}' 2>/dev/null || echo '?')"
     printf '  %-12s %-8s %-7s ↑%s ↓%s\n' "$name" "$branch" "$dirty" "$ahead" "$behind"
   done
+
+  # Agent worktrees + their branches — only speak up if any exist.
+  local wt_lines=""
+  for name in "${FAMILY[@]}"; do
+    local wt branch dirty
+    while IFS= read -r wt; do
+      [ -n "$wt" ] || continue
+      branch="$(git -C "$wt" branch --show-current 2>/dev/null || echo '?')"
+      dirty="$([ -n "$(git -C "$wt" status --porcelain 2>/dev/null)" ] && echo 'dirty' || echo '·')"
+      wt_lines+="$(printf '  %-12s %-24s %-6s %s' "$name" "$branch" "$dirty" "$wt")"$'\n'
+    done <<<"$(list_worktrees "$name")"
+    local b
+    for b in $(unmerged_agent_branches "$name"); do
+      # branches whose worktree is gone but whose commits aren't merged yet
+      if ! git -C "$(repo_dir "$name")" worktree list --porcelain | grep -q "branch refs/heads/$b"; then
+        wt_lines+="$(printf '  %-12s %-24s %-6s %s' "$name" "$b" "·" "(no worktree — merge or delete the branch)")"$'\n'
+      fi
+    done
+  done
+  if [ -n "$wt_lines" ]; then
+    echo
+    say "agent worktrees (isolated Claude checkouts; merge into the main checkout when done)"
+    printf '  %-12s %-24s %-6s %s\n' "repo" "branch" "dirty" "where"
+    printf '%s' "$wt_lines"
+  fi
 
   echo
   say "lock edges (is anyone consuming an old version of anyone?)"
@@ -113,6 +178,13 @@ cmd_status() {
 
 cmd_try() {
   local host; host="$(host_name)"
+  detect_worktree
+  if [ -n "$WT_REPO" ]; then
+    if [ "${1:-}" = "switch" ]; then
+      die "refusing to switch from an agent worktree of $WT_REPO — only the main checkouts get activated. Merge the branch, then try/switch from there."
+    fi
+    say "you're in an agent worktree — overriding $WT_REPO with $WT_PATH"
+  fi
   say "building $host against the LOCAL checkouts (uncommitted edits included)…"
   # shellcheck disable=SC2046
   (cd "$CONSUMER" && nix build ".#darwinConfigurations.$host.system" $(overrides))
@@ -137,6 +209,14 @@ cmd_ship() {
     if [ -n "$(git -C "$dir" status --porcelain)" ]; then
       git -C "$dir" status --short
       die "$name has uncommitted changes — commit (or stash) them first, then re-run haus ship."
+    fi
+  done
+
+  # Agent branches never block a ship (main is main), but don't let them rot silently.
+  for name in "${FAMILY[@]}"; do
+    local unmerged; unmerged="$(unmerged_agent_branches "$name" | tr '\n' ' ')"
+    if [ -n "${unmerged// /}" ]; then
+      warn "$name has unmerged agent branches (not shipping them): $unmerged"
     fi
   done
 
@@ -172,6 +252,59 @@ cmd_ship() {
   say "shipped. Apply it to this machine with: haus rebuild"
 }
 
+# ── Claude Code worktree hooks ──────────────────────────────────────────────
+# Wired into ~/.claude/settings.json as WorktreeCreate/WorktreeRemove hooks, so
+# `claude --worktree` (the zellij Ctrl-Alt-c bind) creates its isolated checkout
+# HERE instead of inside the repo (.claude/worktrees/ would pollute `haus try`'s
+# path: overrides and dirty every tree). Layout: ~/.cache/claude-worktrees/
+# <repo-basename>/<name>, branch worktree-<name>, branched from LOCAL HEAD (in
+# this house local is usually ahead of origin). Works for any repo, not just
+# the family. Contract (see Claude Code hooks docs): JSON on stdin; wt-create
+# prints the new worktree path on stdout, everything else goes to stderr.
+
+WT_BASE="$HOME/.cache/claude-worktrees"
+
+# The payload's key names have drifted across Claude Code versions (docs say
+# worktree_name/base_path; 2.1.x sends name/cwd) — accept either, first hit wins.
+hook_field() { # hook_field <json> <key>… — first key present in the payload
+  local json="$1"; shift
+  python3 -c '
+import json, sys
+d = json.load(sys.stdin)
+for k in sys.argv[1:]:
+    if k in d:
+        print(d[k]); break
+else:
+    print(f"hook payload has none of {sys.argv[1:]}: {d}", file=sys.stderr); sys.exit(1)
+' "$@" <<<"$json"
+}
+
+cmd_wt_create() {
+  local json name base dir
+  json="$(cat)"
+  name="$(hook_field "$json" name worktree_name)"
+  base="$(hook_field "$json" base_path cwd)"
+  dir="$WT_BASE/$(basename "$base")/$name"
+  git -C "$base" worktree add -b "worktree-$name" "$dir" HEAD >&2
+  echo "$dir"
+}
+
+cmd_wt_remove() {
+  local json dir main branch
+  json="$(cat)"
+  dir="$(hook_field "$json" worktree_path path)"
+  main="$(dirname "$(git -C "$dir" rev-parse --path-format=absolute --git-common-dir)")"
+  branch="$(git -C "$dir" branch --show-current 2>/dev/null || true)"
+  git -C "$main" worktree remove "$dir" 2>/dev/null \
+    || git -C "$main" worktree remove --force "$dir"
+  # The branch is how unmerged work survives pane-close; only reap it once merged
+  # (-d refuses otherwise, which is exactly the safety we want — haus status will
+  # keep nagging about the leftover until it's merged or deleted by hand).
+  if [ -n "$branch" ]; then
+    git -C "$main" branch -d "$branch" >/dev/null 2>&1 || true
+  fi
+}
+
 cmd_rebuild() {
   local host; host="$(host_name)"
   say "pinned rebuild of $host from ${CONSUMER}…"
@@ -190,8 +323,44 @@ cmd_pull() {
   done
 }
 
+cmd_release() {
+  # Cut a release: tag v<version> — read from the repo, never typed, so the
+  # tag can't drift from what the code says (CI double-checks anyway). The
+  # tag push is the button; CI does the rest: GitHub release + source tarball
+  # + a version bump in homebrew-tap (which is CI-owned — never hand-bump it).
+  # Division of labor: commits are yours, lock bumps are ship's, tags are
+  # release's, formula bumps are CI's.
+  local name="${1:-}"
+  [ -n "$name" ] || die "usage: haus release <repo>   (releasable: pounce)"
+  local verfile
+  case "$name" in
+    pounce) verfile="pkgs/pounce/default.nix" ;;
+    *) die "haus release doesn't know '$name' yet (releasable: pounce)" ;;
+  esac
+
+  local dir; dir="$(repo_dir "$name")"
+  [ -d "$dir/.git" ] || die "$name is not cloned here — haus clone"
+  [ -z "$(git -C "$dir" status --porcelain)" ] \
+    || die "$name is dirty — commit (and haus ship) first"
+  git -C "$dir" fetch -q --tags 2>/dev/null || true
+  local ahead; ahead="$(git -C "$dir" rev-list --count '@{u}..HEAD' 2>/dev/null || echo '?')"
+  [ "$ahead" = "0" ] || die "$name has unpushed commits — haus ship first, then release"
+
+  local version
+  version="$(sed -n 's/^ *version = "\([^"]*\)";.*/\1/p' "$dir/$verfile" | head -1)"
+  [ -n "$version" ] || die "couldn't read a version from $name/$verfile"
+  local tag="v$version"
+  git -C "$dir" rev-parse -q --verify "refs/tags/$tag" >/dev/null \
+    && die "$name $tag already exists — bump the version in $verfile first"
+
+  say "releasing $name $tag — pushing the tag; CI takes it from here…"
+  git -C "$dir" tag -a "$tag" -m "$name $version"
+  git -C "$dir" push origin "$tag"
+  say "watch it: https://github.com/$GH_ORG/$name/actions  (release → tap bump)"
+}
+
 cmd_clone() {
-  for name in "${FAMILY[@]}" org-profile; do
+  for name in "${FAMILY[@]}" org-profile homebrew-tap; do
     local repo="$name"
     [ "$name" = "org-profile" ] && repo=".github"
     if [ -d "$ROOT/$name/.git" ]; then
@@ -210,5 +379,9 @@ case "${1:-status}" in
   rebuild) cmd_rebuild ;;
   pull)    cmd_pull ;;
   clone)   cmd_clone ;;
-  *)       sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
+  release) cmd_release "${2:-}" ;;
+  # plumbing: Claude Code WorktreeCreate/WorktreeRemove hooks (JSON on stdin)
+  wt-create) cmd_wt_create ;;
+  wt-remove) cmd_wt_remove ;;
+  *)       sed -n '2,30p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
 esac
