@@ -60,10 +60,19 @@ points outside your toplevel):
 
 ## Rules for working here
 
-- **Test with `./haus try` before proposing a ship.** A change isn't verified
-  until the consumer config builds against it.
-- **`./haus ship` pushes to GitHub** — it's the "make it prod" button. Don't
-  run it unless the user asked to ship/push.
+- **Verify by actually running it.** `./haus try` to build, then
+  `./haus try switch` to activate on the machine — testing in prod is the
+  house style, and `darwin-rebuild` is passwordless, so drive the whole loop
+  yourself (main checkouts only; worktrees stop at `try`).
+- **Ship by default, sized to the change.** `./haus ship` pushes to GitHub.
+  Small stuff — bugfixes, typos, config/theme tweaks, docs — commit, verify,
+  ship, without asking; a verified fix left unpushed is a bug here. Big
+  stuff — new features, refactors, anything users could feel break — verify
+  it works, then stop and ask before shipping. When unsure which bucket, ask.
+- **Releases are always gated.** `./haus release` puts a version in real
+  users' hands (tag → CI → homebrew). Never run it unprompted — but DO
+  propose one after shipping user-facing changes to a tagged repo. Nudging
+  is expected; tagging is the user's call.
 - Commit in the repo you edited; `haus ship` refuses dirty trees on purpose
   (commit messages are yours/the user's, lock bumps are its).
 - **Releases ride tags, not pushes.** `./haus release pounce` tags `v<version>`
@@ -76,4 +85,6 @@ points outside your toplevel):
 - The whole life of a change: **hack** (agents draft on `worktree-*` branches)
   → **test** (`haus try`, worktree-aware) → **merge** (user folds branches into
   main) → **try switch** (main checkouts only) → **ship** → **release**
-  (tagged repos only; CI does the rest).
+  (tagged repos only; CI does the rest). For small fixes an agent in the main
+  checkout drives it straight through **ship**; features pause for the user
+  before ship; **release** always waits for the user.
