@@ -4,6 +4,8 @@
 
 **every repo in the family, in one place — and the tool that moves changes between them**
 
+![the nebelhaus family](./assets/family-showcase-rounded.png)
+
 </div>
 
 ---
