@@ -8,9 +8,12 @@ name = "nebelhaus-init"
 main = "worker.js"
 compatibility_date = "2024-11-06"
 
-# Only claim the one path — everything else on the zone is untouched.
+# Claim /init.sh AND /init.sh?<query> — the trailing * is needed because a CF
+# route without it doesn't match when a query string (?ref=…) is present, so
+# those requests would skip the Worker and hit the origin. The Worker's own
+# `pathname !== "/init.sh"` check keeps everything else a clean 404.
 routes = [
-  { pattern = "nebelhaus.com/init.sh", zone_name = "nebelhaus.com" },
+  { pattern = "nebelhaus.com/init.sh*", zone_name = "nebelhaus.com" },
 ]
 
 # Optional hard pin: uncomment and set REF to a tag to force /init.sh at that
