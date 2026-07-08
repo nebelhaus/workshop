@@ -1,0 +1,101 @@
+---
+title: How the flakes fit together
+description: The consumer config, the mkNebelhaus builder, and why pinned flake inputs mean nothing changes until you say so.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+nebelhaus is built on [Nix flakes](https://nixos.org/). You don't need to
+understand Nix deeply to use the rice, but knowing how the pieces fit makes the
+`update` / `rebuild` model click — and it's essential if you want to
+[contribute](/internals/contributing/).
+
+## Your config is a thin consumer
+
+The installer scaffolds `~/.config/nix` as a **thin consumer** of the rice. Its
+`flake.nix` imports nebelhaus as an input and calls the `mkNebelhaus` builder:
+
+```nix
+{
+  inputs.nebelhaus.url = "github:nebelhaus/nebelhaus";
+
+  outputs = { nebelhaus, ... }: {
+    darwinConfigurations.<hostname> = nebelhaus.mkNebelhaus {
+      username = "<user>";
+      hostname = "<hostname>";
+      host = ./hosts/<hostname>;
+    };
+  };
+}
+```
+
+All your personal choices live in `hosts/<hostname>/default.nix` — your
+[options](/reference/options/), your app roster, your casks. The rice stays
+upstream; you never edit it directly.
+
+## The mkNebelhaus builder
+
+`mkNebelhaus` is the rice's entry point. Given a username, hostname, and host
+file, it returns a full `darwin-darwinSystem` with every room wired up:
+
+```nix
+nebelhaus.mkNebelhaus {
+  username = "ada";
+  hostname = "fog";
+  host = ./hosts/fog;          # your identity + choices
+  system = "aarch64-darwin";   # or x86_64-darwin
+  extraModules = [ ];          # extra nix-darwin modules, optional
+}
+```
+
+It composes the rooms — `den`, `hearth`, `prowl`, `sill`, `collar`, `pounce` —
+and layers in home-manager, the [nebelung](/reference/palette/) theme, and the
+[pounce](/guides/pounce/) app. Each room is also exported individually under
+`darwinModules` (`den`, `hearth`, `prowl`, `sill`, `collar`, `pounce`, and
+`default` for all of them) if you'd rather cherry-pick.
+
+## The inputs
+
+The rice flake pulls together:
+
+- `nixpkgs` (unstable) — the package set
+- `nix-darwin` — macOS system modules
+- `home-manager` — your user environment
+- `catppuccin` — the theme framework
+- `nebelung` — the silver-mist palette (a family input)
+- `pounce` — the launcher app (a family input)
+- `nix-index-database` — for `nix-index` + `comma`
+
+## Why pins mean "nothing changes until you say so"
+
+Each input is recorded in `flake.lock` as an **exact commit hash**, not "latest".
+That's what makes a rebuild reproducible — the same lock produces the same system
+on any machine, any day.
+
+The flip side, and the thing that surprises everyone: pushing a change to
+nebelung or the rice changes **nothing** on your machine until your `flake.lock`
+is bumped to point at the new commit. A colour change therefore ripples like
+this across the family:
+
+```
+nebelung ──────────────┐
+   │                   │
+   ▼                   ▼
+ pounce ─────────► nebelhaus ─────────► ~/.config/nix ───► your Mac
+```
+
+<Aside type="tip" title="haus update does the ripple for you">
+As an end user you never walk this by hand — `haus update` bumps your pin to the
+latest nebelhaus (which already has its own inputs pinned) and rebuilds. Family
+*contributors* use the workshop's `haus ship` to ripple a change all the way
+down the chain; see [Contributing](/internals/contributing/).
+</Aside>
+
+## Cold-boot safety
+
+One subtlety worth knowing if you ever debug a login issue: Determinate Nix
+lives on a separate APFS volume, and macOS sometimes tries to launch the rice's
+GUI agents (AeroSpace, SketchyBar, Pounce) before that volume mounts or before
+the GUI event manager is ready. The rice wraps each agent in a small
+`gui-wait` shim that polls for Dock/Finder/SystemUIServer readiness before
+exec'ing — which is why your bar and tiling reliably come back after a reboot.

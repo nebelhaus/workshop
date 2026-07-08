@@ -1,0 +1,92 @@
+---
+title: Contributing & worktrees
+description: How the family repos fit together, the workshop haus CLI, and the hack → test → ship → release flow.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Want to hack on nebelhaus itself — the rice, the launcher, or the palette? This
+page covers how the family is developed. (To just *use* nebelhaus, you never need
+any of this — see [Keeping in sync](/guides/staying-in-sync/).)
+
+## The workshop
+
+The [workshop repo](https://github.com/nebelhaus/workshop) is a parent directory
+that holds every family repo checked out side by side, plus a `haus` dev CLI (a
+different tool from the [end-user `haus`](/reference/haus/)). Clone it and pull
+the family:
+
+```sh
+git clone https://github.com/nebelhaus/workshop.git ~/code/nebelhaus
+cd ~/code/nebelhaus && ./haus clone
+```
+
+You end up with `nebelung/`, `pounce/`, `nebelhaus/`, and friends as independent
+git repos, with the `haus` script sitting above them.
+
+## Where a change goes
+
+Each change belongs to exactly one repo. Start in the right one:
+
+| Change | Repo |
+|---|---|
+| colours / palette / how a tool is themed | `nebelung` |
+| the launcher app or a generic command | `pounce` |
+| macOS defaults, tiling, bar, shell, Touch ID | `nebelhaus` |
+| your own machine's apps / identity / secrets | `~/.config/nix` |
+
+## The dev loop: try without pushing
+
+The important trick is that you never have to push to *see* a change. The
+workshop `haus try` builds your real machine config against the **local
+checkouts** — uncommitted edits and all — using Nix `--override-input`:
+
+```sh
+# edit anything in nebelung/, pounce/, nebelhaus/…
+./haus try            # does it build? (nothing pushed, nothing activated)
+./haus try switch     # run it on this Mac (still nothing pushed)
+```
+
+When you're happy, commit in the repos you touched and let `haus ship` ripple
+the change downstream — pushing each repo and bumping every `flake.lock` in
+dependency order, so a colour change in nebelung reaches your Mac without you
+hand-walking the [pin chain](/internals/flakes/#why-pins-mean-nothing-changes-until-you-say-so):
+
+```sh
+./haus ship
+```
+
+`./haus status` shows every repo's git state and every stale lock edge at a
+glance.
+
+## Parallel agents & worktrees
+
+nebelhaus is built to be hacked on by several [Claude Code](https://claude.com/claude-code)
+agents at once. Each agent runs in its own **git worktree** — a separate checkout
+on a `worktree-<name>` branch, living outside the repo — so agents never yank the
+branch out from under each other. The workshop's `haus wt-create` / `wt-remove`
+plumb this into Claude Code's worktree hooks, and `haus try` is worktree-aware:
+run from inside a worktree, it builds against *that* branch, so a change can prove
+it builds before anyone merges it.
+
+## The whole life of a change
+
+```
+hack ──► test ──► try ──► merge ──► ship ──► release
+```
+
+1. **hack** — edit in place, or let agents draft on `worktree-*` branches.
+2. **test** — `./haus try` builds your machine against the local checkouts.
+3. **merge** — fold the branches you like into `main`.
+4. **ship** — `./haus ship` pushes upstream→downstream, rippling every lock.
+5. **release** — for pounce: bump the version and `./haus release pounce`; CI
+   publishes the GitHub release and bumps the Homebrew formula.
+
+<Aside type="note" title="Releases ride tags">
+`haus release <repo>` tags `v<version>` (read from the repo). CI does the rest —
+the GitHub release and the `homebrew-tap` bump. Never hand-edit the formula's
+url/sha; bump the version in the source first, then release.
+</Aside>
+
+Each repo carries its own `CLAUDE.md` with the deep rules for that boundary —
+start there when working inside one.

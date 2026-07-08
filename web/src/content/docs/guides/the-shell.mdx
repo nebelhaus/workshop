@@ -1,0 +1,107 @@
+---
+title: The shell (hearth)
+description: The terminal experience — Ghostty, zellij, zsh, starship, yazi, helix, and a toolbelt of themed CLI tools.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+**hearth** is the cozy terminal room. It sets up the whole command-line
+experience — the terminal emulator, the multiplexer, the shell, the prompt, the
+file manager, the editor, and a toolbelt of modern CLI replacements — every one
+of them painted in [nebelung](/reference/palette/) colours.
+
+## The stack
+
+| Layer | Tool | Notes |
+|---|---|---|
+| Terminal | [Ghostty](https://ghostty.org) | font size 19, title bar hidden, auto-attaches to zellij |
+| Multiplexer | [zellij](https://zellij.dev) | custom tab bar + status bar, spiral/columns/grid layouts |
+| Shell | zsh | oh-my-zsh (git, sudo), fzf-tab, sensible history |
+| Prompt | [starship](https://starship.rs) | nebelung-tinted |
+| File manager | [yazi](https://yazi-rs.github.io) | markdown & code previews, image previews via chafa |
+| Editor | [helix](https://helix-editor.com) | the default `$EDITOR`, nebelung theme |
+| Jumper | [zoxide](https://github.com/ajeetdsouza/zoxide) | frecency `cd`, `cdi` for an fzf picker |
+
+Plus a themed toolbelt: `bat` (aliased over `cat`), `lsd` (over `ls`), `lazygit`
+(`lg`), `delta` for git diffs, `fzf`, `fd`, `jq`, `gh`, `glow`, `fastfetch`, and
+`nix-index` + `comma` so you can run any nixpkgs command on demand.
+
+## Ghostty opens into zellij
+
+Launching Ghostty drops you straight into a persistent zellij session called
+`main`. New panes and tabs inherit your working directory. A few conveniences:
+
+- Ghostty's `⌘T`, `⌘P`, `⌘Y`, `⌘C` and friends are **unbound** on purpose —
+  zellij owns those, so the same keys work whether or not you're multiplexed.
+- `Ctrl-Tab` / `Ctrl-Shift-Tab` cycle tabs (Ghostty forwards the kitty-protocol
+  encoding so zellij sees them).
+
+### zellij keybindings
+
+| Keys | Action |
+|---|---|
+| `Super P` | New pane (inherits cwd) |
+| `Super T` | New tab at `$HOME` |
+| `Super ⇧T` | New tab, pick the directory via a floating yazi |
+| `Super Y` | **yazi peek** — a floating, read-only browser with live previews |
+| `Super ⇧Y` | **yazi jump** — browse, then drop a shell in the landing directory |
+| `Ctrl Tab` / `Ctrl ⇧Tab` | Next / previous tab |
+| `Alt <` / `Alt >` | Cycle swap layouts (spiral → columns → grid) |
+
+<Aside type="tip" title="Option-click a path">
+A custom zellij link handler means <kbd>Option</kbd>-clicking a file path in the
+terminal opens a **new tab already `cd`'d there**. Great for jumping into a path
+a build tool just printed.
+</Aside>
+
+### Layouts
+
+zellij ships three swap layouts, cycled with `Alt <` / `Alt >`:
+
+- **Spiral** (default) — balanced 50/50 nesting, largest pane top-left.
+- **Columns** — equal full-height columns side by side.
+- **Grid** — the most balanced square arrangement, every pane equal area.
+
+## yazi previews
+
+yazi is set up for fast previewing: markdown renders through `glow`, code through
+`bat` (syntax-highlighted), and images through `chafa` near-fullscreen inside
+zellij. Press `Y` to copy a file's *contents* (not just its path), and `Esc` to
+close a floating peek.
+
+## Choosing your editor
+
+helix is the default. To switch, set `nebelhaus.hearth.editor` in your host file:
+
+```nix
+nebelhaus.hearth.editor = "nvim";     # any terminal editor
+# GUI editors work if they block, e.g. "code -w"
+```
+
+Two related knobs:
+
+- **`nebelhaus.hearth.guiEditor`** — a bundle id (e.g.
+  `"com.microsoft.VSCode"`) used by the "Nix Config" palette command and menu
+  items.
+- **`nebelhaus.hearth.hijackFileAssociations`** — off by default; when `true`,
+  makes helix the default opener for `.json`, `.md`, `.ts`, `.nix`, and similar
+  via [`duti`](https://github.com/moretension/duti).
+
+## Handy shell touches
+
+- **zoxide** — `cd` learns your habits; `cdi` opens an fuzzy picker of your
+  frequent directories.
+- **Auto-renaming tabs** — `cd` into a repo and the zellij tab renames itself
+  after it.
+- **Claude Code aware** — new shells opened inside a
+  `~/.cache/claude-worktrees` checkout hop to the parent repo automatically.
+- **`nebelhaus.hearth.newTabDirs`** — pin a shortlist of home-relative
+  directories for the `Super ⇧T` picker instead of browsing all of `$HOME`:
+
+  ```nix
+  nebelhaus.hearth.newTabDirs = [ "code" ".config" ];
+  ```
+
+See [Theming & accents](/guides/theming/) for how every tool above gets its
+colours, and the [options reference](/reference/options/#nebelhaushearth) for
+every hearth knob.

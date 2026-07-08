@@ -1,0 +1,123 @@
+---
+title: Pounce — the launcher
+description: A native, keyboard-first command palette for macOS. Summon, aim, pounce — and every command is just a file.
+---
+
+import { Aside, Card, CardGrid } from '@astrojs/starlight/components';
+
+**Pounce** is a native, scriptable command palette for macOS — a fast,
+dmenu-style picker you summon with a hotkey. Hit **⌘Space**, fuzzy-type, hit
+**Return**. It launches apps, runs commands, and hosts a handful of built-in
+modes (clipboard, emoji, screenshots, and more).
+
+Its whole personality is one idea: **every command is a file.** Drop a shell
+script in a folder and it's in the palette — no plugin API, no extension store,
+no account.
+
+<Aside type="note" title="Standalone or part of the rice">
+Pounce is a full member of the [family](/start/the-family/) but installs on its
+own from Homebrew — no Nix required. Inside nebelhaus, the `pounce` module wires
+it up as a login daemon and re-signs it so its permissions survive rebuilds.
+</Aside>
+
+## Summon it
+
+- **⌘Space** — the default hotkey. Registered in-process by the daemon, so it
+  opens instantly. (nebelhaus disables Spotlight's ⌘Space so Pounce can own it.)
+- Change it in [config](/reference/pounce/#config-file): the `hotkey` object
+  takes a `key` and `modifiers`.
+
+## What you can do
+
+<CardGrid>
+  <Card title="Launch apps" icon="rocket">
+    Type a few letters — `saf` → Safari. Freshly-installed apps get boosted so
+    they're easy to find right after install.
+  </Card>
+  <Card title="Run commands" icon="seti:shell">
+    Your scripts and the built-ins appear alongside apps, ranked by how often
+    you use them.
+  </Card>
+  <Card title="Clipboard history" icon="clipboard">
+    Browse and restore recent copies in a two-pane view; optionally auto-paste
+    into the app you came from.
+  </Card>
+  <Card title="Emoji, screenshots, more" icon="star">
+    Built-in modes for an emoji grid, a screenshot browser, a camera peek, and a
+    searchable cheatsheet.
+  </Card>
+</CardGrid>
+
+## Navigating the palette
+
+| Key | Action |
+|---|---|
+| Type | Fuzzy-search in real time |
+| `↑` / `↓` | Move the selection |
+| `Return` | Run the default action |
+| `⌘Return` | The modifier action (often "Reveal in Finder" for apps) |
+| `⌥Return` / `⌃Return` | Alternate actions, when shown |
+| `Tab` | Cycle sections (or emoji categories) |
+| `Esc` | Dismiss |
+
+The action bar at the bottom always shows which modifiers do what for the
+selected row, so you don't have to memorize them.
+
+## How ranking works
+
+Results are ordered by a blend of three signals, so the thing you want is
+usually already on top:
+
+1. **Fuzzy match quality** — consecutive runs, matches at word boundaries, and
+   how much of the name your query covers all score higher. Titles count double
+   subtitles.
+2. **Frecency** — frequency × recency, with a 72-hour half-life. The apps and
+   commands you actually use float up.
+3. **Freshly-installed boost** — apps installed in the last week get a temporary
+   bump (halving every two days) so new installs are easy to find.
+
+## Two-step commands (submenus)
+
+Some commands open a second picker instead of acting immediately — "Wi-Fi" lists
+networks, "Force Quit" lists processes. Pounce swaps the list **in place** with
+no window flicker. Any command you write can do this by declaring
+`# pounce: submenu = true`. See [Writing pounce commands](/guides/pounce-commands/).
+
+## Built-in commands
+
+Out of the box you get: **Activity Monitor**, **Brew Services**, **Camera**,
+**Clipboard History**, **Emoji**, **Force Quit**, **Lock Screen**, **System
+Settings**, **Screenshots**, and **Wi-Fi**. Each is just a script you can read,
+copy, or replace.
+
+## Install it standalone
+
+```sh
+brew tap nebelhaus/tap
+brew install pounce
+brew services start pounce        # start the daemon
+pounce --request-accessibility    # one-time, for paste-back features
+```
+
+Or with Nix: `nix run github:nebelhaus/pounce -- --help`.
+
+## Grant Accessibility (for paste-back)
+
+Clipboard auto-paste and emoji paste synthesize a ⌘V into your previous app,
+which macOS gates behind Accessibility:
+
+```sh
+pounce --request-accessibility    # approve the dialog
+pounce --check-accessibility      # prints true when granted
+```
+
+<Aside type="caution" title="Nix rebuilds and Accessibility">
+Nix builds are ad-hoc signed, so a plain rebuild would drop the Accessibility
+grant. Inside nebelhaus, set `nebelhaus.pounce.signingIdentity` and the rice
+re-signs a stable copy of the app with your identity, so the grant persists. See
+[Pounce config](/reference/pounce/).
+</Aside>
+
+Full configuration, CLI flags, and file paths are on the
+[Pounce config & CLI](/reference/pounce/) reference. To extend it, head to
+[Writing pounce commands](/guides/pounce-commands/).

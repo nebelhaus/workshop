@@ -1,0 +1,122 @@
+---
+title: Window management (prowl)
+description: Tiling windows and the Caps-Lock launcher — how prowl arranges your Mac like a keyboard-driven tiling rig.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+**prowl** is the tiling room. It wraps
+[AeroSpace](https://github.com/nikitabobko/AeroSpace) — a tiling window manager
+for macOS — and adds a **Caps-Lock leader** so you can launch, focus, move, and
+resize windows without ever reaching for the mouse or a far-flung modifier.
+
+Windows arrange themselves into a tree; the keyboard moves them around it. It
+feels like a tiling Linux rig, but it's native macOS windows underneath.
+
+## The leader key: Caps-Lock
+
+prowl remaps **Caps-Lock to F18** and uses it as a leader. There are two ways to
+use it:
+
+- **Tap ⇪** (press and release) → enter **launch mode**: the bar morphs into
+  letter-hint bubbles, and pressing an app's letter launches or focuses it.
+- Launch mode is also the gateway to **resize mode** and quick palette actions.
+
+Meanwhile, `⌥` (Option/Alt) is the everyday tiling modifier for focus and
+workspaces, and a wide `⌥⇧⌘⌃` "hyper" chord moves windows.
+
+## Everyday tiling — main mode
+
+| Keys | Action |
+|---|---|
+| `⌥H` `⌥J` `⌥K` `⌥L` | Focus left / down / up / right |
+| `⌥⇧⌘⌃ ←↓↑→` | Move the focused window in a direction |
+| `⌥⇧⌘⌃ -` / `⌥⇧⌘⌃ =` | Resize the tiled window by ∓50 |
+| `⌥/` | Toggle layout: tiles ↔ vertical |
+| `⌥,` | Toggle layout: accordion ↔ vertical |
+| `⌥1`–`⌥4` | Focus workspace 1–4 |
+| `⌥⇧1`–`⌥⇧4` | Move window to workspace 1–4 |
+| `⌥⇧<app-key>` | Throw the window to that app's home workspace |
+| `⌥Tab` | Jump to the previous workspace (back-and-forth) |
+| `⌥⇧Tab` | Move the workspace to the next monitor |
+| `⌥⇧;` | Enter **service mode** |
+| `⌘Space` | Open [Pounce](/guides/pounce/) |
+
+## Launch mode — tap ⇪
+
+Tap Caps-Lock, then:
+
+| Key | Action |
+|---|---|
+| `<app-key>` | Launch or focus that app (e.g. `T` = Ghostty, `B` = Zen) |
+| `-` / `=` | Enter **resize mode** (shrink / grow) |
+| `V` | Clipboard history (via Pounce) |
+| `E` | Emoji picker (via Pounce) |
+| `/` | Show the cheatsheet |
+| `Esc` | Exit launch mode |
+
+**Resize mode** is a small delight: once you're in it, you can press `-` or `=`
+repeatedly without re-tapping the leader. `Esc` or `Enter` exits.
+
+## Service mode — ⌥⇧;
+
+For the less-frequent structural operations:
+
+| Key | Action |
+|---|---|
+| `R` | Flatten the workspace tree |
+| `F` | Toggle floating ↔ tiling for the window |
+| `Backspace` | Close all windows except the current one |
+| `⌥⇧H/J/K/L` | Join with the neighbour in that direction |
+| `↑` / `↓` | Volume up / down |
+| `⇧↓` | Mute |
+| `Esc` | Reload config and exit |
+
+## Your app roster
+
+The launcher letters, workspace assignments, and the bar's workspace pills all
+come from **one list**: `nebelhaus.prowl.apps`. Out of the box it's just a
+terminal (`T`) and a browser (`B`). Add your own:
+
+```nix
+nebelhaus.prowl.apps = [
+  { key = "s"; name = "Slack"; workspace = "S";
+    appId = "com.tinyspeck.slackmacgap"; barIcon = ":slack:";
+    label = "Slack"; cask = "slack"; }
+  { key = "d"; name = "Discord"; workspace = "D";
+    appId = "com.hnc.Discord"; barIcon = ":discord:"; cask = "discord"; }
+];
+```
+
+Each field:
+
+- **`key`** — the launcher letter (unique across the roster).
+- **`name`** — the macOS app name (`open -a` uses it).
+- **`workspace`** — the AeroSpace workspace letter; `null` means launcher-only,
+  no dedicated workspace.
+- **`appId`** — the bundle id, used to auto-assign the app's windows to its
+  workspace. Find it with `osascript -e 'id of app "Slack"'`. `null` skips
+  auto-assign.
+- **`barIcon`** — the [SketchyBar app-font](https://github.com/kvndrsslr/sketchybar-app-font)
+  ligature (e.g. `:slack:`) shown in the bar; `null` falls back to the workspace
+  letter.
+- **`label`** — the cheatsheet caption; `null` uses `name`.
+- **`cask`** — a Homebrew cask to install it; `null` if it's already installed.
+
+Rebuild with `haus rebuild` and your new letters, workspaces, and bar pills all
+appear together.
+
+<Aside type="tip" title="Windows untangle after sleep">
+macOS loves to scramble window positions when the machine wakes. prowl installs
+a wake watcher that re-sorts windows to their workspaces automatically — and you
+can trigger it yourself any time with `⌥⇧R`.
+</Aside>
+
+## Turning it off
+
+Don't want tiling? Set `nebelhaus.prowl.enable = false;` and the Caps-Lock
+remap, launcher, and AeroSpace all stay out of your way. The rest of the rice
+still works.
+
+The complete, always-current binding list — including the terminal and Pounce —
+is on the [Keybindings cheatsheet](/reference/keybindings/).

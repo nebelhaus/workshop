@@ -1,20 +1,30 @@
-# Cloudflare Worker for nebelhaus.com — serves the install one-liner:
-#   curl -fsSL https://nebelhaus.com/init.sh | bash
+# Cloudflare Worker for nebelhaus.com. One Worker serves three things:
+#   /init.sh         the install one-liner  (curl -fsSL https://nebelhaus.com/init.sh | bash)
+#   /                the landing page       (Astro)
+#   /docs, /guides…  the docs               (Starlight)
 #
-# Deploy (the nebelhaus.com zone must be on the logged-in Cloudflare account):
-#   nix run nixpkgs#wrangler -- login          # once, opens a browser
-#   cd web && nix run nixpkgs#wrangler -- deploy
-name = "nebelhaus-init"
+# The site is a static Astro build in ./dist, served by the [assets] binding.
+# worker.js only handles /init.sh; the [assets] binding serves everything else.
+#
+# Build then deploy (the nebelhaus.com zone must be on the logged-in CF account):
+#   cd web && npm ci && npm run build
+#   nix run nixpkgs#wrangler -- deploy        # or: npx wrangler deploy
+name = "nebelhaus"
 main = "worker.js"
 compatibility_date = "2024-11-06"
 
-# Claim /init.sh AND /init.sh?<query> — the trailing * is needed because a CF
-# route without it doesn't match when a query string (?ref=…) is present, so
-# those requests would skip the Worker and hit the origin. The Worker's own
-# `pathname !== "/init.sh"` check keeps everything else a clean 404.
+# The whole apex zone routes through this Worker. Static assets short-circuit
+# first; only /init.sh (and any non-asset path) reaches worker.js.
 routes = [
-  { pattern = "nebelhaus.com/init.sh*", zone_name = "nebelhaus.com" },
+  { pattern = "nebelhaus.com/*", zone_name = "nebelhaus.com" },
 ]
+
+# The static Astro/Starlight build. `binding = "ASSETS"` also lets worker.js
+# fall back to env.ASSETS.fetch(). 404s render Starlight's own 404 page.
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "404-page"
 
 # Optional hard pin: uncomment and set REF to a tag to force /init.sh at that
 # ref for everyone, regardless of the latest release. Left unset, the Worker

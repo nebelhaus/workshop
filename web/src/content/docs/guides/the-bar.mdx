@@ -1,0 +1,75 @@
+---
+title: The bar (sill)
+description: The SketchyBar status bar — workspace pills, weather, media, and how it reflects your tiling in real time.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+**sill** replaces the macOS menu bar with
+[SketchyBar](https://github.com/FelixKratz/SketchyBar) — a fully scriptable
+status bar tuned to the [nebelung](/reference/palette/) palette and wired to your
+[tiling](/guides/window-management/). When sill is on, the native menu bar is
+hidden so the bar is the single source of glanceable state.
+
+## What's on the bar
+
+**Left — workspace pills.** One pill per workspace in your
+[app roster](/guides/window-management/#your-app-roster). A pill shows either
+its workspace letter or the app's bar icon (e.g. `:slack:`), and the focused
+workspace is highlighted. The front app's title sits alongside.
+
+**Right — the status cluster (always on):**
+
+- **Clock** and **battery**
+- **Wi-Fi** state
+- **Weather** — a compact pill that opens a full popover on click
+- **Media** — the currently-playing track, scrolling
+- **CPU / memory** load
+
+The pills react live: switch workspaces and the highlight follows; tap the
+Caps-Lock leader and the whole bar flips into launcher letter-mode.
+
+## The weather popover
+
+Click the weather pill and a popover blooms open with the full picture:
+location, condition, current and feels-like temperature, sunrise/sunset, wind,
+humidity, UV, an hourly strip, and a three-day forecast. It's one of the bar's
+nicer flourishes and a good demo of what SketchyBar can do.
+
+## Optional personal plugins
+
+Two extras are **off by default** because each targets one person's hardware or
+service. Enable them explicitly:
+
+```nix
+nebelhaus.sill.plugins = [ "elgato" "harvest" ];
+```
+
+- **`elgato`** — a pill that toggles an Elgato Key Light on your local network.
+- **`harvest`** — a [Harvest](https://www.getharvest.com/) time-tracking pill.
+
+Both read credentials from a file **you** provide at
+`~/.config/sketchybar/harvest_secrets.sh`, so no secrets live in the rice.
+
+<Aside type="note" title="Secrets stay out of Nix">
+sill never bakes tokens into the store. The optional plugins source your
+`harvest_secrets.sh` at runtime — keep that file out of git.
+</Aside>
+
+## Turning it off
+
+```nix
+nebelhaus.sill.enable = false;
+```
+
+With sill disabled, the native macOS menu bar is shown again (the rice only
+hides it when sill is on). Tiling and the rest of the rice are unaffected.
+
+## Under the hood
+
+sill is generated entirely from your config. On rebuild it writes
+`~/.config/sketchybar/` — the main `sketchybarrc`, a `colors.sh` exporting the
+nebelung palette as `0xAARRGGBB` values, a `workspaces.sh` built from your app
+roster, and a `plugins/` directory of small shell scripts (one per bar item).
+The palette and your roster are the single sources of truth, so the bar always
+matches the rest of the system.

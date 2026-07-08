@@ -1,0 +1,129 @@
+/* nebelung.css — repaints Starlight in the Nebelung palette (silver-mist
+   Catppuccin variant). Every hex here is a real Nebelung color; see
+   nebelung/palette/nebelung.hex.json. Mauve is the family's default accent. */
+
+:root {
+  /* ---- Nebelung neutral ramp (light → dark) ---- */
+  --neb-text: #d7d7d7;
+  --neb-subtext1: #c3c3c3;
+  --neb-subtext0: #aeaeae;
+  --neb-overlay2: #9a9a9a;
+  --neb-overlay1: #858585;
+  --neb-overlay0: #717171;
+  --neb-surface2: #5c5c5c;
+  --neb-surface1: #494949;
+  --neb-surface0: #343434;
+  --neb-base: #202020;
+  --neb-mantle: #191919;
+  --neb-crust: #121212;
+
+  /* ---- Nebelung accents ---- */
+  --neb-rosewater: #f3e1dd;
+  --neb-flamingo: #efcece;
+  --neb-pink: #f2c4e5;
+  --neb-mauve: #c9a8f1;
+  --neb-red: #ed8fa9;
+  --neb-maroon: #e6a3ad;
+  --neb-peach: #f5b58e;
+  --neb-yellow: #f7e2b5;
+  --neb-green: #abe1a6;
+  --neb-teal: #9be0d5;
+  --neb-sky: #91dbe8;
+  --neb-sapphire: #7dc6e7;
+  --neb-blue: #8db4f3;
+  --neb-lavender: #b5bff8;
+}
+
+/* ---- Dark theme (the default; the fog) ---- */
+:root,
+:root[data-theme='dark'] {
+  /* accent ramp keyed to mauve */
+  --sl-color-accent-low: #2a2140;
+  --sl-color-accent: #8a63c9;
+  --sl-color-accent-high: #d8c4f5;
+
+  --sl-color-white: #f0f0f0;
+  --sl-color-gray-1: var(--neb-subtext1);
+  --sl-color-gray-2: var(--neb-subtext0);
+  --sl-color-gray-3: var(--neb-overlay1);
+  --sl-color-gray-4: var(--neb-surface2);
+  --sl-color-gray-5: var(--neb-surface0);
+  --sl-color-gray-6: var(--neb-mantle);
+  --sl-color-black: var(--neb-base);
+
+  --sl-color-text: var(--neb-text);
+  --sl-color-text-accent: var(--neb-mauve);
+  --sl-color-bg: var(--neb-base);
+  --sl-color-bg-nav: rgba(25, 25, 25, 0.72);
+  --sl-color-bg-sidebar: var(--neb-mantle);
+  --sl-color-bg-inline-code: var(--neb-surface0);
+  --sl-color-hairline-light: var(--neb-surface0);
+  --sl-color-hairline: rgba(52, 52, 52, 0.6);
+  --sl-color-hairline-shade: var(--neb-crust);
+
+  --sl-color-backdrop-overlay: rgba(18, 18, 18, 0.7);
+
+  /* semantic asides in muted Nebelung accents */
+  --sl-color-green: var(--neb-green);
+  --sl-color-green-low: #23301f;
+  --sl-color-green-high: #cdeccb;
+  --sl-color-blue: var(--neb-blue);
+  --sl-color-blue-low: #1f2a3f;
+  --sl-color-blue-high: #c6d7f8;
+  --sl-color-purple: var(--neb-mauve);
+  --sl-color-purple-low: #2a2140;
+  --sl-color-purple-high: #d8c4f5;
+  --sl-color-red: var(--neb-red);
+  --sl-color-red-low: #3a2027;
+  --sl-color-red-high: #f6c7d2;
+  --sl-color-orange: var(--neb-peach);
+  --sl-color-orange-low: #382619;
+  --sl-color-orange-high: #f8d5bd;
+}
+
+/* ---- Light theme (a pale fog, for the few who want it) ---- */
+:root[data-theme='light'] {
+  --sl-color-accent-low: #e9def7;
+  --sl-color-accent: #7c53bd;
+  --sl-color-accent-high: #2f2247;
+
+  --sl-color-white: #1c1c1c;
+  --sl-color-gray-1: #2a2a2a;
+  --sl-color-gray-2: #3a3a3a;
+  --sl-color-gray-3: #5c5c5c;
+  --sl-color-gray-4: #8a8a8a;
+  --sl-color-gray-5: #c6c6c6;
+  --sl-color-gray-6: #e6e6e6;
+  --sl-color-gray-7: #f2f2f2;
+  --sl-color-black: #fbfbfb;
+
+  --sl-color-text-accent: #7c53bd;
+  --sl-color-bg-nav: rgba(246, 246, 246, 0.75);
+}
+
+/* Warmer type rhythm, tuned to the muted palette */
+:root {
+  --sl-text-code: 0.9em;
+}
+
+.sl-markdown-content a:not(:where(.not-content *)) {
+  color: var(--neb-mauve);
+  text-underline-offset: 0.2em;
+}
+.sl-markdown-content a:hover:not(:where(.not-content *)) {
+  color: var(--neb-lavender);
+}
+
+/* Site title: subtle fog gradient */
+.site-title span:not(.sr-only) {
+  background: linear-gradient(120deg, var(--neb-text), var(--neb-mauve));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 650;
+}
+
+/* Inline code a touch softer */
+.sl-markdown-content code:not(:where(.not-content *)) {
+  border: 1px solid var(--neb-surface0);
+}

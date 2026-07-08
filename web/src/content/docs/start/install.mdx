@@ -1,0 +1,160 @@
+---
+title: Install
+description: The one-liner, exactly what it does, and how to run it safely — from a fresh Mac to a fully built system.
+---
+
+import { Steps, Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+The entire install is one line:
+
+```sh
+curl -fsSL https://nebelhaus.com/init.sh | bash
+```
+
+That scaffolds your config and installs Nix if you don't have it. It does **not**
+change your system on its own — it writes files and then tells you the one
+command that activates them. Nothing is switched until you run that command.
+
+## What you need first
+
+- A **Mac** running a recent macOS (Apple Silicon or Intel).
+- **Xcode Command Line Tools.** The installer will trigger the install prompt if
+  they're missing, then ask you to re-run.
+- About **10–15 minutes** and a few GB of download for the first build.
+
+<Aside type="tip" title="No Nix? No problem.">
+You do not need Nix installed beforehand. The bootstrap installs
+[Determinate Nix](https://docs.determinate.systems/) for you. If you already run
+stock Nix, the installer will stop and explain — nebelhaus expects Determinate.
+</Aside>
+
+## Reading it first (recommended)
+
+`curl … | bash` runs whatever the URL serves. `nebelhaus.com/init.sh` only
+**proxies** the rice's [`bootstrap.sh`](https://github.com/nebelhaus/nebelhaus/blob/main/bootstrap.sh)
+from this org's own repo — it's boring and readable on purpose. To inspect it
+before running:
+
+```sh
+# print it instead of running it
+curl -fsSL https://nebelhaus.com/init.sh | less
+
+# or pin an exact release tag and diff it against GitHub
+curl -fsSL 'https://nebelhaus.com/init.sh?ref=v0.1.0' | less
+```
+
+By default the one-liner serves the **latest release tag**; before the first
+release it falls back to `main`. Add `?ref=vX.Y.Z` to pin a specific version.
+
+## What the bootstrap does
+
+<Steps>
+
+1. **Preflight.** Confirms you're on macOS, reads your username and hostname,
+   and takes a [Time Machine local snapshot](https://support.apple.com/en-ca/guide/mac-help/mh35836/mac)
+   as a coarse rewind point (non-fatal if Time Machine is off).
+
+2. **Prerequisites.** Checks for Xcode CLT (prompts if missing) and installs
+   Determinate Nix if `/nix` isn't already set up. It refuses to run on top of a
+   non-Determinate Nix install rather than risk breaking it.
+
+3. **Interview.** A short [gum](https://github.com/charmbracelet/gum) TUI asks
+   for your **git name and email**, which **rooms** you want (sill, prowl,
+   pounce — all on by default), your **accent colour** (default `mauve`), and
+   your **`$EDITOR`** (default `hx`). All of these have environment-variable
+   overrides for non-interactive runs (see below).
+
+4. **Preflight audit.** A read-only report of what the first `switch` will
+   change: existing Homebrew casks (**none are removed**), dotfiles that will be
+   backed up, and the macOS settings that will change (Dock autohide, key
+   repeat, Caps-Lock remap if prowl is on, ⌘Space reassignment if pounce is on).
+
+5. **Scaffold.** Creates `~/.config/nix/` with a thin `flake.nix` that imports
+   `github:nebelhaus/nebelhaus`, plus a `hosts/<hostname>/default.nix` holding
+   your identity and choices. It `git init`s and commits the result.
+
+</Steps>
+
+Nothing is activated yet. The bootstrap ends by printing the build command.
+
+## Build and switch
+
+```sh
+cd ~/.config/nix
+nix build .#darwinConfigurations.$(scutil --get LocalHostName).system \
+  && sudo ./result/sw/bin/darwin-rebuild switch --flake .
+```
+
+The `build` runs first; a failed build never touches your system. Once it
+succeeds, `switch` activates everything: apps install, background agents start,
+dotfiles land, and the `haus` command joins your `PATH`. First run takes a while
+— it's downloading the world. Subsequent rebuilds are fast.
+
+Then head to [First run](/start/first-run/) to learn the muscle memory.
+
+## Non-interactive / scripted installs
+
+Every interview answer has an environment-variable override, so you can run the
+whole thing unattended:
+
+```sh
+NEBELHAUS_NONINTERACTIVE=1 \
+NEBELHAUS_GIT_NAME="Ada Lovelace" \
+NEBELHAUS_GIT_EMAIL="ada@example.com" \
+NEBELHAUS_ROOMS="sill,prowl,pounce" \
+NEBELHAUS_ACCENT="mauve" \
+NEBELHAUS_EDITOR="hx" \
+bash -c "$(curl -fsSL https://nebelhaus.com/init.sh)"
+```
+
+Other useful knobs:
+
+| Variable / flag | Effect |
+|---|---|
+| `NEBELHAUS_DRY_RUN=1` | Print the generated config instead of writing it |
+| `NEBELHAUS_NONINTERACTIVE=1 … --defaults` | Skip the interview, accept all defaults |
+| `NEBELHAUS_DIR` | Scaffold somewhere other than `~/.config/nix` |
+
+<Aside type="caution" title="Your undo cards">
+Two things can roll you back: the **APFS snapshot** taken at step 1 restores
+macOS settings, and `sudo darwin-rebuild --rollback` atomically returns to the
+previous generation. Homebrew apps are **never** deleted by the rice — remove
+them yourself with `brew uninstall --zap <cask>` if you want to.
+</Aside>
+
+## Just want one piece?
+
+You don't have to take the whole rice:
+
+<Tabs>
+  <TabItem label="pounce (Homebrew)">
+
+```sh
+brew tap nebelhaus/tap
+brew install pounce
+brew services start pounce
+pounce --request-accessibility
+```
+
+  </TabItem>
+  <TabItem label="pounce (Nix)">
+
+```sh
+nix run github:nebelhaus/pounce -- --help
+```
+
+  </TabItem>
+  <TabItem label="nebelung (colours)">
+
+Add the flake and pull rendered themes for any tool:
+
+```nix
+inputs.nebelung.url = "github:nebelhaus/nebelung";
+# then reference ${nebelung.packages.${system}.default}/<tool>/...
+```
+
+  </TabItem>
+</Tabs>
+
+See [pounce](/guides/pounce/) and [the palette](/reference/palette/) for the
+standalone stories.
