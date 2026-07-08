@@ -331,12 +331,7 @@ cmd_release() {
   # Division of labor: commits are yours, lock bumps are ship's, tags are
   # release's, formula bumps are CI's.
   local name="${1:-}"
-  [ -n "$name" ] || die "usage: haus release <repo>   (releasable: pounce)"
-  local verfile
-  case "$name" in
-    pounce) verfile="pkgs/pounce/default.nix" ;;
-    *) die "haus release doesn't know '$name' yet (releasable: pounce)" ;;
-  esac
+  [ -n "$name" ] || die "usage: haus release <repo>   (releasable: pounce, nebelhaus)"
 
   local dir; dir="$(repo_dir "$name")"
   [ -d "$dir/.git" ] || die "$name is not cloned here — haus clone"
@@ -346,9 +341,15 @@ cmd_release() {
   local ahead; ahead="$(git -C "$dir" rev-list --count '@{u}..HEAD' 2>/dev/null || echo '?')"
   [ "$ahead" = "0" ] || die "$name has unpushed commits — haus ship first, then release"
 
+  # Each releasable repo names its own version source (never typed, so the tag
+  # can't drift from the code — CI double-checks on the tag).
   local version
-  version="$(sed -n 's/^ *version = "\([^"]*\)";.*/\1/p' "$dir/$verfile" | head -1)"
-  [ -n "$version" ] || die "couldn't read a version from $name/$verfile"
+  case "$name" in
+    pounce)    version="$(sed -n 's/^ *version = "\([^"]*\)";.*/\1/p' "$dir/pkgs/pounce/default.nix" | head -1)" ;;
+    nebelhaus) version="$(tr -d '[:space:]' < "$dir/VERSION" 2>/dev/null)" ;;
+    *) die "haus release doesn't know '$name' yet (releasable: pounce, nebelhaus)" ;;
+  esac
+  [ -n "$version" ] || die "couldn't read a version for $name"
   local tag="v$version"
   git -C "$dir" rev-parse -q --verify "refs/tags/$tag" >/dev/null \
     && die "$name $tag already exists — bump the version in $verfile first"

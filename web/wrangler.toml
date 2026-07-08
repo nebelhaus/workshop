@@ -1,0 +1,21 @@
+# Cloudflare Worker for nebelhaus.com — serves the install one-liner:
+#   curl -fsSL https://nebelhaus.com/init.sh | bash
+#
+# Deploy (the nebelhaus.com zone must be on the logged-in Cloudflare account):
+#   nix run nixpkgs#wrangler -- login          # once, opens a browser
+#   cd web && nix run nixpkgs#wrangler -- deploy
+name = "nebelhaus-init"
+main = "worker.js"
+compatibility_date = "2024-11-06"
+
+# Only claim the one path — everything else on the zone is untouched.
+routes = [
+  { pattern = "nebelhaus.com/init.sh", zone_name = "nebelhaus.com" },
+]
+
+# Optional hard pin: uncomment and set REF to a tag to force /init.sh at that
+# ref for everyone, regardless of the latest release. Left unset, the Worker
+# auto-resolves the latest GitHub release tag (cached ~1h), falling back to
+# `main` before the first release exists.
+# [vars]
+# REF = "v0.1.0"

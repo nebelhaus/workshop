@@ -3,7 +3,8 @@
 **The nebelhaus workshop** — the parent directory holding every repo in the
 [nebelhaus](https://github.com/nebelhaus) family, plus the `haus` script that
 moves changes between them. This folder's own repo contains ONLY the README,
-this file, and `haus`; the subdirectories are independent git repos.
+this file, `haus`, and `web/` (the nebelhaus.com Cloudflare Worker); the
+subdirectories are independent git repos.
 
 ## Master routing table
 
@@ -18,6 +19,7 @@ CLAUDE.md with the deep rules.
 | the org's GitHub front page | `./org-profile` |
 | this machine's apps / identity / secrets | `~/.config/nix` (not in this dir) |
 | the cross-repo workflow itself (`haus`, this README) | here |
+| the nebelhaus.com install front door (`curl … init.sh`, Cloudflare Worker) | `./web` |
 | pounce's Homebrew formula | `./homebrew-tap` — **CI-owned**; hand-edit only to bootstrap a new formula |
 
 ## The one gotcha that explains everything
