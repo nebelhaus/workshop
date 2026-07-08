@@ -1,0 +1,80 @@
+---
+title: Theming & accents (nebelung)
+description: One silver-mist palette across every app, and how to swap the accent colour that tints the whole system.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+The whole system shares one palette: **[nebelung](/reference/palette/)**, a
+silver-mist Catppuccin variant. It's Mocha with the blue pulled out of the greys
+and the accents calmed down — a low-contrast, fog-grey scheme for people who find
+most dark themes too loud. Grey is the point.
+
+nebelung renders that one palette onto **20+ tools** — Ghostty, zellij, starship,
+bat, delta, lazygit, fzf, yazi, helix, btop, Slack, the Zen browser, and more —
+so the terminal, editor, git, and browser all speak the same colours.
+
+## Swapping the accent
+
+The neutral greys stay fixed; only the **accent** hue changes. Set it once in
+your host file:
+
+```nix
+nebelhaus.theme.accent = "sapphire";
+```
+
+Then `haus rebuild`. The accent re-tints the tools that render per-accent
+variants — **lazygit** borders, **fzf** highlights, **yazi**, and the **Zen
+browser** — while the single-file dotfiles (Ghostty, starship, tmux, bat,
+zellij) keep their built-in theme.
+
+### Available accents
+
+The default is `mauve`. Any of the 14 Catppuccin accent names works:
+
+`rosewater` · `flamingo` · `pink` · `mauve` · `red` · `maroon` · `peach` ·
+`yellow` · `green` · `teal` · `sky` · `sapphire` · `blue` · `lavender`
+
+See their exact hex values on the [palette reference](/reference/palette/).
+
+<Aside type="tip" title="Pounce follows too">
+The [Pounce](/guides/pounce/) launcher bakes the nebelung palette into its
+binary at build time, so its UI matches the rest of the rice automatically. You
+can also switch it between `nebelung` and stock `mocha` in its own
+[config](/reference/pounce/#config-file).
+</Aside>
+
+## Why bake, not load at runtime?
+
+Colours are generated at **build time** from a single source, not loaded from
+loose theme files. That means the palette can never drift out of sync: change
+nebelung, `nix flake update`, rebuild, and every tool gets the exact same new
+values at once. No "I updated the terminal but forgot lazygit" surprises.
+
+## Using nebelung outside the rice
+
+nebelung is a standalone colour system — you can theme any tool without the rest
+of nebelhaus. Two ways:
+
+- **Copy a rendered theme.** Each tool's theme is generated into the flake's
+  output tree; grab the file for your tool and point its config at it. See the
+  [palette reference](/reference/palette/#using-it-in-your-own-tools) for the
+  per-tool paths.
+- **Consume the flake.** Add the input and reference the built output:
+
+  ```nix
+  inputs.nebelung.url = "github:nebelhaus/nebelung";
+  # then: ${nebelung.packages.${system}.default}/<tool>/...
+  ```
+
+  The flake also exposes a raw `palette` attrset (`name → "#hex"`) for configs
+  you generate yourself.
+
+## Tuning the palette itself
+
+Want a different fog? The palette is computed in
+[OKLCH](https://oklch.com/) space from three knobs in nebelung's
+`scripts/generate-palette.mjs` — the grey's hue and chroma, and how much the
+accents are calmed — then rebuilt with `./build.sh`. That's a nebelung-repo
+change rather than a host-file one; the [palette reference](/reference/palette/#tuning-the-palette)
+covers the details.

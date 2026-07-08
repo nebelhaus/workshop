@@ -1,0 +1,123 @@
+---
+title: First run
+description: Your first ten minutes after switching in — the muscle memory that makes nebelhaus click.
+---
+
+import { Aside, Card, CardGrid } from '@astrojs/starlight/components';
+
+You've run the [install](/start/install/) and the first `darwin-rebuild switch`
+has finished. Here's what changed and what to try first.
+
+## What just happened
+
+- **AeroSpace** (tiling) is running. Windows now arrange themselves.
+- **SketchyBar** replaced the menu bar with workspace pills, weather, media,
+  battery, and a clock.
+- **Ghostty** is your terminal; opening it drops you straight into a **zellij**
+  session, themed in fog-grey.
+- **Pounce** is listening on **⌘Space**.
+- The **`haus`** command is on your `PATH`.
+
+## The four moves to learn first
+
+<CardGrid>
+  <Card title="⌘Space — Pounce" icon="rocket">
+    Open the command palette. Type to fuzzy-search apps and commands, hit
+    <kbd>Return</kbd>. Start here for everything.
+  </Card>
+  <Card title="Tap ⇪ — Launch mode" icon="star">
+    Tap (don't hold) Caps-Lock, then press an app's letter to launch or focus
+    it. <kbd>T</kbd> = terminal, <kbd>B</kbd> = browser out of the box.
+  </Card>
+  <Card title="⌥H / ⌥J / ⌥K / ⌥L — Focus" icon="left-arrow">
+    Move focus between tiled windows, Vim-style. Hold <kbd>⌥⇧⌘⌃</kbd> with the
+    arrow keys to *move* the focused window instead.
+  </Card>
+  <Card title="⌥1–4 — Workspaces" icon="list-format">
+    Jump between workspaces. <kbd>⌥⇧</kbd> + a number throws the current window
+    to that workspace.
+  </Card>
+</CardGrid>
+
+<Aside type="tip" title="The cheatsheet is built in">
+Forgot a binding? Tap <kbd>⇪</kbd> then <kbd>/</kbd> to open Pounce's live
+cheatsheet — every shortcut, generated from your actual app roster. The full
+list also lives at [Keybindings](/reference/keybindings/).
+</Aside>
+
+## Try this sequence
+
+1. **Tap ⇪, then `T`** — Ghostty opens and tiles. You're in zellij.
+2. **`⌘Space`, type `saf`, Return** — Safari launches. That's Pounce.
+3. **⌥H / ⌥L** — focus jumps between the two windows.
+4. **⌥/** — the layout flips between tiles and accordion.
+5. **`⌘Space`, type `emoji`, Return** — the palette swaps to an emoji grid in
+   place. Pick one; it's copied (and pasted, if you granted Accessibility).
+
+## Grant Accessibility to Pounce (one-time)
+
+Some Pounce features (clipboard auto-paste, emoji paste) synthesize keystrokes,
+which macOS gates behind Accessibility:
+
+```sh
+pounce --request-accessibility   # approve the system dialog
+pounce --check-accessibility     # prints true when it's granted
+```
+
+<Aside type="note">
+If you set `nebelhaus.pounce.signingIdentity` in your host file, this grant
+**survives rebuilds** — the rice re-signs a stable copy of the app so macOS
+keeps trusting it. Without it, the palette still works; only the paste-back
+features are off. See [Pounce config](/reference/pounce/).
+</Aside>
+
+## Make it yours
+
+Your identity and app list live in `~/.config/nix/hosts/<hostname>/default.nix`.
+Open it fast with:
+
+```sh
+haus edit
+```
+
+A few first tweaks people reach for:
+
+```nix
+{
+  # Change the accent that tints lazygit, fzf, yazi, and the browser
+  nebelhaus.theme.accent = "sapphire";
+
+  # Prefer a different editor
+  nebelhaus.hearth.editor = "nvim";
+
+  # Add your apps to the launcher + workspace roster
+  nebelhaus.prowl.apps = [
+    { key = "s"; name = "Slack"; workspace = "S";
+      appId = "com.tinyspeck.slackmacgap"; barIcon = ":slack:"; cask = "slack"; }
+  ];
+
+  # Or just install casks without giving them a launcher key
+  homebrew.casks = [ "discord" ];
+}
+```
+
+Then apply it:
+
+```sh
+haus rebuild
+```
+
+See [Theming & accents](/guides/theming/), [Window management](/guides/window-management/),
+and the full [options reference](/reference/options/) to go deeper.
+
+## Daily driving from here
+
+| Command | What it does |
+|---|---|
+| `haus rebuild` | Build, then switch — your everyday apply |
+| `haus update` | Pull new nebelhaus versions, then rebuild |
+| `haus status` | Current generation + how stale the rice is |
+| `haus rollback` | Return to the previous generation |
+| `haus doctor` | Health check: Nix, CLT, GUI agents |
+
+The full list is on the [haus CLI](/reference/haus/) page.

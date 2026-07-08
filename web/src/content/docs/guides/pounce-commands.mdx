@@ -1,0 +1,118 @@
+---
+title: Writing pounce commands
+description: Every command is a file. How to add your own commands to Pounce with a shell script and an optional metadata header.
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+Pounce has no plugin SDK. A command is **one shell script** with an optional
+metadata header. Drop it in a folder and it's in the palette on the next open —
+no restart, no manifest, no account.
+
+## Your first command
+
+<Steps>
+
+1. Make the user commands directory if it doesn't exist:
+
+   ```sh
+   mkdir -p ~/.config/pounce/commands
+   ```
+
+2. Create `~/.config/pounce/commands/say-hello.sh`:
+
+   ```bash
+   #!/bin/bash
+   # pounce: name = Say Hello
+   # pounce: description = A friendly notification
+   # pounce: icon = hand.wave
+   osascript -e 'display notification "🐾" with title "Pounce"'
+   ```
+
+3. Open Pounce (**⌘Space**), type `say`, and hit **Return**. Your command is
+   right there — the notification fires.
+
+</Steps>
+
+That's the whole model. No build step; the registry is re-scanned every time you
+summon the palette.
+
+## The metadata header
+
+The `# pounce: key = value` lines at the top describe how the command appears.
+All are optional; parsing stops at the first non-header line (within the first
+30 lines), and whitespace around the `=` is tolerant.
+
+| Key | Meaning | Default |
+|---|---|---|
+| `name` | Title shown in the palette | the filename (without `.sh`) |
+| `description` | Subtitle | *(empty)* |
+| `icon` | An [SF Symbol](https://developer.apple.com/sf-symbols/) name (e.g. `wifi`, `sparkles`) | `sparkles` |
+| `submenu` | `true` / `1` — the command re-invokes Pounce for a second step | `false` |
+
+## Two-step commands (submenus)
+
+Set `submenu = true` and pipe your options through `pounce` again to build a
+two-step flow — the list swaps in place with no flicker:
+
+```bash
+#!/bin/bash
+# pounce: name = WiFi
+# pounce: description = Select a network
+# pounce: icon = wifi
+# pounce: submenu = true
+
+network=$(list_networks | pounce -p "WiFi network:")
+[ -n "$network" ] && join_network "$network"
+```
+
+Anything you can pipe into `pounce` becomes a picker. Which brings us to…
+
+## Pounce as a generic picker
+
+Beyond commands, `pounce` is a dmenu-style picker: pipe it lines, it returns the
+chosen one on stdout.
+
+```sh
+echo -e "one\ntwo\nthree" | pounce -p "Pick:"
+```
+
+Each input line can carry extra columns, tab-separated, for richer rows:
+
+```
+title <TAB> subtitle <TAB> icon <TAB> actions <TAB> group
+```
+
+- **actions** — `label | key:label | key:label…` (the first is Return, the rest
+  are modifier combos).
+- **group** — an optional section header to bucket rows under (as Force Quit
+  does with *Applications* / *Background*).
+
+## Where commands are discovered
+
+Pounce merges commands from several directories. Later sources **shadow** earlier
+ones by filename, so your own always win:
+
+1. `$POUNCE_BUILTIN_DIR` — the built-ins that ship with the package.
+2. `$POUNCE_EXTRA_COMMAND_DIRS` (colon-separated) — layers added by Nix
+   consumers like the rice.
+3. `$POUNCE_COMMAND_PATH` (colon-separated) — ad-hoc extra directories.
+4. `~/.config/pounce/commands` — **yours**, highest precedence.
+
+<Aside type="tip" title="Override a built-in">
+Want to change what "Lock Screen" does? Drop your own `lock.sh` in
+`~/.config/pounce/commands/` — same filename, and yours takes over.
+</Aside>
+
+## Tips
+
+- Scripts don't need the executable bit — Pounce runs them with `bash` either
+  way — but the `.sh` suffix is optional too.
+- Keep long-running work fast to start; the palette dismisses as soon as the
+  script is spawned.
+- For grouped or dynamic output, remember the tab-separated column format above.
+- Read the [built-in commands](https://github.com/nebelhaus/pounce/tree/main/pkgs/pounce-commands/commands)
+  for real, copy-pasteable examples of submenus, grouping, and icons.
+
+See the [Pounce config & CLI reference](/reference/pounce/) for every flag and
+config key.

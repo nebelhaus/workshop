@@ -1,11 +1,15 @@
-// nebelhaus.com/init.sh — proxy the rice's bootstrap.sh as text/plain so the
-// install one-liner is:  curl -fsSL https://nebelhaus.com/init.sh | bash
+// nebelhaus.com — one Worker serves the whole site.
+//
+//   /init.sh            → PROXIES the rice's bootstrap.sh as text/plain, so the
+//                         install one-liner is exactly:
+//                             curl -fsSL https://nebelhaus.com/init.sh | bash
+//   everything else     → the static Astro/Starlight site (the [assets] binding)
 //
 // We PROXY (fetch), not redirect, so the pretty URL is what curl sees and there's
-// no hop to a raw.githubusercontent.com link. By default it serves the latest
-// GitHub *release* tag of nebelhaus/nebelhaus (cached ~1h to stay well under
-// GitHub's unauthenticated API limit), falling back to `main` before the first
-// release. `?ref=vX.Y.Z` pins an exact ref; a REF wrangler var hard-pins one.
+// no hop to a raw.githubusercontent.com link. By default /init.sh serves the
+// latest GitHub *release* tag of nebelhaus/nebelhaus (cached ~1h to stay well
+// under GitHub's unauthenticated API limit), falling back to `main` before the
+// first release. `?ref=vX.Y.Z` pins an exact ref; a REF wrangler var hard-pins one.
 
 const REPO = "nebelhaus/nebelhaus";
 const SAFE_REF = /^[A-Za-z0-9._-]+$/; // no slashes / dots-dots -> no path traversal
@@ -40,24 +44,32 @@ async function latestRef(env) {
   return "main";
 }
 
+async function serveInitScript(url, env) {
+  const ref = url.searchParams.get("ref") || (await latestRef(env));
+  if (!SAFE_REF.test(ref) || ref.includes("..")) {
+    return text("# invalid ref\n", 400);
+  }
+  const raw = `https://raw.githubusercontent.com/${REPO}/${ref}/bootstrap.sh`;
+  const up = await fetch(raw, { cf: { cacheTtl: 300, cacheEverything: true } });
+  if (!up.ok) {
+    return text(`# could not fetch bootstrap.sh at '${ref}' (HTTP ${up.status})\n`, 502);
+  }
+  return text(await up.text(), 200, {
+    "cache-control": "public, max-age=300",
+    "x-nebelhaus-ref": ref,
+  });
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    if (url.pathname !== "/init.sh") {
-      return text("nebelhaus — https://github.com/nebelhaus/nebelhaus\n", 404);
+    if (url.pathname === "/init.sh") {
+      return serveInitScript(url, env);
     }
-    const ref = url.searchParams.get("ref") || (await latestRef(env));
-    if (!SAFE_REF.test(ref) || ref.includes("..")) {
-      return text("# invalid ref\n", 400);
-    }
-    const raw = `https://raw.githubusercontent.com/${REPO}/${ref}/bootstrap.sh`;
-    const up = await fetch(raw, { cf: { cacheTtl: 300, cacheEverything: true } });
-    if (!up.ok) {
-      return text(`# could not fetch bootstrap.sh at '${ref}' (HTTP ${up.status})\n`, 502);
-    }
-    return text(await up.text(), 200, {
-      "cache-control": "public, max-age=300",
-      "x-nebelhaus-ref": ref,
-    });
+    // Everything else is the static site. With the [assets] binding present,
+    // matching assets are served automatically before the Worker even runs;
+    // this fallback covers requests that reach the Worker anyway.
+    if (env.ASSETS) return env.ASSETS.fetch(request);
+    return text("nebelhaus — https://github.com/nebelhaus/nebelhaus\n", 404);
   },
 };
