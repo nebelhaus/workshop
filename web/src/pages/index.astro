@@ -33,39 +33,6 @@ const family = [
   },
 ];
 
-const features = [
-  {
-    icon: '⌘',
-    title: 'Keyboard-first',
-    body: 'Tap Caps-Lock to launch or move windows. Tiling that feels native to the Mac, driven entirely from the home row.',
-  },
-  {
-    icon: '❄',
-    title: 'Reproducible',
-    body: 'The entire machine is one Nix flake. Wipe it, rebuild it, and it stands again — bar, windows, theme, and all.',
-  },
-  {
-    icon: '🌫',
-    title: 'One quiet palette',
-    body: 'A low-contrast, fog-grey theme painted onto 20+ tools — terminal, editor, git, browser — from a single source of color.',
-  },
-  {
-    icon: '⚡',
-    title: 'Native, not Electron',
-    body: 'A Swift launcher, a C status bar, a Rust window manager. Small, fast pieces that each stand on their own.',
-  },
-  {
-    icon: '☝',
-    title: 'Touch ID for sudo',
-    body: 'Authenticate privileged commands with your fingerprint — yes, even inside a terminal multiplexer.',
-  },
-  {
-    icon: '◐',
-    title: 'Yours to tune',
-    body: 'Swap the accent, add a command, re-theme an app. Opinionated defaults, but every knob is a text file.',
-  },
-];
-
 // Nebelung neutral ramp + a few accents, for the swatch strip.
 const swatches = [
   '#121212', '#191919', '#202020', '#343434', '#494949', '#5c5c5c',
@@ -96,7 +63,7 @@ const swatches = [
 
     <header class="nav">
       <a class="brand" href="/">
-        <img src="/logos/nebelhaus.png" alt="" width="28" height="28" />
+        <img src="/logos/nebelhaus-mark.png" alt="" width="28" height="28" />
         <span>nebelhaus</span>
       </a>
       <nav class="nav-links">
@@ -138,18 +105,6 @@ const swatches = [
         <div class="swatches" aria-hidden="true">
           {swatches.map((c) => <span style={`background:${c}`}></span>)}
         </div>
-      </section>
-
-      <section class="features">
-        {
-          features.map((f) => (
-            <article class="feature">
-              <div class="feat-icon">{f.icon}</div>
-              <h3>{f.title}</h3>
-              <p>{f.body}</p>
-            </article>
-          ))
-        }
       </section>
 
       <section class="family">
@@ -402,34 +357,6 @@ const swatches = [
         border-radius: 5px;
         box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
       }
-
-      /* ---- features ---- */
-      .features {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 1rem;
-        margin: 4rem 0;
-      }
-      .feature {
-        background: rgba(25, 25, 25, 0.6);
-        border: 1px solid var(--surface0);
-        border-radius: 14px;
-        padding: 1.5rem;
-        transition: border-color 0.2s, transform 0.2s;
-      }
-      .feature:hover { border-color: var(--surface2); transform: translateY(-2px); }
-      .feat-icon {
-        font-size: 1.5rem;
-        width: 44px;
-        height: 44px;
-        display: grid;
-        place-items: center;
-        border-radius: 10px;
-        background: rgba(201, 168, 241, 0.12);
-        margin-bottom: 1rem;
-      }
-      .feature h3 { margin: 0 0 0.5rem; font-size: 1.1rem; }
-      .feature p { margin: 0; color: var(--subtext0); font-size: 0.95rem; }
 
       /* ---- family ---- */
       .section-head { text-align: center; margin-bottom: 2.2rem; }
