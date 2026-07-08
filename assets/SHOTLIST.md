@@ -6,9 +6,25 @@ and the upcoming landing page. Assets share a number — `S#` for screenshots,
 shot is in the can.
 
 **Highest-leverage assets, shoot these first & best:**
-- `S1` → `assets/hero.png` (used by BOTH the org profile and the rice README — currently placeholder)
+- `S1` → `assets/hero.png` (the rice README hero + the org page's "the house" section — currently placeholder)
 - `V1` → pounce `assets/demo.gif` (currently placeholder)
-- `S2` → the org profile's three-room trio (must match its Pounce/Nebelung/rice table)
+
+## README media budget (keep it lean)
+
+READMEs get **1–2 assets each, 4 absolute max**. A wall of gifs reads as noise;
+one perfect hero reads as designed. The full S#/V# catalog below is the
+*shooting menu* — you shoot from it, but only these few land in a README. The
+rest go to the **landing page + social pool**.
+
+| README | What actually goes in it |
+|---|---|
+| 🐙 **org (.github)** | the **banner** (already there) + **S1** desktop, once shot, in "the house" section. Nothing else. |
+| 🏠 **rice (nebelhaus)** | **S1** hero image + **V3** "tap to launch" gif. That's the whole pitch. |
+| 🐾 **pounce** | **V1** `demo.gif` (the hero) + **S14** "every command is a file". |
+| 🌫 **nebelung** | **S15** swatch board + **S17** "too loud vs. just right". Both stills, cheap, high-clarity. |
+
+Everything else (S2–S13, S16, V2, V4–V10) is for the landing page and social —
+do not scatter it across the READMEs.
 
 ---
 
@@ -186,35 +202,32 @@ sped up (~1.1–1.2×). Short = few retakes.
 
 ---
 
-## 3 · Placement matrix
+## 3 · Placement
 
-| Asset | org | rice | pounce | nebelung | landing |
-|---|:--:|:--:|:--:|:--:|:--:|
-| **S1 hero** | ● hero.png | ● hero.png | | | ● |
-| S2 three-rooms trio | ● | | | | ● |
-| S3 bar close-up | | ● | | | |
-| S4 weather popover | | ● | | | ● |
-| S5 launch-mode frame | ● | ● | | | |
-| S6 tiling grid | | ● | | | ● |
-| S7 Touch ID still | | ● | | | |
-| S8 accent cohesion | | ● | | ● | |
-| S9–S14 pounce shots | | | ● | | ● (pick 2) |
-| S15 swatch board | | | | ● | ● |
-| S16 ports gallery | | | | ● | |
-| S17 loud-vs-right | | | | ● | ● |
-| **V1 pounce hero** | | | ● demo.gif | | ● |
-| V2 command-is-a-file | | | ● | | ● |
-| V3 tap-to-launch | ● | ● | | | ● |
-| V4 tiling | | ● | | | ● |
-| V5 resize delight | | ● | | | |
-| V6 sill bar | | ● | | | ● |
-| V7 terminal tour | | ● | | ● | ● |
-| V8 Touch ID | | ● | | | |
-| V9 accent swap | | | | ● | ● |
-| V10 reproducibility | ● | | | | ● |
+### In the READMEs (lean — this is the whole list)
 
-**Landing loop reel:** stitch V3 → V4 → V1 → V6 → V7 (muted, ~60s) as a
-background hero video; use S1 as the static poster frame.
+| README | Assets |
+|---|---|
+| 🐙 org (.github) | banner (have it) · **S1** in "the house" |
+| 🏠 rice | **S1** hero · **V3** tap-to-launch |
+| 🐾 pounce | **V1** `demo.gif` · **S14** command-is-a-file |
+| 🌫 nebelung | **S15** swatch board · **S17** loud-vs-right |
+
+### Landing page + social pool (everything else)
+
+The landing page (nebelhaus.com, the `web/` Worker) can hold the rest —
+feature sections, a background reel, social clips:
+
+- **Reel:** stitch V3 → V4 → V1 → V6 → V7 (muted, ~60s) as a background hero
+  video; **S1** as the static poster frame.
+- **Feature stills:** S2 (three rooms), S3/S4 (bar), S5 (launch mode), S6
+  (tiling), S7 (Touch ID), S8 (cohesion), S9–S13 (pounce), S16 (ports gallery).
+- **Standalone clips:** V2 (extensibility), V5 (resize), V8 (Touch ID),
+  V9 (accent swap), V10 (reproducibility).
+
+None of these are obligations — they're a menu to pull from as the landing page
+takes shape. Shoot the four README assets first; grab the pool while the scene
+is already staged (see §4).
 
 ---
 
