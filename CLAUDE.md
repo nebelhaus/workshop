@@ -58,6 +58,34 @@ points outside your toplevel):
 - When done, say the branch name; the worktree dies with the pane, the branch
   survives until merged (and `haus status` nags about it).
 
+## Claude Code on the web (cloud sessions)
+
+Web sessions boot a bare Linux container with **no Nix**. A remote-only
+`SessionStart` hook (`.claude/hooks/session-start.sh`, present in each repo)
+installs Determinate Nix so flake work is possible at all — without it you get
+"nix isn't on this box" the moment you touch a lock. It also exports
+`NIX_SSL_CERT_FILE` at the agent-proxy CA, because Nix's fetches tunnel through
+that proxy (TLS re-terminated) and fail verification otherwise. The hook is
+guarded on `CLAUDE_CODE_REMOTE`, so local macOS sessions no-op.
+
+What a cloud session **can** do, and its hard limits (all found the hard way):
+
+- ✅ Edit modules, `nixfmt`, read/resolve the flakes.
+- ✅ Regenerate `flake.lock` entries for **nebelhaus-org inputs** (pounce,
+  nebelung) — those repos are in the session's GitHub scope.
+- ⚠️ **Full `nix eval`/build won't run under the default org-scoped access.**
+  A flake pulls nixpkgs / nix-darwin / home-manager / catppuccin from
+  *third-party* GitHub orgs, Nix fetches them through the session's GitHub gate,
+  and `add_repo` refuses cross-owner adds — so you can't grant them one by one.
+  It needs an environment whose **network policy allows general `github.com`
+  egress** plus the Nix caches (`cache.nixos.org`, `channels.nixos.org`,
+  `releases.nixos.org`). Sanity-check with `nix flake metadata github:NixOS/nixpkgs`:
+  if it 403s with "use add_repo", the policy is still too tight for a full eval.
+- ❌ `haus try switch` / `darwin-rebuild switch` never run here — macOS only.
+  Activation is always a local, main-checkout job.
+
+So cloud is for **editing + own-org lock bumps**, not for building or switching.
+
 ## Rules for working here
 
 - **Verify by actually running it.** `./haus try` to build, then
