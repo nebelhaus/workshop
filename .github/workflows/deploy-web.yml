@@ -1,0 +1,53 @@
+# Build and deploy nebelhaus.com (web/) to Cloudflare.
+#
+# Fires when web/ or this workflow changes on main, or on demand. Builds the
+# static Astro/Starlight site and deploys the Worker (which uploads dist/ as its
+# [assets] binding and keeps serving /init.sh).
+#
+# Required repo secrets (Settings → Secrets and variables → Actions):
+#   CLOUDFLARE_API_TOKEN   — token with "Edit Cloudflare Workers" permissions
+#                            (Workers Scripts:Edit) on the account that owns the
+#                            nebelhaus.com zone.
+#   CLOUDFLARE_ACCOUNT_ID  — the account ID (Cloudflare dashboard → Workers &
+#                            Pages → Account details).
+name: Deploy nebelhaus.com
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - '.github/workflows/deploy-web.yml'
+  workflow_dispatch: {}
+
+# Never let two deploys race; a newer push supersedes an in-flight one.
+concurrency:
+  group: deploy-web
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build the site
+        run: npm run build
+
+      - name: Deploy to Cloudflare
+        run: npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
