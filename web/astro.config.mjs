@@ -12,8 +12,8 @@ export default defineConfig({
       description:
         'An opinionated macOS, raised in the fog — silver-grey, keyboard-first, reproducible, Nix-native. One curl and one flake raise the whole house.',
       logo: {
-        light: './src/assets/logos/nebelhaus-mark.png',
-        dark: './src/assets/logos/nebelhaus-mark.png',
+        light: './src/assets/logos/nebelhaus-mark-fill.png',
+        dark: './src/assets/logos/nebelhaus-mark-fill.png',
         alt: 'nebelhaus',
         replacesTitle: false,
       },
