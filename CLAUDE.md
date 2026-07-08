@@ -39,7 +39,7 @@ Never hand-walk that ripple; the tooling does it:
 
 ## Agent worktrees (parallel Claude sessions)
 
-Claude panes spawned with `Ctrl Alt c` run `claude --worktree`: each session
+Claude panes spawned with `Super c` (⌘C) run `claude --worktree`: each session
 gets its own checkout under `~/.cache/claude-worktrees/<repo>/<name>` on branch
 `worktree-<name>`, branched from the repo's **local HEAD**. The plumbing is
 `haus wt-create` / `wt-remove`, wired into `~/.claude/settings.json` as
