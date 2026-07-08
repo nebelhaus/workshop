@@ -21,10 +21,17 @@ rest go to the **landing page + social pool**.
 | 🐙 **org (.github)** | the **banner** (already there) + **S1** desktop, once shot, in "the house" section. Nothing else. |
 | 🏠 **rice (nebelhaus)** | **S1** hero image + **V3** "tap to launch" gif. That's the whole pitch. |
 | 🐾 **pounce** | **V1** `demo.gif` (the hero) + **S14** "every command is a file". |
-| 🌫 **nebelung** | **S15** swatch board + **S17** "too loud vs. just right". Both stills, cheap, high-clarity. |
+| 🌫 **nebelung** | ✅ **DONE** — `particle-field.webp` (animated hero) + `swatch-cascade.webp` (accent ramp), both committed. Supersedes S15/S17 for the README. |
 
 Everything else (S2–S13, S16, V2, V4–V10) is for the landing page and social —
 do not scatter it across the READMEs.
+
+**Motion pieces already in hand** (1280×720 mp4s, exported → animated WebP via
+`nix run nixpkgs#ffmpeg`):
+- `1a Swatch Cascade` → `nebelung/assets/swatch-cascade.webp` — in the README.
+- `1b Type Wash` — accent name + hex, cycling every accent. **Reserved for the
+  landing page** (it's the animated palette reference).
+- `1c Particle Field` → `nebelung/assets/particle-field.webp` — the README hero.
 
 ---
 
