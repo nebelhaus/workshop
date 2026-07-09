@@ -60,6 +60,27 @@ points outside your toplevel):
 - When done, say the branch name; the worktree dies with the pane, the branch
   survives until merged (and `haus status` nags about it).
 
+**A worktree is of whichever repo the pane sat in — and a *workshop* worktree
+cannot see the child repos.** Check `git rev-parse --git-common-dir`: if it
+points at `…/nebelhaus/.git` (the workshop), your tree holds ONLY the workshop's
+own files (`README.md`, `CLAUDE.md`, `haus`, `assets`, `web/`). The family
+sub-repos — rice (`nebelhaus/`), `nebelung/`, `pounce/`, `org-profile/`,
+`homebrew-tap/` — are **not here at all.** This is **NOT** a `.gitignore`
+visibility problem, and re-reading the ignore file won't change it: a linked
+worktree of the workshop simply never checks out the sibling repos, because each
+is an independent repo that lives only in the main checkout (`~/code/nebelhaus/<repo>`).
+So the moment a task turns out to belong to a child repo (per the routing table),
+STOP — don't grep, edit, or hunt for those files in this tree, and don't report
+them as "hidden by gitignore." Instead tell me which sub-repo the task belongs to
+and pick one:
+  - (a) I spawn a fresh `Super c` pane **from inside that sub-repo** (or you make
+    a dedicated worktree of it:
+    `git -C ~/code/nebelhaus/<repo> worktree add -b worktree-<name> ~/.cache/claude-worktrees/nebelhaus/<name> HEAD`),
+    then do the work there — the correct, isolated path; or
+  - (b) if I explicitly OK it, edit that sub-repo's main checkout at
+    `~/code/nebelhaus/<repo>` directly (a hand-made sub-repo worktree isn't
+    auto-cleaned on pane close, so remove it after merge).
+
 ## Working from the main checkout (`~/code/nebelhaus` — the normal case)
 
 Not a worktree, not a cloud session — this is where most work happens, and the
