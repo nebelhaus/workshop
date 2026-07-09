@@ -21,19 +21,21 @@ rest go to the **landing page + social pool**.
 | 🐙 **org (.github)** | the **banner** (already there) + **S1** desktop, once shot, in "the house" section. Nothing else. |
 | 🏠 **rice (nebelhaus)** | **S1** hero image + **V3** "tap to launch" gif. That's the whole pitch. |
 | 🐾 **pounce** | **V1** `demo.gif` (the hero) + **S14** "every command is a file". |
-| 🌫 **nebelung** | ✅ **DONE** — `particle-field.webp` (animated hero) + `swatch-cascade.webp` (accent ramp), both committed. Supersedes S15/S17 for the README. |
+| 🌫 **nebelung** | `swatch-cascade.webp` (animated accent-ramp hero) + `preview.png` + **S17** `loud-vs-right.webp` (bat A/B). (`particle-field.webp` — the planned animated hero — is not shot yet; reserved for the landing page.) |
 
-Everything else (S2–S13, S15–S17, V2, V4–V10) is for the landing page and
-social — do not scatter it across the READMEs. (S15/S17 were the nebelung
-README stills; now that its animated WebPs supersede them, they drop to the
-pool too.)
+Everything else (S2–S13, S15–S16, V2, V4–V10) is for the landing page and
+social — do not scatter it across the READMEs. (S15 was a nebelung README
+still; now that the animated WebP supersedes it, it drops to the pool. **S17**
+was pooled too, but earned its way back into the README as the "blue stripped
+out" proof shot — a bat A/B of the same file, upstream Mocha vs Nebelung.)
 
 **Motion pieces already in hand** (1280×720 mp4s, exported → animated WebP via
 `nix run nixpkgs#ffmpeg`):
 - `1a Swatch Cascade` → `nebelung/assets/swatch-cascade.webp` — in the README.
 - `1b Type Wash` — accent name + hex, cycling every accent. **Reserved for the
   landing page** (it's the animated palette reference).
-- `1c Particle Field` → `nebelung/assets/particle-field.webp` — the README hero.
+- `1c Particle Field` → planned `nebelung/assets/particle-field.webp` — **not shot
+  yet**; intended as the landing-page hero (the README hero is `swatch-cascade.webp`).
 
 ---
 
@@ -100,7 +102,7 @@ browser** window with the Nebelung userChrome.
 
 - [ ] **S15 — Palette swatch board.** All 26 colors: grey ramp (`crust #121212` → `text #d7d7d7`) as a row, 14 muted accents below, each chip labeled name + hex.
 - [ ] **S16 — Ports gallery.** Grid of 6–8 themed tools (Ghostty, btop, lazygit, bat, yazi, Zen, Helix, Slack), each cropped small. "Whiskered to every app."
-- [ ] **S17 — "Too loud vs. just right."** Side-by-side stock Catppuccin Mocha (left) vs Nebelung (right) on the same btop or code file.
+- [x] **S17 — "Too loud vs. just right."** ✅ shot → `nebelung/assets/loud-vs-right.webp`, in the nebelung README. Same Rust file in `bat`: upstream Catppuccin Mocha (left) vs Nebelung (right), rendered from the repo's own bat template (stock = no `--color-overrides`, Nebelung = with).
 
 ---
 
@@ -220,7 +222,7 @@ sped up (~1.1–1.2×). Short = few retakes.
 | 🐙 org (.github) | banner (have it) · **S1** in "the house" |
 | 🏠 rice | **S1** hero · **V3** tap-to-launch |
 | 🐾 pounce | **V1** `demo.gif` · **S14** command-is-a-file |
-| 🌫 nebelung | ✅ `particle-field.webp` (hero) · `swatch-cascade.webp` (accent ramp) — supersedes S15/S17 |
+| 🌫 nebelung | `swatch-cascade.webp` (accent-ramp hero) · `preview.png` · **S17** `loud-vs-right.webp` (bat A/B) |
 
 ### Landing page + social pool (everything else)
 
