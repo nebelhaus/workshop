@@ -94,7 +94,7 @@ browser** window with the Nebelung userChrome.
 - [ ] **S11 — Submenu: Emoji picker.** 9-column emoji grid, one cell selected.
 - [ ] **S12 — Submenu: Clipboard history.** Two-pane 820×480 view — recent copies left, preview right.
 - [ ] **S13 — Grouped output: Force Quit.** `Applications` / `Background` section headers with process rows.
-- [ ] **S14 — Write-a-command.** Split: 5-line bash script in the editor (`# pounce: name = Say Hello`…) left, that command appearing in the palette right. "Every command is a file."
+- [x] **S14 — Write-a-command.** ✅ shot → `pounce/assets/command-is-a-file.webp`, in the pounce README. Split: 5-line bash script in the editor (`# pounce: name = Say Hello`…) left, that command appearing in the palette right. "Every command is a file."
 
 ### 🌫 nebelung README
 
