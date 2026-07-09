@@ -133,7 +133,7 @@ sped up (~1.1–1.2×). Short = few retakes.
   ```
 
 - [x] **V3 — "Tap to launch"** (Prowl launcher, ~9s) → rice, org, landing. ✅ shot →
-  `nebelhaus/assets/tap-to-launch.webp` (animated WebP, 880×572, ~10.5s loop),
+  `nebelhaus/assets/tap-to-launch.webp` (animated WebP, 880×572, ~9s loop),
   front-loaded in the rice README right under the hero.
   ```
   0:00  Desktop, bar visible, one workspace focused.
