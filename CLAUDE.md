@@ -60,6 +60,28 @@ points outside your toplevel):
 - When done, say the branch name; the worktree dies with the pane, the branch
   survives until merged (and `haus status` nags about it).
 
+## Working from the main checkout (`~/code/nebelhaus` — the normal case)
+
+Not a worktree, not a cloud session — this is where most work happens, and the
+worktree/cloud restrictions above do **not** apply here. The child repos
+(`nebelhaus`, `nebelung`, `pounce`, `org-profile`, `homebrew-tap`) are
+`.gitignore`d by the workshop **only to keep the outer tree clean** — each is a
+full, independent repo I own solo, and from the main checkout you drive it
+end-to-end:
+
+- To change a child, `cd` into it and commit / push / ship it normally, under
+  its own CLAUDE.md and the ship-by-default policy. A child being gitignored
+  *up here* says nothing about committing *down there* — that's a different
+  repo, and it is **not** a signal that git ops there are risky or need extra
+  confirmation. Don't downgrade a solo repo to "ask first" just because it
+  nests inside this one.
+- When I ask for the whole flow — fold in the `worktree-*` branches, `haus try
+  switch` to activate, `haus ship` the ripple, rebuild — run it straight through
+  across every repo it touches. "Merging is my call" means don't merge
+  *unprompted*; once I've asked, don't stop to re-confirm each repo
+  word-for-word. That per-repo hand-holding is the exact friction this whole
+  router dir exists to remove.
+
 ## Claude Code on the web (cloud sessions)
 
 Web sessions boot a bare Linux container with **no Nix**. A remote-only
