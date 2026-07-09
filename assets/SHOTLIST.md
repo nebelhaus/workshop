@@ -19,7 +19,7 @@ rest go to the **landing page + social pool**.
 | README | What actually goes in it |
 |---|---|
 | 🐙 **org (.github)** | the **banner** (already there) + **S1** desktop, once shot, in "the house" section. Nothing else. |
-| 🏠 **rice (nebelhaus)** | **S1** hero image + **V3** "tap to launch" gif. That's the whole pitch. |
+| 🏠 **rice (nebelhaus)** | **S1** hero image + **V3** "tap to launch" clip (`tap-to-launch.webp`, ✅ in). That's the whole pitch. |
 | 🐾 **pounce** | **V1** `demo.gif` (the hero) + **S14** "every command is a file". |
 | 🌫 **nebelung** | `swatch-cascade.webp` (animated accent-ramp hero) + `preview.png` + **S17** `loud-vs-right.webp` (bat A/B). (`particle-field.webp` — the planned animated hero — is not shot yet; reserved for the landing page.) |
 
@@ -132,7 +132,9 @@ sped up (~1.1–1.2×). Short = few retakes.
   0:10  Type "force" → ↵ → Force Quit with Applications/Background sections.
   ```
 
-- [ ] **V3 — "Tap to launch"** (Prowl launcher, ~9s) → rice, org, landing
+- [x] **V3 — "Tap to launch"** (Prowl launcher, ~9s) → rice, org, landing. ✅ shot →
+  `nebelhaus/assets/tap-to-launch.webp` (animated WebP, 880×572, ~10.5s loop),
+  front-loaded in the rice README right under the hero.
   ```
   0:00  Desktop, bar visible, one workspace focused.
   0:01  Tap ⇪ → bar morphs: letter-hint bubbles appear.
