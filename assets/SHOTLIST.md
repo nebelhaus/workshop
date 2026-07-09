@@ -23,8 +23,10 @@ rest go to the **landing page + social pool**.
 | 🐾 **pounce** | **V1** `demo.gif` (the hero) + **S14** "every command is a file". |
 | 🌫 **nebelung** | ✅ **DONE** — `particle-field.webp` (animated hero) + `swatch-cascade.webp` (accent ramp), both committed. Supersedes S15/S17 for the README. |
 
-Everything else (S2–S13, S16, V2, V4–V10) is for the landing page and social —
-do not scatter it across the READMEs.
+Everything else (S2–S13, S15–S17, V2, V4–V10) is for the landing page and
+social — do not scatter it across the READMEs. (S15/S17 were the nebelung
+README stills; now that its animated WebPs supersede them, they drop to the
+pool too.)
 
 **Motion pieces already in hand** (1280×720 mp4s, exported → animated WebP via
 `nix run nixpkgs#ffmpeg`):
@@ -218,7 +220,7 @@ sped up (~1.1–1.2×). Short = few retakes.
 | 🐙 org (.github) | banner (have it) · **S1** in "the house" |
 | 🏠 rice | **S1** hero · **V3** tap-to-launch |
 | 🐾 pounce | **V1** `demo.gif` · **S14** command-is-a-file |
-| 🌫 nebelung | **S15** swatch board · **S17** loud-vs-right |
+| 🌫 nebelung | ✅ `particle-field.webp` (hero) · `swatch-cascade.webp` (accent ramp) — supersedes S15/S17 |
 
 ### Landing page + social pool (everything else)
 
@@ -228,7 +230,8 @@ feature sections, a background reel, social clips:
 - **Reel:** stitch V3 → V4 → V1 → V6 → V7 (muted, ~60s) as a background hero
   video; **S1** as the static poster frame.
 - **Feature stills:** S2 (three rooms), S3/S4 (bar), S5 (launch mode), S6
-  (tiling), S7 (Touch ID), S8 (cohesion), S9–S13 (pounce), S16 (ports gallery).
+  (tiling), S7 (Touch ID), S8 (cohesion), S9–S13 (pounce), S15 (swatch board),
+  S16 (ports gallery), S17 (loud-vs-right).
 - **Standalone clips:** V2 (extensibility), V5 (resize), V8 (Touch ID),
   V9 (accent swap), V10 (reproducibility).
 
