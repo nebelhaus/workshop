@@ -7,7 +7,7 @@ shot is in the can.
 
 **Highest-leverage assets, shoot these first & best:**
 - `S1` → `assets/hero.png` (the rice README hero + the org page's "the house" section — currently placeholder)
-- `V1` → pounce `assets/demo.gif` (currently placeholder)
+- `V1` → pounce `assets/demo.webp` (✅ shot)
 
 ## README media budget (keep it lean)
 
@@ -20,7 +20,7 @@ rest go to the **landing page + social pool**.
 |---|---|
 | 🐙 **org (.github)** | the **banner** (already there) + **S1** desktop, once shot, in "the house" section. Nothing else. |
 | 🏠 **rice (nebelhaus)** | **S1** hero image + **V3** "tap to launch" clip (`tap-to-launch.webp`, ✅ in). That's the whole pitch. |
-| 🐾 **pounce** | **V1** `demo.gif` (the hero) + **S14** "every command is a file". |
+| 🐾 **pounce** | **V1** `demo.webp` (the hero, ✅ in) + **S14** "every command is a file". |
 | 🌫 **nebelung** | `swatch-cascade.webp` (animated accent-ramp hero) + `preview.png` + **S17** `loud-vs-right.webp` (bat A/B). (`particle-field.webp` — the planned animated hero — is not shot yet; reserved for the landing page.) |
 
 Everything else (S2–S13, S15–S16, V2, V4–V10) is for the landing page and
@@ -111,7 +111,9 @@ browser** window with the Nebelung userChrome.
 Each = single continuous take, **8–18s**, KeyCastr visible, 60fps then lightly
 sped up (~1.1–1.2×). Short = few retakes.
 
-- [ ] **V1 — "Summon, aim, pounce"** (Pounce hero, ~10s) → pounce `demo.gif`, landing
+- [x] **V1 — "Summon, aim, pounce"** (Pounce hero, ~10s) → pounce `demo.webp`, landing. ✅ shot →
+  `pounce/assets/demo.webp` (animated WebP, 880×572, ~9.5s loop): palette springs →
+  type → Obsidian launches & tiles → ⌘Space → emoji grid swaps in place → copy 🐾 → paste.
   ```
   0:00  Clean desktop, one tiled window.
   0:01  ⌘Space → palette springs in (frosted blur, centered).
@@ -223,7 +225,7 @@ sped up (~1.1–1.2×). Short = few retakes.
 |---|---|
 | 🐙 org (.github) | banner (have it) · **S1** in "the house" |
 | 🏠 rice | **S1** hero · **V3** tap-to-launch |
-| 🐾 pounce | **V1** `demo.gif` · **S14** command-is-a-file |
+| 🐾 pounce | **V1** `demo.webp` · **S14** command-is-a-file |
 | 🌫 nebelung | `swatch-cascade.webp` (accent-ramp hero) · `preview.png` · **S17** `loud-vs-right.webp` (bat A/B) |
 
 ### Landing page + social pool (everything else)
