@@ -40,10 +40,9 @@ The shell and terminal layer. See [The shell](/guides/the-shell/).
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `nebelhaus.hearth.editor` | `str` | `"hx"` | `$EDITOR` / `$VISUAL`. A terminal editor is recommended; GUI editors work if they block (e.g. `"code -w"`). |
-| `nebelhaus.hearth.guiEditor` | `str` | `""` | Bundle id (or `.app` name) of a GUI editor for the "Nix Config" palette command and menu items. Empty falls back to `cursor`/`code`, then Finder. |
+| `nebelhaus.hearth.editor` | `str` | `"hx"` | The one editor the rice uses everywhere: `$EDITOR` / `$VISUAL` **and** what every "open in an editor" action launches (the "Nix Config" palette command, the bar's nix-open item, the file-association hijack) — opened in a new zellij tab. A terminal editor is recommended; a GUI editor's CLI works too (e.g. `"code"` or `"code -w"` to block). |
 | `nebelhaus.hearth.newTabDirs` | `listOf str` | `[]` | Home-relative directories offered by the `Super ⇧T` yazi picker. Empty browses all of `$HOME`. |
-| `nebelhaus.hearth.hijackFileAssociations` | `bool` | `false` | When `true`, makes helix the default opener for `.json`/`.md`/`.ts`/`.nix`/… via `duti`. Opt-in; changes double-click behaviour. |
+| `nebelhaus.hearth.hijackFileAssociations` | `bool` | `false` | When `true`, makes `hearth.editor` the default opener for `.json`/`.md`/`.ts`/`.nix`/… via `duti`. Opt-in; changes double-click behaviour. |
 
 ```nix
 nebelhaus.hearth.editor = "nvim";
