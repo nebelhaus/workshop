@@ -1,0 +1,218 @@
+---
+title: Adding apps & tools
+description: The whole decision tree — a GUI app with its own launcher key, a plain cask, or a CLI tool from nixpkgs, and where each one belongs.
+---
+
+import { Aside, Card, CardGrid, Steps } from '@astrojs/starlight/components';
+
+Sooner or later you'll want Slack, or Discord, or `ripgrep`, or that one obscure
+CLI you saw on a blog. Good news: you almost never touch the rice to do it. You
+edit **one file** — your host config — and rebuild.
+
+```sh
+haus edit       # opens ~/.config/nix/hosts/<hostname>/default.nix
+# …add your app or tool…
+haus rebuild    # build, then switch
+```
+
+Everything you declare there *merges* with what the rice already ships — no
+overriding, no conflicts. The only question is **which line** to add.
+
+## Which line do I add?
+
+<CardGrid>
+  <Card title="A GUI app I'll live in" icon="laptop">
+    Want it tiled, with a Caps-Lock letter and its own workspace? Add it to the
+    **app roster** — one entry gives you the key, the workspace, the bar pill,
+    and (optionally) installs it.
+  </Card>
+  <Card title="A GUI app, no fuss" icon="download">
+    Just want it *installed* — no launcher key, no tiling opinions? One line in
+    **`homebrew.casks`**.
+  </Card>
+  <Card title="A CLI tool I'll keep" icon="seti:shell">
+    A command you want on your `PATH` for good? Add it to **`home.packages`**
+    from nixpkgs — and it rolls back with everything else.
+  </Card>
+  <Card title="A CLI tool, just once" icon="magnifier">
+    Trying something out? Run it **without installing** via `,` (comma). Nothing
+    to clean up.
+  </Card>
+</CardGrid>
+
+---
+
+## A GUI app with a launcher key (the roster)
+
+This is the nebelhaus-native way to add an app you actually work in. One entry
+in `nebelhaus.prowl.apps` wires up *everything at once*: a Caps-Lock letter to
+launch/focus it, a workspace it lives on, a pill in the bar, the auto-tiling
+rule, a row in the cheatsheet — and it installs the app for you.
+
+```nix
+nebelhaus.prowl.apps = [
+  { key = "s"; name = "Slack"; workspace = "S";
+    appId = "com.tinyspeck.slackmacgap"; barIcon = ":slack:";
+    label = "Slack"; cask = "slack"; }
+];
+```
+
+Rebuild, and tapping <kbd>⇪</kbd> then <kbd>S</kbd> launches Slack onto
+workspace `S`, every time.
+
+The two fields people always have to look up:
+
+- **`appId`** — the app's bundle id, used to auto-send its windows to the right
+  workspace. Find it once the app exists on disk:
+
+  ```sh
+  osascript -e 'id of app "Slack"'
+  # → com.tinyspeck.slackmacgap
+  ```
+
+- **`barIcon`** — a ligature from the
+  [SketchyBar app font](https://github.com/kvndrsslr/sketchybar-app-font)
+  (e.g. `:slack:`, `:discord:`, `:figma:`). Browse the list on that page; leave
+  it `null` and the bar just shows the workspace letter.
+
+<Aside type="tip" title="cask = install, null = already here">
+Set `cask = "slack"` and declaring the app **also installs it** — no separate
+line needed. Set `cask = null` for apps that are already on the machine (Safari,
+Music, anything from the App Store) but you still want a launcher key for.
+</Aside>
+
+The full field-by-field breakdown — and the one-app-per-workspace thinking
+behind it — lives in [Window management](/guides/window-management/#your-app-roster)
+and [Making it yours](/guides/making-it-yours/#the-one-app-per-workspace-idea).
+
+## A GUI app, no launcher key (a plain cask)
+
+Some apps you just want *installed* — a background utility, something you open
+from Spotlight-muscle-memory, a thing you touch once a month. Skip the roster
+and drop the [Homebrew cask](https://formulae.brew.sh/cask/) straight in:
+
+```nix
+homebrew.casks = [
+  "discord"
+  "obsidian"
+  "figma"
+];
+```
+
+Your list is *merged* with the casks the rice already installs (Ghostty,
+AeroSpace, and any roster apps), so you never repeat or clobber them. Don't know
+the cask name? Search it:
+
+```sh
+brew search --cask obsidian
+```
+
+<Aside type="caution" title="Homebrew apps live outside Nix's time machine">
+Casks are installed *by* the rebuild but aren't tracked in Nix generations — so
+`haus rollback` won't uninstall an app you added, and won't bring back one you
+removed. Removing a cask from your config also won't delete the app by default
+(`nebelhaus.homebrew.cleanup` is `"none"`, on purpose, so nothing you installed
+by hand ever vanishes). To actually remove one: `brew uninstall --zap <cask>`.
+See [Making it yours](/guides/making-it-yours/#homebrew-behaviour) for the
+`cleanup` / `autoUpdate` / `upgrade` knobs.
+</Aside>
+
+## App Store & already-installed apps
+
+The rice installs GUI apps through Homebrew, not the Mac App Store. For apps that
+only live in the App Store (or that you installed by hand), install them the
+normal way — then, if you want them in the launcher, add a roster entry with
+`cask = null`:
+
+```nix
+{ key = "m"; name = "Music"; workspace = "M";
+  appId = "com.apple.Music"; barIcon = ":apple_music:"; cask = null; }
+```
+
+---
+
+## A CLI tool you want to keep
+
+Command-line tools come from **nixpkgs**, not Homebrew — which means they're
+declarative, reproducible, and roll back cleanly. Personal tools go in your
+host file's home-manager block:
+
+```nix
+home-manager.users.${username} = {
+  home.packages = with pkgs; [
+    ripgrep
+    httpie
+    ffmpeg
+  ];
+};
+```
+
+Not sure of the exact package name? Search nixpkgs:
+
+```sh
+nix search nixpkgs ripgrep
+# …or browse https://search.nixos.org/packages
+```
+
+<Aside type="note" title="System vs. home — and where the rice's own tools live">
+The rice ships a baseline toolbelt already (`bat`, `fzf`, `lazygit`, `jq`,
+`gh`, `delta`, `yazi`… — see [The shell](/guides/the-shell/)). Those live in the
+**nebelhaus repo**, not your host file; only edit them if you're changing the
+shared distro for everyone. *Your* machine's extras belong in `home.packages` in
+your host file. (The rare tool that `sudo` or a non-login shell must see can go
+in `environment.systemPackages` instead — but `home.packages` is almost always
+what you want.)
+</Aside>
+
+## A CLI tool, just to try it
+
+hearth wires up [`nix-index`](https://github.com/nix-community/nix-index) and
+`comma`, so you can run **any** command in nixpkgs without installing it — great
+for one-offs and "does this even do what I think":
+
+```sh
+, cowsay "hello fog"     # fetches cowsay, runs it, keeps nothing
+, ncdu                   # try a disk-usage TUI once
+```
+
+If you find yourself reaching for it twice, *then* add it to `home.packages`.
+
+## Tools that need a secret or an env var
+
+Some CLIs want an API key. Keep the secret **out of your Nix config** (it'd land
+in the world-readable Nix store) — read it from a file at shell startup instead:
+
+```nix
+home-manager.users.${username} = {
+  programs.zsh.initContent = lib.mkAfter ''
+    export OPENAI_API_KEY="$(cat ~/.secrets/openai 2>/dev/null)"
+  '';
+};
+```
+
+The `~/.secrets/*` files stay on the machine, ungit-tracked. See
+[Making it yours](/guides/making-it-yours/#secrets--private-things) for the
+pattern.
+
+---
+
+## Then apply it
+
+<Steps>
+
+1. `haus rebuild` — builds first, so a typo can't take down your running system.
+
+2. New casks install, new CLI tools land on your `PATH`, and any new roster app
+   gets its letter, workspace, and bar pill — all in one go.
+
+3. If a new roster app doesn't tile on first launch, it's a one-time hiccup;
+   `⌥⇧R` re-sorts everything to its workspace.
+
+</Steps>
+
+<Aside type="tip" title="This is your file — go wild">
+Your host file is a plain nix-darwin module. Anything nix-darwin or
+home-manager accepts works here and merges with the rice. Adding apps is just
+the most common case — see [Making it yours](/guides/making-it-yours/) for the
+whole cookbook.
+</Aside>

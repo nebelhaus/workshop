@@ -1,0 +1,142 @@
+---
+title: Moving to a new Mac
+description: Your whole setup is text in git — restore it in a few commands, plus the short list of things Nix deliberately leaves outside itself.
+---
+
+import { Aside, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+This is the payoff for describing your machine as text: a new Mac (or a wiped
+one) is a **restore**, not a weekend of clicking through System Settings. Your
+config is in git; you point a fresh machine at it and it converges to the exact
+same system.
+
+A few things live *outside* Nix on purpose — secrets, keychain trust, hardware
+keys. Those are the manual bits, and they're a short, honest checklist.
+
+## The happy path (you already have a nebelhaus config)
+
+If your `~/.config/nix` is pushed to git somewhere, restoring is three moves:
+
+<Steps>
+
+1. **Prerequisites.** Install Xcode Command Line Tools and
+   [Determinate Nix](https://docs.determinate.systems/):
+
+   ```sh
+   xcode-select --install
+   curl -fsSL https://install.determinate.systems/nix | sh -s -- install
+   ```
+
+2. **Clone your config** back to where it belongs:
+
+   ```sh
+   git clone <your-config-remote> ~/.config/nix
+   ```
+
+3. **Build, then switch:**
+
+   ```sh
+   cd ~/.config/nix
+   nix build .#darwinConfigurations.$(scutil --get LocalHostName).system \
+     && sudo ./result/sw/bin/darwin-rebuild switch --flake .
+   ```
+
+</Steps>
+
+That first build downloads the world and takes a while; after it, `haus` is on
+your `PATH` and the machine is yours again.
+
+<Aside type="note" title="New hostname? Add a host file.">
+If the new Mac's hostname differs, either reuse an existing host file by passing
+`--flake .#<oldhostname>`, or copy `hosts/<old>/` to `hosts/<new>/` and wire it
+into `flake.nix`. The identity and app choices come along for free.
+</Aside>
+
+## What comes back on its own
+
+Once that switch finishes, the rebuild has already restored:
+
+- **Every declared GUI app** — anything with a `cask` in your roster or in
+  `homebrew.casks` reinstalls itself.
+- **Your whole shell** — Ghostty, zellij, zsh, starship, yazi, helix, and the
+  CLI toolbelt, themed and configured.
+- **All your CLI tools** from `home.packages`.
+- **The macOS defaults** the rice manages (Dock, Finder, trackpad, key repeat,
+  the Caps-Lock remap, ⌘Space).
+- **The background agents** — tiling, the bar, and the launcher, launched via
+  launchd so they survive the next cold boot.
+
+## The manual bits Nix doesn't carry
+
+By design, a handful of things never enter your Nix config. Walk this list once
+on a fresh machine:
+
+<Steps>
+
+1. **Secrets.** Copy your `~/.secrets/*` files over securely (AirDrop, a
+   password manager, an encrypted drive). They're git-ignored on purpose, so
+   they don't ride along in the clone.
+
+2. **Commit signing keys.** If you sign commits, import your GPG/SSH key material
+   and set up `gpg-agent` + `pinentry-mac` (or your YubiKey). The key *id* is in
+   your config; the key *material* is not.
+
+3. **Pounce's Accessibility grant.** macOS ties this to the machine, so re-grant
+   it once:
+
+   ```sh
+   pounce --request-accessibility
+   ```
+
+   If you use `nebelhaus.pounce.signingIdentity`, make sure that signing
+   certificate is in the new machine's keychain (import it, or create a fresh
+   Apple Development cert and update the SHA-1 in your host file) so the grant
+   survives future rebuilds. See [Pounce config](/reference/pounce/).
+
+4. **Apps outside the config.** Anything you installed by hand or from the App
+   Store won't reappear — reinstall those, and consider adding the ones you care
+   about to your config so *next* time they do.
+
+5. **App logins & licences.** Nix restores the app; it can't restore your
+   session. Sign back into the handful of apps that need it.
+
+</Steps>
+
+<Aside type="tip" title="Do future-you a favour">
+Every app you move from "installed by hand" into `homebrew.casks` (or the
+roster) is one less thing to remember next migration. The goal is a machine you
+could wipe on a Tuesday without flinching.
+</Aside>
+
+## Coming from a hand-configured Mac
+
+Not restoring — adopting nebelhaus on a Mac you've already set up by hand? The
+[install](/start/install/) flow is built for exactly that, and it's careful:
+
+- **Your Homebrew casks are kept.** The preflight audit lists what it sees;
+  **nothing is removed**.
+- **Dotfiles are backed up,** not clobbered — anything the rice manages gets a
+  `.backup` copy first.
+- **Your current macOS settings can be captured** into your new host file, so the
+  switch doesn't fight preferences you already like.
+- **The interview** collects your name, email, accent, editor, and which rooms
+  you want — then scaffolds `~/.config/nix` and commits it. Nothing activates
+  until you run the build command it prints.
+
+Then it's the normal [first run](/start/first-run/), and from there everything
+on [Making it yours](/guides/making-it-yours/) applies.
+
+<Aside type="caution" title="Your two undo cards">
+Adopting the rice takes an APFS/Time-Machine snapshot first (a coarse rewind for
+macOS *settings*), and every `switch` is a Nix generation you can
+`haus rollback` to. Homebrew apps are never auto-deleted. You're not walking a
+tightrope without a net.
+</Aside>
+
+## Where to go next
+
+- [Making it yours](/guides/making-it-yours/) — now that it's back, tune it.
+- [Keeping in sync](/guides/staying-in-sync/) — keep this machine and the next
+  one converged.
+- [How the flakes fit together](/internals/flakes/) — why pinning makes any of
+  this reproducible.

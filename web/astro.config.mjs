@@ -52,6 +52,8 @@ export default defineConfig({
         {
           label: 'Guides',
           items: [
+            { label: 'Making it yours', slug: 'guides/making-it-yours' },
+            { label: 'Adding apps & tools', slug: 'guides/adding-apps' },
             { label: 'Window management (prowl)', slug: 'guides/window-management' },
             { label: 'The bar (sill)', slug: 'guides/the-bar' },
             { label: 'The shell (hearth)', slug: 'guides/the-shell' },
@@ -60,6 +62,7 @@ export default defineConfig({
             { label: 'Writing pounce commands', slug: 'guides/pounce-commands' },
             { label: 'Theming & accents (nebelung)', slug: 'guides/theming' },
             { label: 'Keeping in sync (haus)', slug: 'guides/staying-in-sync' },
+            { label: 'Moving to a new Mac', slug: 'guides/new-mac' },
           ],
         },
         {
