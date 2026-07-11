@@ -17,7 +17,7 @@ command that activates them. Nothing is switched until you run that command.
 
 ## What you need first
 
-- A **Mac** running a recent macOS (Apple Silicon or Intel).
+- A **Mac** running a recent macOS (Apple Silicon — Intel isn't supported yet).
 - **Xcode Command Line Tools.** The installer will trigger the install prompt if
   they're missing, then ask you to re-run.
 - About **10–15 minutes** and a few GB of download for the first build.
@@ -59,10 +59,13 @@ release it falls back to `main`. Add `?ref=vX.Y.Z` to pin a specific version.
    non-Determinate Nix install rather than risk breaking it.
 
 3. **Interview.** A short [gum](https://github.com/charmbracelet/gum) TUI asks
-   for your **git name and email**, which **rooms** you want (sill, prowl,
-   pounce — all on by default), your **accent colour** (default `mauve`), and
-   your **`$EDITOR`** (default `hx`). All of these have environment-variable
-   overrides for non-interactive runs (see below).
+   for your **git name and email**, a **preset** (Full rice / Minimal / Custom —
+   which decides the sill, prowl, and pounce rooms), your **accent colour**
+   (default `mauve`), a **wallpaper** (default: keep yours), your **`$EDITOR`**
+   (default `hx`) — and whether to **keep your current macOS settings**
+   (Dock/keyboard/Finder) and **adopt your existing Homebrew casks** into the
+   new config. Every answer has an environment-variable override for
+   non-interactive runs (see below).
 
 4. **Preflight audit.** A read-only report of what the first `switch` will
    change: existing Homebrew casks (**none are removed**), dotfiles that will be
@@ -103,6 +106,7 @@ NEBELHAUS_GIT_NAME="Ada Lovelace" \
 NEBELHAUS_GIT_EMAIL="ada@example.com" \
 NEBELHAUS_ROOMS="sill,prowl,pounce" \
 NEBELHAUS_ACCENT="mauve" \
+NEBELHAUS_WALLPAPER="none" \
 NEBELHAUS_EDITOR="hx" \
 bash -c "$(curl -fsSL https://nebelhaus.com/init.sh)"
 ```
@@ -112,8 +116,10 @@ Other useful knobs:
 | Variable / flag | Effect |
 |---|---|
 | `NEBELHAUS_DRY_RUN=1` | Print the generated config instead of writing it |
-| `NEBELHAUS_NONINTERACTIVE=1 … --defaults` | Skip the interview, accept all defaults |
+| `NEBELHAUS_NONINTERACTIVE=1` or `--defaults` | Skip the interview, accept all defaults |
+| `NEBELHAUS_KEEP` | Which current macOS settings to keep (`dock,keyboard,finder`) |
 | `NEBELHAUS_DIR` | Scaffold somewhere other than `~/.config/nix` |
+| `--from <url>` / `NEBELHAUS_FROM` | **Restore** an existing config instead of scaffolding — see [Moving to a new Mac](/guides/new-mac/) |
 
 <Aside type="caution" title="Your undo cards">
 Two things can roll you back: the **APFS snapshot** taken at step 1 restores

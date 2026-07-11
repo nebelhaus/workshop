@@ -64,7 +64,7 @@ nix shell nixpkgs#nodejs_22 --command 'npx wrangler deploy --dry-run'
 
 ## On a release
 
-`haus release nebelhaus` tags `vX.Y.Z`; CI publishes the GitHub release. The
+`bench release nebelhaus` tags `vX.Y.Z`; CI publishes the GitHub release. The
 Worker picks up the new tag for `/init.sh` within the cache hour — **the script
 needs no redeploy**. The *site* only changes when you rebuild and redeploy it.
 

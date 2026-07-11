@@ -38,21 +38,24 @@ nicer flourishes and a good demo of what SketchyBar can do.
 
 ## Optional personal plugins
 
-Two extras are **off by default** because each targets one person's hardware or
-service. Enable them explicitly:
+Three extras are **off by default** because each targets one person's hardware,
+service, or workflow. Enable the ones you want:
 
 ```nix
-nebelhaus.sill.plugins = [ "elgato" "harvest" ];
+nebelhaus.sill.plugins = [ "agents" "elgato" "harvest" ];
 ```
 
+- **`agents`** — a paw pill tracking your `claude --worktree` agent panes: amber
+  when one is waiting on you, click for the per-agent list, click a row to jump
+  to its pane. Dormant until its Claude Code hooks fire, so it's harmless if you
+  don't use agents.
 - **`elgato`** — a pill that toggles an Elgato Key Light on your local network.
 - **`harvest`** — a [Harvest](https://www.getharvest.com/) time-tracking pill.
-
-Both read credentials from a file **you** provide at
-`~/.config/sketchybar/harvest_secrets.sh`, so no secrets live in the rice.
+  It reads credentials from a file **you** provide at
+  `~/.config/sketchybar/harvest_secrets.sh`.
 
 <Aside type="note" title="Secrets stay out of Nix">
-sill never bakes tokens into the store. The optional plugins source your
+sill never bakes tokens into the store. The harvest plugin sources your
 `harvest_secrets.sh` at runtime — keep that file out of git.
 </Aside>
 

@@ -62,6 +62,7 @@ pounce --cheatsheet [path]        # cheatsheet overlay
 # housekeeping
 pounce --version
 pounce --daemon                   # run the resident daemon (launchd uses this)
+pounce --copy-file <path>         # copy a file (contents) to the clipboard
 pounce --request-accessibility    # prompt for the Accessibility grant
 pounce --check-accessibility      # exit 0 / prints true when granted
 ```

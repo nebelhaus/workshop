@@ -8,7 +8,7 @@
 #
 # Build then deploy (the nebelhaus.com zone must be on the logged-in CF account):
 #   cd web && npm ci && npm run build
-#   nix run nixpkgs#wrangler -- deploy        # or: npx wrangler deploy
+#   npx wrangler deploy        # (nixpkgs' wrangler fails to build — use npx)
 name = "nebelhaus"
 main = "worker.js"
 compatibility_date = "2024-11-06"

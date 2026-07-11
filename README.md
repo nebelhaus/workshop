@@ -111,14 +111,20 @@ git -C nebelung merge worktree-<name>
 ./bench pull && ./bench rebuild
 ```
 
-**Releasing pounce to Homebrew** — for the people who won't touch Nix. The
-version in `pounce/pkgs/pounce/default.nix` is the only thing you bump by hand:
+**Releasing** — two repos are releasable, and each release has a real audience:
 
 ```sh
-./bench ship             # everything pushed & locks current first
-./bench release pounce   # tags v<version> — CI publishes the GitHub release
-                        # and bumps the formula in homebrew-tap
+./bench ship                # everything pushed & locks current first
+./bench release pounce      # tags v<version> from pkgs/pounce/default.nix —
+                            # CI publishes the release + bumps homebrew-tap
+./bench release nebelhaus   # tags v<version> from VERSION — this is what
+                            # nebelhaus.com/init.sh serves to new installs
 ```
+
+The rice one matters more than it looks: the install one-liner serves the
+**latest rice release**, so until you cut one, new users bootstrap from the
+previous tag no matter what's on `main`. Ship user-visible rice changes, then
+release.
 
 ## the bench commands
 
@@ -151,8 +157,9 @@ hack ──► test ──► try ──► merge ──► ship ──► relea
    nagging `bench status` line, survive until you do).
 4. **ship** — commit, then `./bench ship` pushes upstream→downstream, rippling
    every `flake.lock`.
-5. **release** — for pounce: bump the version, `./bench release pounce`, and CI
-   handles the GitHub release + Homebrew formula.
+5. **release** — bump the version, `./bench release <repo>`, and CI does the
+   rest (pounce: GitHub release + Homebrew formula; nebelhaus: the tag
+   `init.sh` serves to new installs).
 
 ## setting up this workshop on a fresh machine
 

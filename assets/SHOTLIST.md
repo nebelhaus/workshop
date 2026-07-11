@@ -201,15 +201,15 @@ sped up (~1.1–1.2×). Short = few retakes.
   ```
   0:00  Editor: nebelhaus.theme.accent = "mauve"; three tools tiled (starship, fzf, lazygit).
   0:03  Change "mauve" → "sapphire". Save.
-  0:05  ./haus try switch  (fast-forward the build in the edit).
+  0:05  ./bench try switch  (fast-forward the build in the edit).
   0:10  Cut back: starship prompt, fzf prompt, lazygit borders all now sapphire.
   0:13  End on the swatch board tinting.
   ```
 
 - [ ] **V10 — "Wipe and it stands again"** (reproducibility, ~10s, optional) → org, landing
   ```
-  0:00  Terminal: `./haus status` (clean).
-  0:02  `./haus rebuild` → build streams, then "switch".
+  0:00  Terminal: `./bench status` (clean).
+  0:02  `./bench rebuild` → build streams, then "switch".
   0:07  Desktop re-activates: bar reloads, windows re-sort to workspaces.
   0:09  End on the tidy desktop.
   ```

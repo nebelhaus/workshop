@@ -32,15 +32,21 @@ workspaces, and a wide `⌥⇧⌘⌃` "hyper" chord moves windows.
 | `⌥H` `⌥J` `⌥K` `⌥L` | Focus left / down / up / right |
 | `⌥⇧⌘⌃ ←↓↑→` | Move the focused window in a direction |
 | `⌥⇧⌘⌃ -` / `⌥⇧⌘⌃ =` | Resize the tiled window by ∓50 |
-| `⌥/` | Toggle layout: tiles ↔ vertical |
-| `⌥,` | Toggle layout: accordion ↔ vertical |
-| `⌥1`–`⌥4` | Focus workspace 1–4 |
+| `⌥/` | Tiles layout (toggle horizontal ↔ vertical split) |
+| `⌥,` | Accordion layout (toggle horizontal ↔ vertical) |
+| `⌥F` | Toggle fullscreen |
 | `⌥⇧1`–`⌥⇧4` | Move window to workspace 1–4 |
 | `⌥⇧<app-key>` | Throw the window to that app's home workspace |
+| `⌥⇧⌘⌃<app-key>` | Launch / focus an app without the leader (hold-chord twin of tap-⇪) |
 | `⌥Tab` | Jump to the previous workspace (back-and-forth) |
 | `⌥⇧Tab` | Move the workspace to the next monitor |
+| `⌥⇧R` | Re-sort every window to its workspace |
 | `⌥⇧;` | Enter **service mode** |
 | `⌘Space` | Open [Pounce](/guides/pounce/) |
+
+Focusing a workspace is a leader action: tap <kbd>⇪</kbd>, then a digit (`1`–`4`)
+or an app's letter — the same motion whether you're going to scratch space or to
+an app.
 
 ## Launch mode — tap ⇪
 
@@ -49,6 +55,7 @@ Tap Caps-Lock, then:
 | Key | Action |
 |---|---|
 | `<app-key>` | Launch or focus that app (e.g. `T` = Ghostty, `B` = Zen) |
+| `1`–`4` | Focus workspace 1–4 |
 | `-` / `=` | Enter **resize mode** (shrink / grow) |
 | `V` | Clipboard history (via Pounce) |
 | `E` | Emoji picker (via Pounce) |

@@ -16,11 +16,12 @@ Notation: `⌥` Option/Alt · `⌘` Command · `⌃` Control · `⇧` Shift · `
 | `⌥H` `⌥J` `⌥K` `⌥L` | Focus left / down / up / right |
 | `⌥⇧⌘⌃ ←↓↑→` | Move the focused window |
 | `⌥⇧⌘⌃ -` / `⌥⇧⌘⌃ =` | Resize tiled window ∓50 |
-| `⌥/` | Toggle layout: tiles ↔ vertical |
-| `⌥,` | Toggle layout: accordion ↔ vertical |
-| `⌥1`–`⌥4` | Focus workspace 1–4 |
+| `⌥/` | Tiles layout (toggles horizontal ↔ vertical split) |
+| `⌥,` | Accordion layout (toggles horizontal ↔ vertical) |
+| `⌥F` | Toggle fullscreen |
 | `⌥⇧1`–`⌥⇧4` | Move window to workspace 1–4 |
 | `⌥⇧<app-key>` | Throw window to that app's workspace |
+| `⌥⇧⌘⌃<app-key>` | Launch / focus that app (chord alternative to tapping ⇪) |
 | `⌥Tab` | Previous workspace (back-and-forth) |
 | `⌥⇧Tab` | Move workspace to next monitor |
 | `⌥⇧;` | Enter service mode |
@@ -32,6 +33,7 @@ Notation: `⌥` Option/Alt · `⌘` Command · `⌃` Control · `⇧` Shift · `
 | Keys | Action |
 |---|---|
 | `<app-key>` | Launch / focus that app (`T` terminal, `B` browser by default) |
+| `1`–`4` | Focus workspace 1–4 |
 | `-` / `=` | Enter resize mode (shrink / grow) |
 | `V` | Clipboard history (Pounce) |
 | `E` | Emoji picker (Pounce) |
@@ -59,7 +61,7 @@ Notation: `⌥` Option/Alt · `⌘` Command · `⌃` Control · `⇧` Shift · `
 | `Super ⇧T` | New tab, pick directory via floating yazi |
 | `Super Y` | yazi peek (floating, read-only, previews) |
 | `Super ⇧Y` | yazi jump (browse, then shell in that dir) |
-| `Ctrl Tab` / `Ctrl ⇧Tab` | Next / previous tab |
+| `Ctrl Tab` / `Ctrl ⇧Tab` | Tab history back / forward (most-recently-used, browser-style) |
 | `Alt <` / `Alt >` | Cycle swap layouts (spiral → columns → grid) |
 | `Super C` | Spawn an isolated Claude agent (own worktree) |
 | `Ctrl ⌥⇧C` | Spawn a resident Claude agent (this checkout) |
