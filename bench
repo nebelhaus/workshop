@@ -323,6 +323,22 @@ cmd_pull() {
   done
 }
 
+version_file() { # version_file <repo> — WHERE a releasable repo's version lives
+  case "$1" in
+    pounce)    echo "$(repo_dir "$1")/pkgs/pounce/default.nix" ;;
+    nebelhaus) echo "$(repo_dir "$1")/VERSION" ;;
+    *) return 1 ;;
+  esac
+}
+
+read_version() { # read_version <repo> — the version string that repo tags at
+  local f; f="$(version_file "$1")" || return 1
+  case "$1" in
+    pounce)    sed -n 's/^ *version = "\([^"]*\)";.*/\1/p' "$f" | head -1 ;;
+    nebelhaus) tr -d '[:space:]' < "$f" 2>/dev/null ;;
+  esac
+}
+
 cmd_release() {
   # Cut a release: tag v<version> — read from the repo, never typed, so the
   # tag can't drift from what the code says (CI double-checks anyway). The
@@ -343,12 +359,10 @@ cmd_release() {
 
   # Each releasable repo names its own version source (never typed, so the tag
   # can't drift from the code — CI double-checks on the tag).
-  local version
-  case "$name" in
-    pounce)    version="$(sed -n 's/^ *version = "\([^"]*\)";.*/\1/p' "$dir/pkgs/pounce/default.nix" | head -1)" ;;
-    nebelhaus) version="$(tr -d '[:space:]' < "$dir/VERSION" 2>/dev/null)" ;;
-    *) die "bench release doesn't know '$name' yet (releasable: pounce, nebelhaus)" ;;
-  esac
+  local verfile version
+  verfile="$(version_file "$name")" \
+    || die "bench release doesn't know '$name' yet (releasable: pounce, nebelhaus)"
+  version="$(read_version "$name")"
   [ -n "$version" ] || die "couldn't read a version for $name"
   local tag="v$version"
   git -C "$dir" rev-parse -q --verify "refs/tags/$tag" >/dev/null \
@@ -373,6 +387,9 @@ cmd_clone() {
   done
 }
 
+# When sourced with HAUS_LIB=1 (the bats test harness), stop here: the caller
+# just wants the functions above, not to dispatch a command.
+if [ "${HAUS_LIB:-}" != "1" ]; then
 case "${1:-status}" in
   status)  cmd_status ;;
   try)     cmd_try "${2:-}" ;;
@@ -386,3 +403,4 @@ case "${1:-status}" in
   wt-remove) cmd_wt_remove ;;
   *)       sed -n '2,30p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
 esac
+fi
