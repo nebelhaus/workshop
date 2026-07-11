@@ -13,7 +13,6 @@ Notation: `⌥` Option/Alt · `⌘` Command · `⌃` Control · `⇧` Shift · `
 
 | Keys | Action |
 |---|---|
-| `⌥⇧⌘⌃ ←↓↑→` | Move the focused window |
 | `⌥⇧⌘⌃ -` / `⌥⇧⌘⌃ =` | Resize tiled window ∓50 |
 | `⌥/` | Toggle layout: tiles ↔ vertical |
 | `⌥,` | Toggle layout: accordion ↔ vertical |
