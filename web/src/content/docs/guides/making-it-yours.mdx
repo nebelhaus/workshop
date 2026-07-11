@@ -94,10 +94,9 @@ a wallpaper from your accent. Full palette on [Theming & accents](/guides/themin
 ### The shell
 
 ```nix
-nebelhaus.hearth.editor = "nvim";                  # your $EDITOR
-nebelhaus.hearth.guiEditor = "com.microsoft.VSCode"; # what "Nix Config" opens with
+nebelhaus.hearth.editor = "nvim";                  # the ONE editor: $EDITOR + every "open in editor" action
 nebelhaus.hearth.newTabDirs = [ "code" ".config" ]; # shortlist for the Super-⇧T picker
-nebelhaus.hearth.hijackFileAssociations = false;    # make helix the default file opener
+nebelhaus.hearth.hijackFileAssociations = false;    # make that editor the default file opener
 ```
 
 More on each in [The shell](/guides/the-shell/).
