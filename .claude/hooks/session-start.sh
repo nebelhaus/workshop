@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Claude Code on the web boots a bare Linux container with no Nix. The whole
 # nebelhaus stack is a Nix flake, so without this the agent can't regenerate
-# flake.lock, evaluate a host, or run `haus`. Install Nix once at session start
+# flake.lock, evaluate a host, or run `bench`. Install Nix once at session start
 # and persist it for the rest of the session.
 #
 # Local (macOS) sessions already run Determinate Nix — do nothing there.

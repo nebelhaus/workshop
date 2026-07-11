@@ -15,7 +15,7 @@ ties them together, but pounce and nebelung stand alone too.
 | 🐾 [**pounce**](https://github.com/nebelhaus/pounce) | the launcher — a native Swift command palette + its generic command scripts | the palette app or a built-in command changes |
 | 🌫 [**nebelung**](https://github.com/nebelhaus/nebelung) | the colours — a silver-mist Catppuccin variant + per-tool theme templates | you want a different shade of fog |
 | 🍺 [**homebrew-tap**](https://github.com/nebelhaus/homebrew-tap) | the Homebrew tap (`brew tap nebelhaus/tap`) | almost never — CI bumps it on every release |
-| 🧰 [**workshop**](https://github.com/nebelhaus/workshop) | every repo checked out side-by-side + the `haus` dev CLI | you're hacking on the family itself |
+| 🧰 [**workshop**](https://github.com/nebelhaus/workshop) | every repo checked out side-by-side + the `bench` dev CLI | you're hacking on the family itself |
 
 Your private machine config — identity, secrets, your app roster — lives at
 `~/.config/nix` and is **yours**, never part of the rice.

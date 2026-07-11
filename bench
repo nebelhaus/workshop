@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# haus — the workshop CLI for the nebelhaus family.
+# bench — the workshop CLI for the nebelhaus family.
 #
 # The family is a chain of flakes, each pinning the one before it:
 #
@@ -9,25 +9,25 @@
 # Editing upstream means nothing until the downstream locks catch up. This
 # script exists so you never have to remember that dance:
 #
-#   haus status    where is everything? (git state, lock edges, agent worktrees)
-#   haus try       build YOUR machine against the LOCAL checkouts — no pushes
-#   haus try switch    …and activate it (still no pushes; prod untouched)
-#   haus ship      push everything in dependency order, rippling lock updates
-#   haus rebuild   a plain, pinned rebuild of your machine (the normal day)
-#   haus pull      fast-forward every repo
-#   haus clone     fetch any family repo missing from this directory
-#   haus release   tag v<version> (read from the repo, never typed) — CI then
+#   bench status    where is everything? (git state, lock edges, agent worktrees)
+#   bench try       build YOUR machine against the LOCAL checkouts — no pushes
+#   bench try switch    …and activate it (still no pushes; prod untouched)
+#   bench ship      push everything in dependency order, rippling lock updates
+#   bench rebuild   a plain, pinned rebuild of your machine (the normal day)
+#   bench pull      fast-forward every repo
+#   bench clone     fetch any family repo missing from this directory
+#   bench release   tag v<version> (read from the repo, never typed) — CI then
 #                  publishes the GitHub release and bumps the Homebrew tap
 #
-# Rule of thumb: hack freely, `haus try` until happy, commit, `haus ship`.
+# Rule of thumb: hack freely, `bench try` until happy, commit, `bench ship`.
 #
 # Agent worktrees: Claude Code sessions spawn into git worktrees of the family
 # repos (branch `worktree-*`), so parallel agents never fight over a checkout's
-# branch. `haus try` is worktree-aware — run it from inside a worktree and that
+# branch. `bench try` is worktree-aware — run it from inside a worktree and that
 # repo's override points at the WORKTREE instead of the main checkout, so an
-# agent can verify its own branch builds. `haus try switch` refuses from a
-# worktree (only main-checkout code gets activated); `haus status` lists agent
-# worktrees and unmerged agent branches; `haus ship` warns about them.
+# agent can verify its own branch builds. `bench try switch` refuses from a
+# worktree (only main-checkout code gets activated); `bench status` lists agent
+# worktrees and unmerged agent branches; `bench ship` warns about them.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -114,7 +114,7 @@ cmd_status() {
   printf '  %-12s %-8s %-7s %s\n' "repo" "branch" "dirty" "vs origin"
   for name in "${FAMILY[@]}" consumer; do
     local dir; dir="$(repo_dir "$name")"
-    [ -d "$dir/.git" ] || { printf '  %-12s (missing — haus clone)\n' "$name"; continue; }
+    [ -d "$dir/.git" ] || { printf '  %-12s (missing — bench clone)\n' "$name"; continue; }
     local branch dirty ahead behind
     branch="$(git -C "$dir" branch --show-current)"
     dirty="$(git -C "$dir" status --porcelain | wc -l | tr -d ' ')"
@@ -169,8 +169,8 @@ cmd_status() {
   done
   echo
   if [ "$stale" = "1" ]; then
-    warn "stale edges above. If the upstream work is committed: haus ship."
-    warn "To test it on this machine without pushing anything: haus try"
+    warn "stale edges above. If the upstream work is committed: bench ship."
+    warn "To test it on this machine without pushing anything: bench try"
   else
     say "everything is current. The fog is even."
   fi
@@ -193,10 +193,10 @@ cmd_try() {
     say "switching (this activates the LOCAL build on this machine)…"
     # shellcheck disable=SC2046
     (cd "$CONSUMER" && sudo ./result/sw/bin/darwin-rebuild switch --flake ".#$host" $(overrides))
-    warn "you are now running unpushed code. When happy: commit + haus ship,"
+    warn "you are now running unpushed code. When happy: commit + bench ship,"
     warn "so a plain rebuild reproduces what you're running."
   else
-    say "to activate it too: haus try switch"
+    say "to activate it too: bench try switch"
   fi
 }
 
@@ -208,7 +208,7 @@ cmd_ship() {
     [ -d "$dir/.git" ] || continue
     if [ -n "$(git -C "$dir" status --porcelain)" ]; then
       git -C "$dir" status --short
-      die "$name has uncommitted changes — commit (or stash) them first, then re-run haus ship."
+      die "$name has uncommitted changes — commit (or stash) them first, then re-run bench ship."
     fi
   done
 
@@ -249,13 +249,13 @@ cmd_ship() {
     fi
   done
 
-  say "shipped. Apply it to this machine with: haus rebuild"
+  say "shipped. Apply it to this machine with: bench rebuild"
 }
 
 # ── Claude Code worktree hooks ──────────────────────────────────────────────
 # Wired into ~/.claude/settings.json as WorktreeCreate/WorktreeRemove hooks, so
 # `claude --worktree` (the zellij Ctrl-Alt-c bind) creates its isolated checkout
-# HERE instead of inside the repo (.claude/worktrees/ would pollute `haus try`'s
+# HERE instead of inside the repo (.claude/worktrees/ would pollute `bench try`'s
 # path: overrides and dirty every tree). Layout: ~/.cache/claude-worktrees/
 # <repo-basename>/<name>, branch worktree-<name>, branched from LOCAL HEAD (in
 # this house local is usually ahead of origin). Works for any repo, not just
@@ -298,7 +298,7 @@ cmd_wt_remove() {
   git -C "$main" worktree remove "$dir" 2>/dev/null \
     || git -C "$main" worktree remove --force "$dir"
   # The branch is how unmerged work survives pane-close; only reap it once merged
-  # (-d refuses otherwise, which is exactly the safety we want — haus status will
+  # (-d refuses otherwise, which is exactly the safety we want — bench status will
   # keep nagging about the leftover until it's merged or deleted by hand).
   if [ -n "$branch" ]; then
     git -C "$main" branch -d "$branch" >/dev/null 2>&1 || true
@@ -331,15 +331,15 @@ cmd_release() {
   # Division of labor: commits are yours, lock bumps are ship's, tags are
   # release's, formula bumps are CI's.
   local name="${1:-}"
-  [ -n "$name" ] || die "usage: haus release <repo>   (releasable: pounce, nebelhaus)"
+  [ -n "$name" ] || die "usage: bench release <repo>   (releasable: pounce, nebelhaus)"
 
   local dir; dir="$(repo_dir "$name")"
-  [ -d "$dir/.git" ] || die "$name is not cloned here — haus clone"
+  [ -d "$dir/.git" ] || die "$name is not cloned here — bench clone"
   [ -z "$(git -C "$dir" status --porcelain)" ] \
-    || die "$name is dirty — commit (and haus ship) first"
+    || die "$name is dirty — commit (and bench ship) first"
   git -C "$dir" fetch -q --tags 2>/dev/null || true
   local ahead; ahead="$(git -C "$dir" rev-list --count '@{u}..HEAD' 2>/dev/null || echo '?')"
-  [ "$ahead" = "0" ] || die "$name has unpushed commits — haus ship first, then release"
+  [ "$ahead" = "0" ] || die "$name has unpushed commits — bench ship first, then release"
 
   # Each releasable repo names its own version source (never typed, so the tag
   # can't drift from the code — CI double-checks on the tag).
@@ -347,7 +347,7 @@ cmd_release() {
   case "$name" in
     pounce)    version="$(sed -n 's/^ *version = "\([^"]*\)";.*/\1/p' "$dir/pkgs/pounce/default.nix" | head -1)" ;;
     nebelhaus) version="$(tr -d '[:space:]' < "$dir/VERSION" 2>/dev/null)" ;;
-    *) die "haus release doesn't know '$name' yet (releasable: pounce, nebelhaus)" ;;
+    *) die "bench release doesn't know '$name' yet (releasable: pounce, nebelhaus)" ;;
   esac
   [ -n "$version" ] || die "couldn't read a version for $name"
   local tag="v$version"
