@@ -1,0 +1,204 @@
+---
+title: Making it yours
+description: The one file you edit, the opinions worth knowing, and a cookbook of every knob — from accents to workspaces to turning whole rooms off.
+---
+
+import { Aside, Card, CardGrid } from '@astrojs/starlight/components';
+
+nebelhaus ships a *complete* opinion — system and shell, already wired. So
+"customizing" isn't reassembling anything; it's turning a handful of dials. This
+page is the map of those dials and the thinking behind the loudest defaults.
+
+## The one file you edit
+
+There are two halves to your setup, and they stay cleanly apart:
+
+- **The rice** (`github:nebelhaus/nebelhaus`) — the generic, no-identity system.
+  You *never* edit this to use it. It updates upstream; you pull it when you like.
+- **Your config** (`~/.config/nix`) — a ~18-line flake that imports the rice,
+  plus **one host file** where *you* live:
+  `hosts/<hostname>/default.nix`.
+
+That host file is where every tweak on this page goes. Open it instantly:
+
+```sh
+haus edit
+```
+
+It's a plain nix-darwin module — whatever you write merges with what the rice
+already declares. Change something, then:
+
+```sh
+haus rebuild    # builds first; a broken config never activates
+```
+
+<Aside type="tip" title="Why the split matters">
+Because *your* stuff and *the rice* are separate repos, `nix flake update
+nebelhaus` (or `haus update`) pulls new fog without ever touching your identity,
+apps, or overrides. Your machine stays yours; the rice stays upstream. Keep
+personal things in your host file — never in the rice repo itself.
+</Aside>
+
+## The one-app-per-workspace idea
+
+The single biggest opinion in nebelhaus is how windows are arranged, so it's
+worth saying out loud: **each app you live in gets its own workspace, and one
+key takes you there.**
+
+Instead of alt-tabbing through a soup of windows, you build muscle memory: the
+terminal is always <kbd>⇪</kbd> <kbd>T</kbd>, the browser is always
+<kbd>⇪</kbd> <kbd>B</kbd>, Slack is always <kbd>⇪</kbd> <kbd>S</kbd>. The app is
+launched if it isn't running, focused if it is, and it lands on *its* workspace
+every time. Your hands stop negotiating with the window manager.
+
+That whole scheme comes from **one list** — `nebelhaus.prowl.apps`, the roster —
+so the launcher key, the workspace, the bar pill, and the auto-tiling rule can
+never drift out of sync. A few things worth internalizing:
+
+- **Letters are apps, digits are scratch.** Workspaces `1`–`4` are generic
+  scratch space; letters (`T`, `B`, `S`…) belong to specific apps.
+- **Focus vs. throw.** Tap <kbd>⇪</kbd> then a letter/digit to *go there*. Hold
+  <kbd>⌥⇧</kbd> and press it to *throw the current window* there instead.
+- **Launcher-only apps exist.** Give a roster entry `workspace = null` and its
+  key just launches it in place — no dedicated workspace, no pill. Handy for a
+  password manager or a calculator.
+
+Adding your own is a one-liner — see [Adding apps & tools](/guides/adding-apps/)
+for the recipe and [Window management](/guides/window-management/) for the full
+binding set.
+
+## The cookbook
+
+Every knob below is a `nebelhaus.*` option (or a plain nix-darwin one) you set in
+your host file. This is the tour; the exhaustive list with types and defaults is
+the [options reference](/reference/options/).
+
+### Identity
+
+```nix
+nebelhaus.git.name = "Ada Lovelace";
+nebelhaus.git.email = "ada@example.com";
+nebelhaus.git.signingKey = "6F7BD6F43A7C1420";  # "" to disable commit signing
+```
+
+### The look
+
+```nix
+nebelhaus.theme.accent = "sapphire";   # any of 14 Catppuccin accent names
+nebelhaus.theme.wallpaper = "orbits";  # none | orbits | constellation | flow | bold
+```
+
+`accent` recolours lazygit, fzf, yazi, and the browser accent; `bold` generates
+a wallpaper from your accent. Full palette on [Theming & accents](/guides/theming/).
+
+### The shell
+
+```nix
+nebelhaus.hearth.editor = "nvim";                  # your $EDITOR
+nebelhaus.hearth.guiEditor = "com.microsoft.VSCode"; # what "Nix Config" opens with
+nebelhaus.hearth.newTabDirs = [ "code" ".config" ]; # shortlist for the Super-⇧T picker
+nebelhaus.hearth.hijackFileAssociations = false;    # make helix the default file opener
+```
+
+More on each in [The shell](/guides/the-shell/).
+
+### Apps, tiling & the launcher
+
+```nix
+nebelhaus.prowl.apps = [ /* your roster — see Adding apps */ ];
+nebelhaus.prowl.enable = true;    # false: no tiling, no Caps-Lock remap
+nebelhaus.pounce.enable = true;   # false: no ⌘Space palette
+nebelhaus.pounce.signingIdentity = "";  # keeps Pounce's Accessibility grant across rebuilds
+```
+
+### The bar
+
+```nix
+nebelhaus.sill.enable = true;              # false: keep the native macOS menu bar
+nebelhaus.sill.plugins = [ "elgato" ];     # opt-in extras: agents | elgato | harvest
+```
+
+The bar's optional plugins are personal — an Elgato Key Light toggle, a Harvest
+timer, an agents pill — off unless you ask. See [The bar](/guides/the-bar/).
+
+### Homebrew behaviour
+
+```nix
+nebelhaus.homebrew.cleanup = "none";    # none | uninstall | zap — how rebuild treats undeclared apps
+nebelhaus.homebrew.autoUpdate = false;  # brew update before each rebuild
+nebelhaus.homebrew.upgrade = false;     # upgrade outdated packages each rebuild
+homebrew.casks = [ "discord" ];         # plain installs, no launcher key
+```
+
+`cleanup` defaults to `"none"` so nothing you installed by hand is ever removed.
+Set it to `"zap"` if you want a *fully* declarative machine where undeclared
+casks get uninstalled on rebuild.
+
+## Turning rooms off
+
+Three rooms are opt-*out*; the rest are load-bearing:
+
+| Room | Option | Off means |
+|---|---|---|
+| prowl (tiling) | `nebelhaus.prowl.enable = false` | No AeroSpace, no Caps-Lock leader |
+| sill (bar) | `nebelhaus.sill.enable = false` | The native menu bar stays |
+| pounce (launcher) | `nebelhaus.pounce.enable = false` | ⌘Space stays Spotlight |
+
+**den** (system + Homebrew), **hearth** (shell), and **collar** (Touch ID sudo)
+are always on — they're the foundation the rest sits on. Turn any of the three
+optional rooms off and the others keep working; the rice degrades gracefully.
+
+## Overriding macOS defaults
+
+The rice sets Dock, Finder, trackpad, and keyboard defaults — but every one of
+them is a *soft* default you can beat by just setting the same key with a plain
+value in your host file:
+
+```nix
+# Rice hides the Dock and puts it on the bottom; put it on the left, always shown:
+system.defaults.dock.autohide = false;
+system.defaults.dock.orientation = "left";
+```
+
+Anything under [`system.defaults`](https://nix-darwin.github.io/nix-darwin/manual/)
+is fair game. Your plain value wins over the rice's default.
+
+<Aside type="note" title="One exception">
+The menu-bar auto-hide follows whether the bar (sill) is on — don't set
+`_HIHideMenuBar` by hand, or you'll get a bar and a menu bar fighting for the
+same strip of pixels.
+</Aside>
+
+## Secrets & private things
+
+Anything sensitive — API keys, tokens, your app list if you'd rather it stay
+private — belongs in your host file (which is *your* repo), and secrets
+themselves belong in files the Nix store never sees:
+
+```nix
+home-manager.users.${username} = {
+  # Read secrets at shell startup, not from the (world-readable) Nix store:
+  programs.zsh.initContent = lib.mkAfter ''
+    export SOME_API_KEY="$(cat ~/.secrets/some-key 2>/dev/null)"
+  '';
+  home.packages = with pkgs; [ /* your private tools */ ];
+};
+```
+
+Keep `~/.secrets/*` out of git. Your host repo can be private; the rice never
+needs to know who you are.
+
+<Aside type="tip" title="Wrong repo?">
+Changing a *color*? That's the [nebelung](/reference/palette/) palette, a
+different repo. Changing the rice's *shared* behaviour for everyone (not just
+your machine)? That's the nebelhaus repo — see
+[Contributing](/internals/contributing/). Personalizing *your* Mac? You're in
+the right place: your host file.
+</Aside>
+
+## Where to go next
+
+- [Adding apps & tools](/guides/adding-apps/) — the most common change, in depth.
+- [Moving to a new Mac](/guides/new-mac/) — because all of this is just git.
+- [Keeping in sync](/guides/staying-in-sync/) — updating, rolling back, `haus`.
+- [Options reference](/reference/options/) — every knob, formally.
