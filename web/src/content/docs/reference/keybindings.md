@@ -13,8 +13,6 @@ Notation: `⌥` Option/Alt · `⌘` Command · `⌃` Control · `⇧` Shift · `
 
 | Keys | Action |
 |---|---|
-| `⌥H` `⌥J` `⌥K` `⌥L` | Focus left / down / up / right |
-| `⌥⇧⌘⌃ ←↓↑→` | Move the focused window |
 | `⌥⇧⌘⌃ -` / `⌥⇧⌘⌃ =` | Resize tiled window ∓50 |
 | `⌥/` | Tiles layout (toggles horizontal ↔ vertical split) |
 | `⌥,` | Accordion layout (toggles horizontal ↔ vertical) |
@@ -34,6 +32,7 @@ Notation: `⌥` Option/Alt · `⌘` Command · `⌃` Control · `⇧` Shift · `
 |---|---|
 | `<app-key>` | Launch / focus that app (`T` terminal, `B` browser by default) |
 | `1`–`4` | Focus workspace 1–4 |
+| `←↓↑→` | Focus tiled window; drops into **navigate mode** (arrows repeat, `⇧`+arrow *moves* the window, `Esc`/`Return` exits) |
 | `-` / `=` | Enter resize mode (shrink / grow) |
 | `V` | Clipboard history (Pounce) |
 | `E` | Emoji picker (Pounce) |
