@@ -1,0 +1,125 @@
+---
+title: Troubleshooting
+description: The handful of things that go sideways on macOS — a wedged agent, a missing grant, a stubborn cask — and the exact command to unstick each one.
+---
+
+Most nebelhaus trouble is one of a few known macOS quirks with a known fix. Work
+top-down; `haus doctor` is a good first stop for any of them.
+
+```sh
+haus doctor    # checks Nix, the Xcode CLT, and the GUI agents in one shot
+```
+
+## ⌘Space / Pounce does nothing
+
+The launcher is a launchd **user agent**. If it isn't answering:
+
+```sh
+# Is it running?
+launchctl list | grep pounce
+
+# Bounce it (the clean recover for any wedged user agent):
+launchctl bootout gui/$(id -u)/org.nixos.pounce 2>/dev/null
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/org.nixos.pounce.plist
+```
+
+If it opens but **clipboard/emoji paste** don't work, it's missing the
+Accessibility grant:
+
+```sh
+pounce --request-accessibility   # approve the system dialog
+pounce --check-accessibility     # prints true when granted
+```
+
+Set `nebelhaus.pounce.signingIdentity` so this grant survives rebuilds — see
+[Pounce config](/reference/pounce/). If ⌘Space still opens **Spotlight**, log
+out and back in once so the symbolic-hotkey reassignment takes.
+
+## Windows won't tile / AeroSpace isn't running
+
+This is almost always the **cold-boot GUI race**: an agent launched before the
+desktop session was ready parked itself (exit 78) instead of starting. The rice
+guards against it, but if you land in this state, bounce the agent:
+
+```sh
+launchctl bootout gui/$(id -u)/org.nixos.aerospace 2>/dev/null
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/org.nixos.aerospace.plist
+```
+
+Other quick fixes:
+
+- **Windows scrambled after sleep?** They self-heal after a couple seconds; force
+  it with `⌥⇧R`.
+- **A binding you changed didn't take?** A rebuild rewrites the config but the
+  live daemon caches the old one — normally auto-reloaded, but you can force it:
+  `aerospace reload-config`.
+- **A window landed on the wrong workspace?** `⌥⇧R` re-sorts everything to its
+  roster home.
+
+## The bar (SketchyBar) is blank or missing
+
+```sh
+launchctl bootout gui/$(id -u)/org.nixos.sketchybar 2>/dev/null
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/org.nixos.sketchybar.plist
+# or, if it's running but stale:
+sketchybar --reload
+```
+
+If you'd rather not run a custom bar at all, set `nebelhaus.sill.enable = false`
+and the native macOS menu bar comes back.
+
+## Touch ID for sudo beachballs (inside tmux/zellij)
+
+If the Touch ID prompt hangs when you `sudo` inside a multiplexer, the
+`pam_reattach` shim isn't loading. It ships with the **collar** room and is on by
+default; confirm the order in `/etc/pam.d/sudo_local` (reattach must come *before*
+the Touch ID line). Outside a multiplexer, Touch ID should just work; cancel the
+prompt to fall back to your password.
+
+## "Refusing to load cask … from an untrusted tap"
+
+Third-party taps fail Homebrew's trust check under sudo-driven activation. The
+rice disables that requirement globally (`HOMEBREW_NO_REQUIRE_TAP_TRUST=1` in
+`/etc/homebrew/brew.env`). If you see this, that file didn't land — re-run
+`haus rebuild`, or set the variable in your shell for the one-off.
+
+## An app I removed from my config is still installed
+
+By design. `nebelhaus.homebrew.cleanup` defaults to `"none"`, so nothing you
+installed is ever auto-deleted, and **`haus rollback` doesn't rewind Homebrew
+apps** (they're not in Nix generations). Remove one by hand:
+
+```sh
+brew uninstall --zap <cask>
+```
+
+Want a fully declarative machine where undeclared casks get removed on rebuild?
+Set `nebelhaus.homebrew.cleanup = "zap";` — see
+[Making it yours](/guides/making-it-yours/#homebrew-behaviour).
+
+## A rebuild broke something — get back fast
+
+```sh
+haus rollback       # atomically return to the previous generation
+haus generations    # see what you can roll back to
+```
+
+`haus rebuild` always builds *before* switching, so a config with an error can't
+activate — you just see the build fail. For macOS **settings** (not packages),
+the APFS/Time-Machine snapshot the installer took is the coarser rewind.
+
+## The installer refuses to run — "expects Determinate Nix"
+
+nebelhaus is built on [Determinate Nix](https://docs.determinate.systems/) and
+won't install on top of a stock/single-user Nix rather than risk breaking it. If
+you have an existing Nix you don't need, uninstall it and re-run the one-liner;
+if you want to keep it, migrating to Determinate is the supported path. Fresh
+Macs need none of this — the bootstrap installs Determinate for you.
+
+## Still stuck?
+
+- [Keybindings cheatsheet](/reference/keybindings/) — or tap `⇪` then `/` for the
+  live, roster-aware version.
+- [nebelhaus.* options](/reference/options/) — every knob and its default.
+- [Open an issue](https://github.com/nebelhaus/nebelhaus/issues) with the output
+  of `haus doctor`.

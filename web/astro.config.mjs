@@ -73,6 +73,7 @@ export default defineConfig({
             { label: 'Pounce config & CLI', slug: 'reference/pounce' },
             { label: 'The nebelung palette', slug: 'reference/palette' },
             { label: 'The haus CLI', slug: 'reference/haus' },
+            { label: 'Troubleshooting', slug: 'reference/troubleshooting' },
           ],
         },
         {

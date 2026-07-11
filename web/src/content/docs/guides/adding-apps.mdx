@@ -117,12 +117,30 @@ See [Making it yours](/guides/making-it-yours/#homebrew-behaviour) for the
 `cleanup` / `autoUpdate` / `upgrade` knobs.
 </Aside>
 
-## App Store & already-installed apps
+## App Store apps
 
-The rice installs GUI apps through Homebrew, not the Mac App Store. For apps that
-only live in the App Store (or that you installed by hand), install them the
-normal way — then, if you want them in the launcher, add a roster entry with
-`cask = null`:
+Some apps only live in the Mac App Store. You can still declare them — nix-darwin
+drives the App Store through [`mas`](https://github.com/mas-cli/mas) via
+`homebrew.masApps`, an `App Name → numeric id` map:
+
+```nix
+homebrew.masApps = {
+  "Things" = 904280696;
+  "Xcode" = 497799835;
+};
+```
+
+The id is the number in the App Store URL (`…/id497799835`). You need to be
+**signed into the App Store** for these to install, and if the first rebuild
+reports `mas` is missing, add it once with `homebrew.brews = [ "mas" ];`.
+Declaring them this way means they come back on a [new Mac](/guides/new-mac/)
+like everything else.
+
+## Already-installed apps
+
+For anything already on the machine — Safari, Music, an app you installed by hand
+— you don't need to install it again. If you want it in the launcher, just add a
+roster entry with `cask = null`:
 
 ```nix
 { key = "m"; name = "Music"; workspace = "M";
