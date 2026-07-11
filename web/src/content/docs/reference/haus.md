@@ -44,10 +44,10 @@ haus rollback    # back to the previous generation
 haus doctor      # if something still looks off
 ```
 
-## Not to be confused with…
+## The contributor's counterpart: `bench`
 
-There's a **second** `haus` in the [workshop repo](/internals/contributing/) used
-by people hacking on the nebelhaus family itself — it has commands like `try`,
-`ship`, and `release` for moving changes between the family's repos. That one is
-for contributors and lives in the workshop checkout. As an end user, the `haus`
-on your `PATH` (the one documented here) is all you need.
+Hacking on the nebelhaus family itself? The [workshop repo](/internals/contributing/)
+ships a separate CLI called **`bench`** — with commands like `try`, `ship`, and
+`release` for moving changes between the family's repos. It's for contributors and
+lives in the workshop checkout. As an end user, the `haus` on your `PATH` (the one
+documented here) is all you need.
