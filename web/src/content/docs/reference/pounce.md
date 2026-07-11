@@ -60,6 +60,7 @@ pounce --camera                   # live camera preview
 pounce --cheatsheet [path]        # cheatsheet overlay
 
 # housekeeping
+pounce --help                     # every flag, from the binary itself
 pounce --version
 pounce --daemon                   # run the resident daemon (launchd uses this)
 pounce --copy-file <path>         # copy a file (contents) to the clipboard
