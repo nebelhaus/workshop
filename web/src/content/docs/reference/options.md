@@ -12,7 +12,7 @@ Apply changes with `haus rebuild`.
 
 ## nebelhaus.git
 
-Your commit identity. Host-only — never edited into the rice.
+Your commit identity — set your own. It stays in [your host file](/internals/flakes/#your-config-is-a-thin-consumer).
 
 | Option | Type | Default | Description |
 |---|---|---|---|
