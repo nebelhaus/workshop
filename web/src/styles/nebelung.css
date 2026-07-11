@@ -127,3 +127,18 @@
 .sl-markdown-content code:not(:where(.not-content *)) {
   border: 1px solid var(--neb-surface0);
 }
+
+/* Wide tables scroll sideways on narrow viewports instead of squishing
+   their cells into unreadable one-word-per-line slivers. The block box is
+   the scroll container; the inner table keeps its natural column widths. */
+.sl-markdown-content table:not(:where(.not-content *)) {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  overflow-x: auto;
+}
+/* Never break a code identifier (an option path like nebelhaus.git.name)
+   mid-token — let the row get wider and scroll instead. */
+.sl-markdown-content :is(th, td) code:not(:where(.not-content *)) {
+  white-space: nowrap;
+}
