@@ -13,6 +13,7 @@ Notation: `⌥` Option/Alt · `⌘` Command · `⌃` Control · `⇧` Shift · `
 
 | Keys | Action |
 |---|---|
+| `⌥H` `⌥J` `⌥K` `⌥L` | Focus left / down / up / right (Vim-style twin of ⇪ + arrows) |
 | `⌥/` | Tiles layout (toggles horizontal ↔ vertical split) |
 | `⌥,` | Accordion layout (toggles horizontal ↔ vertical) |
 | `⌥F` | Toggle fullscreen |
