@@ -47,6 +47,11 @@ Accent hue. One of `rosewater`, `flamingo`, `pink`, `mauve`, `red`, `maroon`, `p
 
 See [Theming & accents](/guides/theming/) and the [palette](/reference/palette/).
 
+### `nebelhaus.theme.wallpaper`
+enum · default `"none"`
+
+The desktop wallpaper, applied at each rebuild. One of `none`, `orbits`, `constellation`, `flow`, `bold`. The first three are hand-made with the palette baked in; `bold` is generated from your `theme.accent`, so it follows the accent. `none` leaves your current wallpaper alone — changing the desktop is personal, so nothing moves unless you ask (the install interview offers the choice).
+
 ## nebelhaus.hearth
 
 The shell and terminal layer. See [The shell](/guides/the-shell/).
@@ -115,7 +120,7 @@ Toggle SketchyBar. When on, the native macOS menu bar is hidden.
 ### `nebelhaus.sill.plugins`
 `listOf enum` · default `[]`
 
-Opt-in personal bar items: `"elgato"` (toggle an Elgato Key Light) and `"harvest"` (Harvest time tracker). Both read `~/.config/sketchybar/harvest_secrets.sh`, which you provide.
+Opt-in personal bar items: `"agents"` (a pill tracking your Claude agent panes), `"elgato"` (toggle an Elgato Key Light), and `"harvest"` (a Harvest time tracker — reads `~/.config/sketchybar/harvest_secrets.sh`, which you provide). See [The bar](/guides/the-bar/#optional-personal-plugins).
 
 ## nebelhaus.pounce
 

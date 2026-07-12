@@ -13,8 +13,10 @@ Notation: `⌥` Option/Alt · `⌘` Command · `⌃` Control · `⇧` Shift · `
 
 | Keys | Action |
 |---|---|
-| `⌥/` | Toggle layout: tiles ↔ vertical |
-| `⌥,` | Toggle layout: accordion ↔ vertical |
+| `⌥H` `⌥J` `⌥K` `⌥L` | Focus left / down / up / right (Vim-style twin of ⇪ + arrows) |
+| `⌥/` | Tiles layout (toggles horizontal ↔ vertical split) |
+| `⌥,` | Accordion layout (toggles horizontal ↔ vertical) |
+| `⌥F` | Toggle fullscreen |
 | `⌥⇧1`–`⌥⇧4` | Move window to workspace 1–4 |
 | `⌥⇧<app-key>` | Throw window to that app's workspace |
 | `⌥Tab` | Previous workspace (back-and-forth) |
@@ -57,7 +59,7 @@ Notation: `⌥` Option/Alt · `⌘` Command · `⌃` Control · `⇧` Shift · `
 | `Super ⇧T` | New tab, pick directory via floating yazi |
 | `Super Y` | yazi peek (floating, read-only, previews) |
 | `Super ⇧Y` | yazi jump (browse, then shell in that dir) |
-| `Ctrl Tab` / `Ctrl ⇧Tab` | Next / previous tab |
+| `Ctrl Tab` / `Ctrl ⇧Tab` | Tab history back / forward (most-recently-used, browser-style) |
 | `Alt <` / `Alt >` | Cycle swap layouts (spiral → columns → grid) |
 | `Super C` | Spawn an isolated Claude agent (own worktree) |
 | `Ctrl ⌥⇧C` | Spawn a resident Claude agent (this checkout) |

@@ -52,6 +52,27 @@ command makes reality match them.
 Each piece also stands on its own — you can take the whole rice, or just
 [pounce](/guides/pounce/), or just [the palette](/reference/palette/).
 
+## The house holds your hand
+
+An opinionated system only works if you're never stranded in it. nebelhaus is
+built so there's always a hand to grab:
+
+- **Forgot a key?** Tap <kbd>⇪</kbd> then <kbd>/</kbd> — the live cheatsheet,
+  generated from *your* roster, is one tap away. (Or the
+  [written one](/reference/keybindings/).)
+- **Something feels off?** `haus doctor` checks Nix, the agents, and the
+  permissions in one shot, and tells you the exact command to unstick each.
+- **Made a mess?** `haus rollback` returns to the previous generation
+  atomically. A failed build never activates in the first place.
+- **Nothing is destructive.** The installer snapshots before it starts, backs
+  up any dotfile it touches, and never deletes an app you installed — walking
+  away is as supported as moving in.
+- **The docs meet you where you are** — from the
+  [first ten minutes](/start/first-run/) to
+  [every option](/reference/options/) to
+  [the exact fix](/reference/troubleshooting/) for the five things that ever
+  go wrong.
+
 ## The two-command install
 
 ```sh

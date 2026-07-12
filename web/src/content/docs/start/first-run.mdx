@@ -52,7 +52,8 @@ list also lives at [Keybindings](/reference/keybindings/).
 1. **Tap ⇪, then `T`** — Ghostty opens and tiles. You're in zellij.
 2. **`⌘Space`, type `saf`, Return** — Safari launches. That's Pounce.
 3. **Tap ⇪, then ← / →** — focus jumps between the two windows (keep arrowing).
-4. **⌥/** — the layout flips between tiles and accordion.
+4. **⌥/** — the tiled split flips between horizontal and vertical. (`⌥,` swaps
+   to an accordion instead.)
 5. **`⌘Space`, type `emoji`, Return** — the palette swaps to an emoji grid in
    place. Pick one; it's copied (and pasted, if you granted Accessibility).
 
@@ -123,3 +124,9 @@ and the full [options reference](/reference/options/) to go deeper.
 | `haus doctor` | Health check: Nix, CLT, GUI agents |
 
 The full list is on the [haus CLI](/reference/haus/) page.
+
+<Aside type="tip" title="You're never stuck">
+Lost a keybinding? <kbd>⇪</kbd> <kbd>/</kbd>. Something misbehaving?
+`haus doctor` names the culprit and the fix. Regret a change? `haus rollback`.
+The [troubleshooting page](/reference/troubleshooting/) covers everything else.
+</Aside>

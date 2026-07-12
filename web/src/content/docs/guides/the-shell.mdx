@@ -33,8 +33,10 @@ Launching Ghostty drops you straight into a persistent zellij session called
 
 - Ghostty's `⌘T`, `⌘P`, `⌘Y`, `⌘C` and friends are **unbound** on purpose —
   zellij owns those, so the same keys work whether or not you're multiplexed.
-- `Ctrl-Tab` / `Ctrl-Shift-Tab` cycle tabs (Ghostty forwards the kitty-protocol
-  encoding so zellij sees them).
+- `Ctrl-Tab` / `Ctrl-Shift-Tab` walk your tabs in **most-recently-used order**,
+  browser-style — one tap bounces between your two hottest tabs; keep tapping
+  to go further back. (Ghostty forwards the kitty-protocol encoding so zellij
+  sees them.)
 
 ### zellij keybindings
 
@@ -45,7 +47,7 @@ Launching Ghostty drops you straight into a persistent zellij session called
 | `Super ⇧T` | New tab, pick the directory via a floating yazi |
 | `Super Y` | **yazi peek** — a floating, read-only browser with live previews |
 | `Super ⇧Y` | **yazi jump** — browse, then drop a shell in the landing directory |
-| `Ctrl Tab` / `Ctrl ⇧Tab` | Next / previous tab |
+| `Ctrl Tab` / `Ctrl ⇧Tab` | Tab history back / forward (most-recently-used) |
 | `Alt <` / `Alt >` | Cycle swap layouts (spiral → columns → grid) |
 
 <Aside type="tip" title="Option-click a path">

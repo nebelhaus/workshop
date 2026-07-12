@@ -16,7 +16,7 @@ For the day-to-day workflow, see [Keeping in sync](/guides/staying-in-sync/).
 |---|---|
 | `haus rebuild` | Build, then `darwin-rebuild switch`. Your everyday apply. A failed build never touches the running system. |
 | `haus update` | Update the `nebelhaus` pin in `~/.config/nix/flake.lock`, then rebuild — pulls new rice versions. |
-| `haus rollback` | Atomically return to the previous generation. |
+| `haus rollback [N]` | Atomically return to the previous generation — or to generation `N`. |
 | `haus generations` | List the generations you can roll back to. |
 | `haus status` | Show the current generation and how stale the pinned rice is. |
 | `haus edit` | Open your host file (`~/.config/nix/hosts/<hostname>/default.nix`) in `$EDITOR`. |
