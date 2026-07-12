@@ -131,6 +131,40 @@ Toggle the Pounce daemon, the ⌘Space palette, and its Accessibility features.
 
 SHA-1 of an Apple Development code-signing identity. The daemon is re-signed with it so the Accessibility grant survives rebuilds. Find with `security find-identity -v -p codesigning`. Empty runs unsigned (palette works; auto-paste off).
 
+## nebelhaus.hush
+
+The quiet switch. See [Focus & DND](/guides/hush/).
+
+### `nebelhaus.hush.enable`
+`bool` · default `true`
+
+Toggle the hush room: the bell pill, the "Toggle Hush" palette command, and the `hush` CLI. The room binds the Do Not Disturb symbolic hotkey (175) declaratively on every rebuild.
+
+### `nebelhaus.hush.slack.enable`
+`bool` · default `false`
+
+Also set a Slack status and snooze Slack notifications (phone included) while hushed. Needs `tokenCommand`. The previous status is saved and restored on unhush.
+
+### `nebelhaus.hush.slack.tokenCommand`
+`str` · default `""`
+
+Shell command that prints your Slack user token (`xoxp-…`, scopes `users.profile:write` + `dnd:write`). Keychain-first: `security find-generic-password -s hush-slack -w`.
+
+### `nebelhaus.hush.slack.statusText` / `statusEmoji`
+`str` · defaults `"heads down"` / `":no_bell:"`
+
+The status shown while hushed.
+
+### `nebelhaus.hush.slack.snooze`
+`bool` · default `true`
+
+Pause Slack's own notifications (all devices) while hushed; ended on unhush, capped at 24h as a failsafe.
+
+### `nebelhaus.hush.hooks`
+`listOf (path or str)` · default `[]`
+
+Extra scripts run on every hush/unhush, each called with `on` or `off`. Paths are copied into the store; strings run as-is. Failures log, never block the toggle.
+
 ## nebelhaus.homebrew
 
 Homebrew *policy* — not the casks/brews themselves (those go in `homebrew.casks`
