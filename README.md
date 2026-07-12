@@ -130,7 +130,7 @@ release.
 
 | command | what it does |
 |---------|--------------|
-| `./bench status` | git state of every repo + every lock edge (who's pinning an old rev of whom) |
+| `./bench status` | git state of every repo, every lock edge (who's pinning an old rev of whom), and every release edge (is the tag users install from behind main?) |
 | `./bench try [switch]` | build (and optionally activate) your machine against the local checkouts |
 | `./bench ship` | push everything in dependency order, rippling `flake.lock` updates downstream |
 | `./bench rebuild` | plain pinned rebuild of `~/.config/nix` |

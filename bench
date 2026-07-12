@@ -9,7 +9,8 @@
 # Editing upstream means nothing until the downstream locks catch up. This
 # script exists so you never have to remember that dance:
 #
-#   bench status    where is everything? (git state, lock edges, agent worktrees)
+#   bench status    where is everything? (git state, lock edges, release edges,
+#                  agent worktrees)
 #   bench try       build YOUR machine against the LOCAL checkouts — no pushes
 #   bench try switch    …and activate it (still no pushes; prod untouched)
 #   bench ship      push everything in dependency order, rippling lock updates
@@ -99,6 +100,17 @@ overrides() { # every family input redirected at the local checkouts
         --override-input nebelhaus/pounce path:$(local_src pounce)"
 }
 
+# Release bookkeeping. Releases are what users actually consume — pounce via
+# the Homebrew tap, nebelhaus via nebelhaus.com/init.sh (which serves the
+# LATEST RELEASE's bootstrap, not main) — so a tag that falls behind main is
+# every bit as stale as a lock edge, just invisible without this.
+latest_tag() { # latest_tag <repo> — newest v* tag by version order, "" if none
+  git -C "$(repo_dir "$1")" tag --list 'v*' --sort=-v:refname 2>/dev/null | head -1
+}
+commits_since() { # commits_since <repo> <ref> — commits on HEAD that <ref> lacks
+  git -C "$(repo_dir "$1")" rev-list --count "$2..HEAD" 2>/dev/null || echo "?"
+}
+
 # Agent worktree bookkeeping, shared by status + ship.
 list_worktrees() { # list_worktrees <repo> — linked worktree paths, one per line
   git -C "$(repo_dir "$1")" worktree list --porcelain 2>/dev/null \
@@ -119,7 +131,7 @@ cmd_status() {
     branch="$(git -C "$dir" branch --show-current)"
     dirty="$(git -C "$dir" status --porcelain | wc -l | tr -d ' ')"
     [ "$dirty" = "0" ] && dirty="·" || dirty="${dirty} files"
-    git -C "$dir" fetch -q 2>/dev/null || true
+    git -C "$dir" fetch -q --tags 2>/dev/null || true
     ahead="$(git -C "$dir" rev-list --count '@{u}..HEAD' 2>/dev/null || echo '?')"
     behind="$(git -C "$dir" rev-list --count 'HEAD..@{u}' 2>/dev/null || echo '?')"
     printf '  %-12s %-8s %-7s ↑%s ↓%s\n' "$name" "$branch" "$dirty" "$ahead" "$behind"
@@ -168,9 +180,44 @@ cmd_status() {
     fi
   done
   echo
+  say "release edges (what new users actually get)"
+  local rel_stale=0
+  for name in pounce nebelhaus; do
+    local dir tag ver behind audience
+    dir="$(repo_dir "$name")"
+    [ -d "$dir/.git" ] || continue
+    case "$name" in
+      pounce)    audience="brew installs" ;;
+      nebelhaus) audience="nebelhaus.com/init.sh" ;;
+    esac
+    tag="$(latest_tag "$name")"
+    ver="$(read_version "$name")"
+    if [ -z "$tag" ]; then
+      printf '  ⚠ %-22s no release yet — %s falls back to main\n' "$name" "$audience"
+      rel_stale=1
+      continue
+    fi
+    behind="$(commits_since "$name" "$tag")"
+    if [ "$behind" = "0" ]; then
+      printf '  ✓ %-22s %s is current with main\n' "$name" "$tag"
+    else
+      printf '  ⚠ %-22s %s is %s commit(s) behind main — %s get the old one\n' \
+        "$name" "$tag" "$behind" "$audience"
+      if [ -n "$ver" ] && [ "v$ver" = "$tag" ]; then
+        printf '      bump the version first, then: bench release %s\n' "$name"
+      else
+        printf '      version already bumped to %s — bench release %s when ready\n' "${ver:-?}" "$name"
+      fi
+      rel_stale=1
+    fi
+  done
+
+  echo
   if [ "$stale" = "1" ]; then
     warn "stale edges above. If the upstream work is committed: bench ship."
     warn "To test it on this machine without pushing anything: bench try"
+  elif [ "$rel_stale" = "1" ]; then
+    warn "locks are current, but a release is behind — ship is done, releasing is the last mile."
   else
     say "everything is current. The fog is even."
   fi

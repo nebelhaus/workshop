@@ -125,3 +125,55 @@ NIX
   run read_version nebelhaus
   [ "$output" = "0.3.0" ]
 }
+
+# ── latest_tag / commits_since: the release-edge staleness check ───────────────
+
+make_repo() { # make_repo <name> — a fixture git repo with one commit
+  mkdir -p "$ROOT/$1"
+  git -C "$ROOT/$1" init -q
+  git -C "$ROOT/$1" -c user.name=t -c user.email=t@t commit -q --allow-empty -m one
+}
+
+@test "latest_tag picks the newest v* tag by version order, not lexically" {
+  make_repo pounce
+  git -C "$ROOT/pounce" tag v0.9.0
+  git -C "$ROOT/pounce" tag v0.10.0
+  run latest_tag pounce
+  [ "$output" = "v0.10.0" ]
+}
+
+@test "latest_tag is empty when a repo has no tags" {
+  make_repo pounce
+  run latest_tag pounce
+  [ "$output" = "" ]
+}
+
+@test "latest_tag ignores tags that don't look like releases" {
+  make_repo pounce
+  git -C "$ROOT/pounce" tag v0.1.0
+  git -C "$ROOT/pounce" tag experiment
+  run latest_tag pounce
+  [ "$output" = "v0.1.0" ]
+}
+
+@test "commits_since counts commits on HEAD past the tag" {
+  make_repo nebelhaus
+  git -C "$ROOT/nebelhaus" tag v0.2.0
+  git -C "$ROOT/nebelhaus" -c user.name=t -c user.email=t@t commit -q --allow-empty -m two
+  git -C "$ROOT/nebelhaus" -c user.name=t -c user.email=t@t commit -q --allow-empty -m three
+  run commits_since nebelhaus v0.2.0
+  [ "$output" = "2" ]
+}
+
+@test "commits_since is 0 when the tag is at HEAD" {
+  make_repo nebelhaus
+  git -C "$ROOT/nebelhaus" tag v0.2.0
+  run commits_since nebelhaus v0.2.0
+  [ "$output" = "0" ]
+}
+
+@test "commits_since degrades to ? on a bogus ref" {
+  make_repo nebelhaus
+  run commits_since nebelhaus v9.9.9
+  [ "$output" = "?" ]
+}

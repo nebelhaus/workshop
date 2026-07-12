@@ -58,6 +58,7 @@ export default defineConfig({
             { label: 'The bar (sill)', slug: 'guides/the-bar' },
             { label: 'The shell (hearth)', slug: 'guides/the-shell' },
             { label: 'Touch ID for sudo (collar)', slug: 'guides/touch-id' },
+            { label: 'Focus & DND (hush)', slug: 'guides/hush' },
             { label: 'Pounce — the launcher', slug: 'guides/pounce' },
             { label: 'Writing pounce commands', slug: 'guides/pounce-commands' },
             { label: 'Theming & accents (nebelung)', slug: 'guides/theming' },

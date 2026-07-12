@@ -13,13 +13,11 @@ Notation: `⌥` Option/Alt · `⌘` Command · `⌃` Control · `⇧` Shift · `
 
 | Keys | Action |
 |---|---|
-| `⌥⇧⌘⌃ -` / `⌥⇧⌘⌃ =` | Resize tiled window ∓50 |
 | `⌥/` | Tiles layout (toggles horizontal ↔ vertical split) |
 | `⌥,` | Accordion layout (toggles horizontal ↔ vertical) |
 | `⌥F` | Toggle fullscreen |
 | `⌥⇧1`–`⌥⇧4` | Move window to workspace 1–4 |
 | `⌥⇧<app-key>` | Throw window to that app's workspace |
-| `⌥⇧⌘⌃<app-key>` | Launch / focus that app (chord alternative to tapping ⇪) |
 | `⌥Tab` | Previous workspace (back-and-forth) |
 | `⌥⇧Tab` | Move workspace to next monitor |
 | `⌥⇧;` | Enter service mode |
