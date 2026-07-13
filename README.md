@@ -39,7 +39,7 @@ machine is described in text files, and one command makes reality match them.
 Each link is a *flake input* — a pinned reference to an exact commit of the
 upstream repo, recorded in the downstream repo's `flake.lock`:
 
-![one colour change rippling down the chain: nebelung → pounce → nebelhaus → ~/.config/nix → your Mac, each lock pinning the exact commit of the one before](./assets/ripple.png)
+![one colour change rippling down the chain: nebelung → pounce → nebelhaus → ~/.config/nix → your Mac, each lock pinning the exact commit of the one before](./assets/ripple.webp)
 
 ### flakes in sixty seconds (the part that bites)
 
