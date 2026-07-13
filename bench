@@ -151,7 +151,7 @@ cmd_status() {
     for b in $(unmerged_agent_branches "$name"); do
       # branches whose worktree is gone but whose commits aren't merged yet
       if ! git -C "$(repo_dir "$name")" worktree list --porcelain | grep -q "branch refs/heads/$b"; then
-        wt_lines+="$(printf '  %-12s %-24s %-6s %s' "$name" "$b" "·" "(no worktree — merge or delete the branch)")"$'\n'
+        wt_lines+="$(printf '  %-12s %-24s %-6s %s' "$name" "$b" "·" "(parked — 'wt ${b#worktree-}' to resume, or merge/delete)")"$'\n'
       fi
     done
   done
@@ -299,58 +299,16 @@ cmd_ship() {
   say "shipped. Apply it to this machine with: bench rebuild"
 }
 
-# ── Claude Code worktree hooks ──────────────────────────────────────────────
-# Wired into ~/.claude/settings.json as WorktreeCreate/WorktreeRemove hooks, so
-# `claude --worktree` (the zellij Ctrl-Alt-c bind) creates its isolated checkout
-# HERE instead of inside the repo (.claude/worktrees/ would pollute `bench try`'s
-# path: overrides and dirty every tree). Layout: ~/.cache/claude-worktrees/
-# <repo-basename>/<name>, branch worktree-<name>, branched from LOCAL HEAD (in
-# this house local is usually ahead of origin). Works for any repo, not just
-# the family. Contract (see Claude Code hooks docs): JSON on stdin; wt-create
-# prints the new worktree path on stdout, everything else goes to stderr.
-
-WT_BASE="$HOME/.cache/claude-worktrees"
-
-# The payload's key names have drifted across Claude Code versions (docs say
-# worktree_name/base_path; 2.1.x sends name/cwd) — accept either, first hit wins.
-hook_field() { # hook_field <json> <key>… — first key present in the payload
-  local json="$1"; shift
-  python3 -c '
-import json, sys
-d = json.load(sys.stdin)
-for k in sys.argv[1:]:
-    if k in d:
-        print(d[k]); break
-else:
-    print(f"hook payload has none of {sys.argv[1:]}: {d}", file=sys.stderr); sys.exit(1)
-' "$@" <<<"$json"
-}
-
-cmd_wt_create() {
-  local json name base dir
-  json="$(cat)"
-  name="$(hook_field "$json" name worktree_name)"
-  base="$(hook_field "$json" base_path cwd)"
-  dir="$WT_BASE/$(basename "$base")/$name"
-  git -C "$base" worktree add -b "worktree-$name" "$dir" HEAD >&2
-  echo "$dir"
-}
-
-cmd_wt_remove() {
-  local json dir main branch
-  json="$(cat)"
-  dir="$(hook_field "$json" worktree_path path)"
-  main="$(dirname "$(git -C "$dir" rev-parse --path-format=absolute --git-common-dir)")"
-  branch="$(git -C "$dir" branch --show-current 2>/dev/null || true)"
-  git -C "$main" worktree remove "$dir" 2>/dev/null \
-    || git -C "$main" worktree remove --force "$dir"
-  # The branch is how unmerged work survives pane-close; only reap it once merged
-  # (-d refuses otherwise, which is exactly the safety we want — bench status will
-  # keep nagging about the leftover until it's merged or deleted by hand).
-  if [ -n "$branch" ]; then
-    git -C "$main" branch -d "$branch" >/dev/null 2>&1 || true
-  fi
-}
+# ── Claude Code agent worktrees ─────────────────────────────────────────────
+# The worktree lifecycle — create on `claude --worktree`, save-on-close, and
+# list/resume — used to live here, but it isn't family business: it's a standalone,
+# repo-agnostic tool now, `wt`, that ships in the RICE (nebelhaus/modules/den,
+# next to `haus`) on PATH, wired into Claude Code's WorktreeCreate/WorktreeRemove
+# hooks — because the rice already ships the `claude --worktree` keybinds. bench
+# no longer owns it — not every machine that runs `wt` has bench. To see or resume
+# parked/live agent worktrees across ALL repos, run `wt` (or `wt <name>`).
+# bench still *reports* family worktrees in `bench status`; it just doesn't drive
+# their lifecycle.
 
 cmd_rebuild() {
   local host; host="$(host_name)"
@@ -445,9 +403,6 @@ case "${1:-status}" in
   pull)    cmd_pull ;;
   clone)   cmd_clone ;;
   release) cmd_release "${2:-}" ;;
-  # plumbing: Claude Code WorktreeCreate/WorktreeRemove hooks (JSON on stdin)
-  wt-create) cmd_wt_create ;;
-  wt-remove) cmd_wt_remove ;;
   *)       sed -n '2,30p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
 esac
 fi

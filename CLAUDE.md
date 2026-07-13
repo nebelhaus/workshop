@@ -44,11 +44,23 @@ Never hand-walk that ripple; the tooling does it:
 Claude panes spawned with `Super c` (⌘C) run `claude --worktree`: each session
 gets its own checkout under `~/.cache/claude-worktrees/<repo>/<name>` on branch
 `worktree-<name>`, branched from the repo's **local HEAD**. The plumbing is
-`bench wt-create` / `wt-remove`, wired into `~/.claude/settings.json` as
-Claude Code's `WorktreeCreate`/`WorktreeRemove` hooks — worktrees deliberately
-live OUTSIDE the repos so trees stay clean and `bench try`'s `path:` overrides
-never swallow them. (`Ctrl Alt Shift c` is the in-place variant: the one agent
-per tab allowed to edit the real checkout.)
+`wt` — a standalone, repo-agnostic tool that ships in the **rice**
+(`nebelhaus/modules/den`, next to `haus`) on PATH, wired into
+`~/.claude/settings.json` as Claude Code's `WorktreeCreate`/`WorktreeRemove`
+hooks (the host points the hooks at it). It lives in the rice, not `bench`,
+because the rice already ships the `claude --worktree` keybinds — and not every
+machine running `wt` has the workshop. Worktrees live OUTSIDE the repos so trees
+stay clean and `bench try`'s `path:` overrides never swallow them. (`Ctrl Alt
+Shift c` is the in-place variant: the one agent per tab allowed to edit the real
+checkout.)
+
+**Closing a pane never loses work, and every session is resumable.** `wt`'s
+remove hook parks any uncommitted edits as a WIP commit on the branch before
+deleting the checkout (only *merged* branches get reaped), so the checkout dir
+is disposable — the branch + the Claude transcript are the real persistence.
+Run `wt` to list every parked/live agent worktree across **all** repos, and
+`wt <name>` (or `wt <repo>/<name>`) to rebuild a parked checkout and drop back
+into `claude --resume`. This is `wt`'s job, not `bench`'s.
 
 If YOU are running in a worktree (check: `git rev-parse --git-common-dir`
 points outside your toplevel):
