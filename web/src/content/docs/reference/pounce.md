@@ -66,6 +66,8 @@ pounce --daemon                   # run the resident daemon (launchd uses this)
 pounce --copy-file <path>         # copy a file (contents) to the clipboard
 pounce --request-accessibility    # prompt for the Accessibility grant
 pounce --check-accessibility      # exit 0 / prints true when granted
+pounce --request-bluetooth        # prompt for the Bluetooth grant (v0.4.4+)
+pounce --check-bluetooth          # exit 0 / prints true when granted
 ```
 
 | Flag | Purpose |
@@ -77,7 +79,8 @@ pounce --check-accessibility      # exit 0 / prints true when granted
 | `--clipboard` / `--emoji` / `--screenshots` / `--camera` | Built-in modes |
 | `--cheatsheet [path]` | Overlay a cheatsheet (JSON) |
 | `--version` | Print the version |
-| `--request-accessibility` / `--check-accessibility` | Manage the TCC grant |
+| `--request-accessibility` / `--check-accessibility` | Manage the Accessibility (TCC) grant |
+| `--request-bluetooth` / `--check-bluetooth` | Manage the Bluetooth (TCC) grant — the bluetooth plugin calls this for you |
 
 ## File paths
 
