@@ -77,12 +77,7 @@ nebelung or the rice changes **nothing** on your machine until your `flake.lock`
 is bumped to point at the new commit. A colour change therefore ripples like
 this across the family:
 
-```
-nebelung ──────────────┐
-   │                   │
-   ▼                   ▼
- pounce ─────────► nebelhaus ─────────► ~/.config/nix ───► your Mac
-```
+![one colour change rippling down the chain: nebelung → pounce → nebelhaus → ~/.config/nix → your Mac, each lock pinning the exact commit of the one before](/media/ripple.png)
 
 <Aside type="tip" title="haus update does the ripple for you">
 As an end user you never walk this by hand — `haus update` bumps your pin to the
