@@ -7,6 +7,10 @@
 setup() {
   HAUS="$BATS_TEST_DIRNAME/../bench"
   TMP="$BATS_TEST_TMPDIR"
+  # Hermetic git: ignore the machine's global/system config so fixtures behave
+  # the same everywhere. (Without this, a global tag.gpgsign=true turns the
+  # lightweight `git tag` calls below into "fatal: no tag message?" failures.)
+  export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null
   # Source the library form; override ROOT so repo_dir() resolves into fixtures.
   HAUS_LIB=1 source "$HAUS"
   ROOT="$TMP/root"
@@ -45,29 +49,8 @@ JSON
   [ "$output" = "?" ]
 }
 
-# ── hook_field: tolerate Claude Code payload key drift, fail loudly on neither ──
-
-@test "hook_field returns the first matching key" {
-  run hook_field '{"name":"feature-x"}' name worktree_name
-  [ "$status" -eq 0 ]
-  [ "$output" = "feature-x" ]
-}
-
-@test "hook_field falls through to the legacy key spelling" {
-  run hook_field '{"worktree_name":"legacy"}' name worktree_name
-  [ "$status" -eq 0 ]
-  [ "$output" = "legacy" ]
-}
-
-@test "hook_field honours key order (first present wins)" {
-  run hook_field '{"name":"new","worktree_name":"old"}' name worktree_name
-  [ "$output" = "new" ]
-}
-
-@test "hook_field exits non-zero when no key is present" {
-  run hook_field '{"nope":"x"}' name worktree_name
-  [ "$status" -ne 0 ]
-}
+# (hook_field + the worktree lifecycle moved to the standalone `wt` tool in
+# ~/.config/nix — bench no longer parses hook payloads.)
 
 # ── local_src / overrides: worktree-aware checkout substitution ────────────────
 
