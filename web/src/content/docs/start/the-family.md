@@ -36,7 +36,7 @@ Your private machine config — identity, secrets, your app roster — lives at
 The repos form a chain of pinned flake inputs. Each link is a *flake input* —
 a reference to an exact commit, recorded in the downstream repo's `flake.lock`:
 
-![one colour change rippling down the chain: nebelung → pounce → nebelhaus → ~/.config/nix → your Mac, each lock pinning the exact commit of the one before](/media/ripple.png)
+![one colour change rippling down the chain: nebelung → pounce → nebelhaus → ~/.config/nix → your Mac, each lock pinning the exact commit of the one before](/media/ripple.webp)
 
 The catch that surprises everyone: a flake input is **not** "whatever is on
 GitHub right now" — it's a frozen commit hash. So pushing a change to `nebelung`
