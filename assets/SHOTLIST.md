@@ -37,6 +37,23 @@ out" proof shot — a bat A/B of the same file, upstream Mocha vs Nebelung.)
 - `1c Particle Field` → planned `nebelung/assets/particle-field.webp` — **not shot
   yet**; intended as the landing-page hero (the README hero is `swatch-cascade.webp`).
 
+## Audit additions — `M#` motion renders + `S18–S20` cards
+
+The media/animation audit added a rendered (not screen-captured) series: `M#`
+for designed motion loops, `S18+` continuing the stills numbering. **Only the
+static resting frames exist so far** — they're placed as posters; each `M#`
+loop still needs its animated export, which drops in at the same path.
+
+| ID | What | Size | Placed (static poster) |
+|---|---|---|---|
+| **M1 — the ripple** | the pin chain as a diagram, 14s loop | 1240×380 | `assets/ripple.png` → workshop README · `web/public/media/ripple.png` → `/internals/flakes/` + `/start/the-family/` (replaced the ASCII chain) |
+| **M2 — change one word** | accent swap in one loop, 12s | 1080×540 | `web/public/media/theming.png` → `/guides/theming/` header. **Stand-in: retire when the real V9 capture is shot.** |
+| **M3 — tap ⇪** | ⇪ → letter hints → green flash → new pill, 9s loop | 1240×300 | `web/public/media/tap-caps.png` → `/guides/window-management/` + `/guides/the-bar/`. V3 stays the rice README's real-capture proof. |
+| **M4 — fog banner** | 24s barely-moving drift | 1040×260 | `assets/fog-banner.png`, **staged only** — org / rice README banner slot, optional. Ship the animated WebP only if ≤ ~1.5 MB and it reads as barely moving; if in doubt keep the static banner. |
+| **S18 — OG card** | nebelhaus.com social card | 1200×630 | `web/public/social/og.png` ✅ live |
+| **S19 — pounce launch card** | X / Mastodon / Reddit, brew release announcement | 1600×900 | `assets/pounce-launch-card.png` — **social pool, post by hand** |
+| **S20 — nebelung palette square** | Mastodon / community posts | 1080×1080 | `assets/nebelung-palette-square.png` — **social pool, post by hand** |
+
 ---
 
 ## 0 · Stage the machine once (before any shot)
