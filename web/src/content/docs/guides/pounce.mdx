@@ -90,6 +90,40 @@ Out of the box you get: **Activity Monitor**, **Brew Services**, **Camera**,
 **System Settings**, **Screenshots**, and **Wi-Fi**. Each is just a script you
 can read, copy, or replace.
 
+## Optional plugins
+
+Beyond the built-ins there's a shelf of optional plugins, **off by default**
+because each one assumes a specific tool, service, or app on your machine:
+
+| Plugin | What it does | Needs |
+|---|---|---|
+| **Audio Devices** | Switch sound output & input from the palette | `brew install switchaudio-osx` |
+| **Bluetooth** | Connect & disconnect paired devices (AirPods, keyboards, …) | `brew install blueutil` |
+| **Caffeinate** | Keep the Mac awake — indefinitely or on a 30m/1h/2h timer | nothing (system `caffeinate`) |
+| **Docker** | Start, stop, restart & tail logs of containers; offers to start the engine | any engine that answers `docker ps` (Docker Desktop, OrbStack, colima) |
+| **GitHub** | Jump to your PRs, review requests, issues & repos in the browser | `gh` CLI, authenticated |
+| **Spotify** | Playback controls: play/pause, next, shuffle, now-playing | Spotify.app (drives it over AppleScript) |
+| **SSH Hosts** | Pick a host from `~/.ssh/config` (Includes too); ⏎ connects, ⌘⏎ copies the command | hosts in `~/.ssh/config` |
+| **Tailscale** | Connect/disconnect, copy your tailnet IP or any peer's | `tailscale` CLI (ships inside Tailscale.app) |
+
+On Nix, enable them by id when consuming the `pounce-commands` package:
+
+```nix
+pounce-commands.override { plugins = [ "docker" "ssh" "tailscale" ]; }
+```
+
+An enabled plugin behaves exactly like a built-in — same palette discovery, same
+`pounce-<id>` bin for hotkey bindings, still shadowable from your user dir. Not
+on Nix? Every plugin is still just one script: copy it from
+[`pkgs/pounce-commands/optional/`](https://github.com/nebelhaus/pounce/tree/main/pkgs/pounce-commands/optional)
+into `~/.config/pounce/commands/` and it's live on the next ⌘Space.
+
+<Aside type="note" title="Bluetooth needs a one-time grant">
+The first time the Bluetooth plugin runs it raises the system permission dialog
+for Pounce (macOS gates device access behind TCC). Approve it once and the
+device list appears; the plugin walks you there if the dialog was dismissed.
+</Aside>
+
 ## Install it standalone
 
 ```sh
