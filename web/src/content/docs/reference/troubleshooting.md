@@ -68,6 +68,34 @@ sketchybar --reload
 If you'd rather not run a custom bar at all, set `nebelhaus.sill.enable = false`
 and the native macOS menu bar comes back.
 
+## After a macOS upgrade, *all* my agents are dead (macOS 26 Tahoe+)
+
+If the bar, tiling, and ⌘Space all come up dead at once right after upgrading to
+**macOS 26 Tahoe or later**, the culprit is usually **Background Task Management
+(BTM)**. Tahoe gates login items whose executable isn't Apple-signed, and every
+nix agent launches through `/bin/sh -c "…"` — which BTM files under "unidentified
+developer" and can silently refuse to start. The agents register fine; they just
+never run. `haus doctor` flags this on Tahoe+; confirm and get the fix with:
+
+```sh
+haus btm     # no-op before Tahoe; on Tahoe+ it reads the BTM store and instructs
+```
+
+There's **no declarative fix** — the toggle lives in macOS's BTM store, which has
+no CLI to set it (`sfltool` can only dump it). So it's a one-time manual step:
+
+1. **System Settings → General → Login Items & Extensions**
+2. Scroll to **"Allow in the Background"**
+3. Find the entries named **`sh`** — subtitle *"Item from unidentified developer"*
+4. Toggle them **on**, then reboot
+   *(already on but still blocked? flip off then on to force a database write)*
+
+Inspect the store by hand any time with:
+
+```sh
+sudo sfltool dumpbtm | grep -B2 -A8 -iE "nixos|darwin-store"   # look for "disallowed"
+```
+
 ## Touch ID for sudo beachballs (inside tmux/zellij)
 
 If the Touch ID prompt hangs when you `sudo` inside a multiplexer, the
