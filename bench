@@ -35,7 +35,9 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONSUMER="${HAUS_CONSUMER:-$HOME/.config/nix}"
 
 # Dependency order matters: upstream first, so lock bumps can see pushed revs.
-FAMILY=(nebelung pounce nebelhaus)
+# trill is a leaf: released to brew (a cask), but NOT a flake input of the rice
+# (the rice installs it via Homebrew), so it has no EDGES and no override.
+FAMILY=(nebelung pounce trill nebelhaus)
 GH_ORG="nebelhaus"
 
 say()  { printf '\033[38;5;103m🌫  %s\033[0m\n' "$*"; }
@@ -182,12 +184,13 @@ cmd_status() {
   echo
   say "release edges (what new users actually get)"
   local rel_stale=0
-  for name in pounce nebelhaus; do
+  for name in pounce trill nebelhaus; do
     local dir tag ver behind audience
     dir="$(repo_dir "$name")"
     [ -d "$dir/.git" ] || continue
     case "$name" in
       pounce)    audience="brew installs" ;;
+      trill)     audience="brew installs" ;;
       nebelhaus) audience="nebelhaus.com/init.sh" ;;
     esac
     tag="$(latest_tag "$name")"
@@ -331,6 +334,7 @@ cmd_pull() {
 version_file() { # version_file <repo> — WHERE a releasable repo's version lives
   case "$1" in
     pounce)    echo "$(repo_dir "$1")/pkgs/pounce/default.nix" ;;
+    trill)     echo "$(repo_dir "$1")/VERSION" ;;
     nebelhaus) echo "$(repo_dir "$1")/VERSION" ;;
     *) return 1 ;;
   esac
@@ -340,6 +344,7 @@ read_version() { # read_version <repo> — the version string that repo tags at
   local f; f="$(version_file "$1")" || return 1
   case "$1" in
     pounce)    sed -n 's/^ *version = "\([^"]*\)";.*/\1/p' "$f" | head -1 ;;
+    trill)     tr -d '[:space:]' < "$f" 2>/dev/null ;;
     nebelhaus) tr -d '[:space:]' < "$f" 2>/dev/null ;;
   esac
 }
@@ -352,7 +357,7 @@ cmd_release() {
   # Division of labor: commits are yours, lock bumps are ship's, tags are
   # release's, formula bumps are CI's.
   local name="${1:-}"
-  [ -n "$name" ] || die "usage: bench release <repo>   (releasable: pounce, nebelhaus)"
+  [ -n "$name" ] || die "usage: bench release <repo>   (releasable: pounce, trill, nebelhaus)"
 
   local dir; dir="$(repo_dir "$name")"
   [ -d "$dir/.git" ] || die "$name is not cloned here — bench clone"
@@ -366,7 +371,7 @@ cmd_release() {
   # can't drift from the code — CI double-checks on the tag).
   local verfile version
   verfile="$(version_file "$name")" \
-    || die "bench release doesn't know '$name' yet (releasable: pounce, nebelhaus)"
+    || die "bench release doesn't know '$name' yet (releasable: pounce, trill, nebelhaus)"
   version="$(read_version "$name")"
   [ -n "$version" ] || die "couldn't read a version for $name"
   local tag="v$version"

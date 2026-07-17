@@ -15,12 +15,13 @@ CLAUDE.md with the deep rules.
 |---|---|
 | colors / palette / how a tool is themed | `./nebelung` |
 | the pounce app (UI, ranking) or a generic command script | `./pounce` |
+| the trill Messages client (UI, providers over `chat.db`) | `./trill` |
 | the rice: macOS defaults, tiling (prowl), bar (sill), shell (hearth), Touch ID (collar), pounce wiring | `./nebelhaus` |
 | the org's GitHub front page | `./org-profile` |
 | this machine's apps / identity / secrets | `~/.config/nix` (not in this dir) |
 | the cross-repo workflow itself (`bench`, this README) | here |
 | the nebelhaus.com install front door (`curl … init.sh`, Cloudflare Worker) | `./web` |
-| pounce's Homebrew formula | `./homebrew-tap` — **CI-owned**; hand-edit only to bootstrap a new formula |
+| pounce's Homebrew formula / trill's cask | `./homebrew-tap` — **CI-owned**; hand-edit only to bootstrap a new formula/cask |
 
 ## The one gotcha that explains everything
 
@@ -76,7 +77,7 @@ points outside your toplevel):
 cannot see the child repos.** Check `git rev-parse --git-common-dir`: if it
 points at `…/nebelhaus/.git` (the workshop), your tree holds ONLY the workshop's
 own files (`README.md`, `CLAUDE.md`, `bench`, `assets`, `web/`). The family
-sub-repos — rice (`nebelhaus/`), `nebelung/`, `pounce/`, `org-profile/`,
+sub-repos — rice (`nebelhaus/`), `nebelung/`, `pounce/`, `trill/`, `org-profile/`,
 `homebrew-tap/` — are **not here at all.** This is **NOT** a `.gitignore`
 visibility problem, and re-reading the ignore file won't change it: a linked
 worktree of the workshop simply never checks out the sibling repos, because each
@@ -97,7 +98,7 @@ and pick one:
 
 Not a worktree, not a cloud session — this is where most work happens, and the
 worktree/cloud restrictions above do **not** apply here. The child repos
-(`nebelhaus`, `nebelung`, `pounce`, `org-profile`, `homebrew-tap`) are
+(`nebelhaus`, `nebelung`, `pounce`, `trill`, `org-profile`, `homebrew-tap`) are
 `.gitignore`d by the workshop **only to keep the outer tree clean** — each is a
 full, independent repo I own solo, and from the main checkout you drive it
 end-to-end:
