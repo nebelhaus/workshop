@@ -35,6 +35,8 @@ Notation: `⌥` Option/Alt · `⌘` Command · `⌃` Control · `⇧` Shift · `
 | `-` / `=` | Enter resize mode (shrink / grow) |
 | `V` | Clipboard history (Pounce) |
 | `E` | Emoji picker (Pounce) |
+| `Z` | Reopen the last closed app (the ⌘⇧T analog) |
+| `,` | Open macOS System Settings (mirrors the ⌘, convention) |
 | `/` | Show the cheatsheet |
 | `Esc` | Exit launch mode |
 

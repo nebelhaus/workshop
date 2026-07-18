@@ -160,9 +160,6 @@
       "items": [
         {
           "action": "Command Palette",
-          "binds": {
-            "cmd-space": "exec-and-forget @BIN@/pounce-palette"
-          },
           "keys": "⌘ Space"
         },
         {
@@ -185,6 +182,8 @@
     "4",
     "v",
     "e",
+    "z",
+    "comma",
     "minus",
     "equal",
     "left",
@@ -199,6 +198,14 @@
   "resizeModeKeys": [
     "minus",
     "equal",
+    "left",
+    "down",
+    "up",
+    "right",
+    "shift-left",
+    "shift-down",
+    "shift-up",
+    "shift-right",
     "esc",
     "enter"
   ]
