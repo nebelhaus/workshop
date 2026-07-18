@@ -83,16 +83,24 @@ visibility problem, and re-reading the ignore file won't change it: a linked
 worktree of the workshop simply never checks out the sibling repos, because each
 is an independent repo that lives only in the main checkout (`~/code/nebelhaus/<repo>`).
 So the moment a task turns out to belong to a child repo (per the routing table),
-STOP — don't grep, edit, or hunt for those files in this tree, and don't report
-them as "hidden by gitignore." Instead tell me which sub-repo the task belongs to
-and pick one:
-  - (a) I spawn a fresh `Super c` pane **from inside that sub-repo** (or you make
-    a dedicated worktree of it:
-    `git -C ~/code/nebelhaus/<repo> worktree add -b worktree-<name> ~/.cache/claude-worktrees/nebelhaus/<name> HEAD`),
-    then do the work there — the correct, isolated path; or
-  - (b) if I explicitly OK it, edit that sub-repo's main checkout at
-    `~/code/nebelhaus/<repo>` directly (a hand-made sub-repo worktree isn't
-    auto-cleaned on pane close, so remove it after merge).
+don't grep, edit, or hunt for those files in *this* tree, and don't report them as
+"hidden by gitignore." **You have standing permission — no need to ask — to make a
+dedicated worktree of that child repo and do the work there.** That's the default
+path from a workshop worktree; just do it:
+
+```
+git -C ~/code/nebelhaus/<repo> worktree add -b worktree-<name> \
+    ~/.cache/claude-worktrees/nebelhaus/<name> HEAD
+cd ~/.cache/claude-worktrees/nebelhaus/<name>
+```
+
+Then work, commit on the `worktree-<name>` branch, and — when the change is
+ready — push it and open a PR against that child repo, all without asking. A
+hand-made sub-repo worktree isn't auto-cleaned on pane close, so remove it after
+merge (`git -C ~/code/nebelhaus/<repo> worktree remove …`). Tell me the child
+repo, the branch, and the PR when you're done. (Editing the child's *main*
+checkout at `~/code/nebelhaus/<repo>` directly is the fallback only if I ask for
+it — the isolated worktree is preferred.)
 
 ## Working from the main checkout (`~/code/nebelhaus` — the normal case)
 
