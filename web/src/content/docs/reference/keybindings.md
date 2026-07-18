@@ -56,10 +56,11 @@ Notation: `⌥` Option/Alt · `⌘` Command · `⌃` Control · `⇧` Shift · `
 
 | Keys | Action |
 |---|---|
-| `Super P` | New pane (inherits cwd) |
-| `Super T` | New tab at `$HOME` |
-| `Super ⇧T` | New tab, pick directory via floating yazi |
-| `Super Y` | yazi peek (floating, read-only, previews) |
+| `Super P` | New pane (inherits cwd; hops to the main checkout inside a worktree) |
+| `Super ⇧P` | New pane, stay here (inherits cwd, no worktree hop) |
+| `Super T` | New tab (inherits cwd; same worktree hop as `Super P`) |
+| `Super ⇧T` | New tab at `$HOME` |
+| `Super Y` | yazi peek (floating previews; `Enter` on a dir opens a new tab there) |
 | `Super ⇧Y` | yazi jump (browse, then shell in that dir) |
 | `Ctrl Tab` / `Ctrl ⇧Tab` | Tab history back / forward (most-recently-used, browser-style) |
 | `Alt <` / `Alt >` | Cycle swap layouts (spiral → columns → grid) |

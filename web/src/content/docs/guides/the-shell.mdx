@@ -42,10 +42,11 @@ Launching Ghostty drops you straight into a persistent zellij session called
 
 | Keys | Action |
 |---|---|
-| `Super P` | New pane (inherits cwd) |
-| `Super T` | New tab at `$HOME` |
-| `Super ⇧T` | New tab, pick the directory via a floating yazi |
-| `Super Y` | **yazi peek** — a floating, read-only browser with live previews |
+| `Super P` | New pane, inheriting cwd — but a shell born inside a `claude --worktree` checkout hops to the repo's **main checkout** |
+| `Super ⇧P` | New pane, **stay here** — inherits cwd with no hop, so you get a shell right inside the worktree |
+| `Super T` | New tab, inheriting cwd — with the **same worktree hop** as `Super P` |
+| `Super ⇧T` | New tab at `$HOME` |
+| `Super Y` | **yazi peek** — a floating browser with live previews; `Enter` on a directory opens a new tab there |
 | `Super ⇧Y` | **yazi jump** — browse, then drop a shell in the landing directory |
 | `Ctrl Tab` / `Ctrl ⇧Tab` | Tab history back / forward (most-recently-used) |
 | `Alt <` / `Alt >` | Cycle swap layouts (spiral → columns → grid) |
@@ -69,7 +70,10 @@ zellij ships three swap layouts, cycled with `Alt <` / `Alt >`:
 yazi is set up for fast previewing: markdown renders through `glow`, code through
 `bat` (syntax-highlighted), and images through `chafa` near-fullscreen inside
 zellij. Press `Y` to copy a file's *contents* (not just its path), and `Esc` to
-close a floating peek.
+close a floating peek. In the `Super Y` peek overlay, `Enter` on a **file** pages
+it fullscreen while `Enter` on a **directory** opens a new zellij tab there (use
+`l` / `→` to descend into a directory without leaving peek) — so peek doubles as
+the browse-and-pick "new tab" chooser.
 
 ## Choosing your editor
 
@@ -97,14 +101,9 @@ One related knob:
   frequent directories.
 - **Auto-renaming tabs** — `cd` into a repo and the zellij tab renames itself
   after it.
-- **Claude Code aware** — new shells opened inside a
-  `~/.cache/claude-worktrees` checkout hop to the parent repo automatically.
-- **`nebelhaus.hearth.newTabDirs`** — pin a shortlist of home-relative
-  directories for the `Super ⇧T` picker instead of browsing all of `$HOME`:
-
-  ```nix
-  nebelhaus.hearth.newTabDirs = [ "code" ".config" ];
-  ```
+- **Claude Code aware** — new shells opened (`Super P` / `Super T`) inside a
+  `~/.cache/claude-worktrees` checkout hop to the parent repo automatically. Want
+  a shell *inside* the worktree instead? `Super ⇧P` is the no-hop escape hatch.
 
 See [Theming & accents](/guides/theming/) for how every tool above gets its
 colours, and the [options reference](/reference/options/#nebelhaushearth) for
