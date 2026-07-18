@@ -406,7 +406,7 @@ cmd_release() {
   tag="v$version"
   write_version "$name" "$version"
   if ! git -C "$dir" diff --quiet -- "$verfile"; then
-    say "$name: stamping version $version…"
+    say "$name: stamping version ${version}…"
     git -C "$dir" add "$verfile"
     git -C "$dir" commit -m "$name $version"
     git -C "$dir" rev-parse '@{u}' >/dev/null 2>&1 && git -C "$dir" push
