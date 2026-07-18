@@ -106,7 +106,7 @@ git -C nebelung merge worktree-<name>
 ./bench pull && ./bench rebuild
 ```
 
-**Releasing** — two repos are releasable, and each release has a real audience:
+**Releasing** — three repos are releasable (pounce, trill, nebelhaus), each with a real audience:
 
 Versions are **date-based** (CalVer): a release is stamped with the day it's
 cut — `2026.07.18`, or `2026.07.18-1`, `-2`, … for a second release the same
@@ -116,7 +116,9 @@ it into the repo's version source, commits, and tags it.
 ```sh
 ./bench ship                # everything pushed & locks current first
 ./bench release pounce      # date-stamps pkgs/pounce/default.nix + tags v<date> —
-                            # CI publishes the release + bumps homebrew-tap
+                            # CI publishes the release + bumps the homebrew formula
+./bench release trill       # date-stamps VERSION + tags v<date> — CI bumps the
+                            # homebrew cask
 ./bench release nebelhaus   # date-stamps VERSION + tags v<date> — this is what
                             # nebelhaus.com/init.sh serves to new installs
 ```

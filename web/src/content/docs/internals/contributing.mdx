@@ -79,10 +79,10 @@ hack ──► test ──► try ──► merge ──► ship ──► relea
 2. **test** — `./bench try` builds your machine against the local checkouts.
 3. **merge** — fold the branches you like into `main`.
 4. **ship** — `./bench ship` pushes upstream→downstream, rippling every lock.
-5. **release** — `./bench release <repo>`; CI does the rest. Two repos are
-   releasable: **pounce** (GitHub release + Homebrew formula bump) and
-   **nebelhaus** (the tag becomes what `nebelhaus.com/init.sh` serves to new
-   installs).
+5. **release** — `./bench release <repo>`; CI does the rest. Three repos are
+   releasable: **pounce** (GitHub release + Homebrew formula bump), **trill**
+   (Homebrew cask bump), and **nebelhaus** (the tag becomes what
+   `nebelhaus.com/init.sh` serves to new installs).
 
 <Aside type="note" title="Releases ride tags">
 Versions are date-based (CalVer). `bench release <repo>` stamps today's date —
