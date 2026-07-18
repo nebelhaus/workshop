@@ -61,11 +61,6 @@ The shell and terminal layer. See [The shell](/guides/the-shell/).
 
 The one editor the rice uses everywhere: `$EDITOR` / `$VISUAL` **and** what every "open in an editor" action launches (the "Nix Config" palette command, the bar's nix-open item, the file-association hijack) — opened in a new zellij tab. A terminal editor is recommended; a GUI editor's CLI works too (e.g. `"code"` or `"code -w"` to block).
 
-### `nebelhaus.hearth.newTabDirs`
-`listOf str` · default `[]`
-
-Home-relative directories offered by the `Super ⇧T` yazi picker. Empty browses all of `$HOME`.
-
 ### `nebelhaus.hearth.hijackFileAssociations`
 `bool` · default `false`
 
@@ -73,7 +68,6 @@ When `true`, makes `hearth.editor` the default opener for `.json`/`.md`/`.ts`/`.
 
 ```nix
 nebelhaus.hearth.editor = "nvim";
-nebelhaus.hearth.newTabDirs = [ "code" ".config" ];
 ```
 
 ## nebelhaus.prowl
@@ -211,7 +205,6 @@ Contents of `~/.claude/CLAUDE.md` (cross-project context for Claude Code). The r
   # Preferences
   nebelhaus.theme.accent = "sapphire";
   nebelhaus.hearth.editor = "nvim";
-  nebelhaus.hearth.newTabDirs = [ "code" ".config" ];
 
   # Your app roster (merged with the rice defaults)
   nebelhaus.prowl.apps = [
