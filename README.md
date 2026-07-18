@@ -79,18 +79,19 @@ to push to "see" a change; `try` builds your real machine config against the
 ./bench ship           # pushes upstream→downstream, updating each lock along the way
 ```
 
-**Parallel Claude agents** — `Ctrl Alt c` in any repo tab spawns a Claude
+**Parallel Claude agents** — `Super c` (⌘C) in any repo tab spawns a Claude
 session in its **own git worktree** (own checkout, own `worktree-*` branch,
 branched from local HEAD), so agents never yank the branch out from under each
 other — or you. The worktrees live *outside* the repos, in
 `~/.cache/claude-worktrees/<repo>/<name>`: Claude Code's `WorktreeCreate` /
 `WorktreeRemove` hooks (in `~/.claude/settings.json`) delegate to
-`bench wt-create` / `wt-remove`, which is what keeps `git status` and
-`bench try`'s overrides clean. `Ctrl Alt Shift c` spawns the one agent allowed
-to edit the checkout you're looking at.
+`wt create` / `wt remove` — the standalone `wt` tool that ships in the rice
+(`nebelhaus/modules/den`), not a `bench` command — which is what keeps
+`git status` and `bench try`'s overrides clean. `Ctrl Alt Shift c` spawns the
+one agent allowed to edit the checkout you're looking at.
 
 ```sh
-# Ctrl-Alt-c panes hack away on their own branches; meanwhile:
+# Super-c (⌘C) panes hack away on their own branches; meanwhile:
 ./bench status               # …also lists agent worktrees + unmerged worktree-* branches
 # an agent (or you, cd'd into its worktree) can prove its branch builds:
 ./bench try                  # from inside a worktree: that repo's override points AT the worktree
@@ -137,9 +138,13 @@ to ripple that lock downstream.)
 | `./bench pull` | fast-forward every repo |
 | `./bench clone` | fetch any family repo missing from this directory |
 | `./bench release <repo>` | date-stamp the version (`v<YYYY.MM.DD>`, `-N` on a same-day repeat) + tag it — CI publishes the release + bumps the brew tap |
-| `./bench wt-create` / `wt-remove` | plumbing for Claude Code's worktree hooks (JSON on stdin) — not for humans |
 
 Tip: the rice ships a `bench` shell alias, so these work from anywhere.
+
+The Claude worktree hooks are **not** a `bench` command — they call the
+standalone `wt` tool (`wt create` / `wt remove`, JSON on stdin) that ships in
+the rice. Run `wt` bare to list every parked/live agent worktree across all
+repos, `wt <name>` to resume one.
 
 ## the whole life of a change
 
@@ -147,7 +152,7 @@ Tip: the rice ships a `bench` shell alias, so these work from anywhere.
 hack ──► test ──► try ──► merge ──► ship ──► release
 ```
 
-1. **hack** — edit in place, or let `Ctrl Alt c` agents draft on `worktree-*`
+1. **hack** — edit in place, or let `Super c` (⌘C) agents draft on `worktree-*`
    branches in parallel; the main checkouts never move.
 2. **test** — `./bench try` from wherever you are: it builds your real machine
    against the local checkouts (from inside an agent worktree, against *that*
