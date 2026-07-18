@@ -107,18 +107,24 @@ git -C nebelung merge worktree-<name>
 
 **Releasing** — two repos are releasable, and each release has a real audience:
 
+Versions are **date-based** (CalVer): a release is stamped with the day it's
+cut — `2026.07.18`, or `2026.07.18-1`, `-2`, … for a second release the same
+day. No number is ever typed by hand; `bench release` computes the date, writes
+it into the repo's version source, commits, and tags it.
+
 ```sh
 ./bench ship                # everything pushed & locks current first
-./bench release pounce      # tags v<version> from pkgs/pounce/default.nix —
+./bench release pounce      # date-stamps pkgs/pounce/default.nix + tags v<date> —
                             # CI publishes the release + bumps homebrew-tap
-./bench release nebelhaus   # tags v<version> from VERSION — this is what
+./bench release nebelhaus   # date-stamps VERSION + tags v<date> — this is what
                             # nebelhaus.com/init.sh serves to new installs
 ```
 
 The rice one matters more than it looks: the install one-liner serves the
 **latest rice release**, so until you cut one, new users bootstrap from the
 previous tag no matter what's on `main`. Ship user-visible rice changes, then
-release.
+release. (The date-stamp moves the repo's HEAD, so `bench ship` once more after
+to ripple that lock downstream.)
 
 ## the bench commands
 
@@ -130,7 +136,7 @@ release.
 | `./bench rebuild` | plain pinned rebuild of `~/.config/nix` |
 | `./bench pull` | fast-forward every repo |
 | `./bench clone` | fetch any family repo missing from this directory |
-| `./bench release <repo>` | tag `v<version>` (read from the repo) — CI publishes the release + bumps the brew tap |
+| `./bench release <repo>` | date-stamp the version (`v<YYYY.MM.DD>`, `-N` on a same-day repeat) + tag it — CI publishes the release + bumps the brew tap |
 | `./bench wt-create` / `wt-remove` | plumbing for Claude Code's worktree hooks (JSON on stdin) — not for humans |
 
 Tip: the rice ships a `bench` shell alias, so these work from anywhere.
@@ -151,9 +157,9 @@ hack ──► test ──► try ──► merge ──► ship ──► relea
    nagging `bench status` line, survive until you do).
 4. **ship** — commit, then `./bench ship` pushes upstream→downstream, rippling
    every `flake.lock`.
-5. **release** — bump the version, `./bench release <repo>`, and CI does the
-   rest (pounce: GitHub release + Homebrew formula; nebelhaus: the tag
-   `init.sh` serves to new installs).
+5. **release** — `./bench release <repo>` date-stamps the version and tags it,
+   and CI does the rest (pounce: GitHub release + Homebrew formula; nebelhaus:
+   the tag `init.sh` serves to new installs).
 
 ## setting up this workshop on a fresh machine
 

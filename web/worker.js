@@ -9,7 +9,7 @@
 // no hop to a raw.githubusercontent.com link. By default /init.sh serves the
 // latest GitHub *release* tag of nebelhaus/nebelhaus (cached ~1h to stay well
 // under GitHub's unauthenticated API limit), falling back to `main` before the
-// first release. `?ref=vX.Y.Z` pins an exact ref; a REF wrangler var hard-pins one.
+// first release. `?ref=v2026.07.18` pins an exact ref; a REF wrangler var hard-pins one.
 
 const REPO = "nebelhaus/nebelhaus";
 const SAFE_REF = /^[A-Za-z0-9._-]+$/; // no slashes / dots-dots -> no path traversal

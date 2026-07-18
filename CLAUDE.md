@@ -169,10 +169,14 @@ So cloud is for **editing + own-org lock bumps**, not for building or switching.
   is expected; tagging is the user's call.
 - Commit in the repo you edited; `bench ship` refuses dirty trees on purpose
   (commit messages are yours/the user's, lock bumps are its).
-- **Releases ride tags, not pushes.** `./bench release pounce` tags `v<version>`
-  (read from `pkgs/pounce/default.nix`); CI then publishes the GitHub release
-  and bumps `homebrew-tap`. Never hand-bump the formula's url/sha lines, and
-  bump the version in `default.nix` BEFORE releasing. Ship first, then release.
+- **Releases ride tags, not pushes.** Versions are **date-based** (CalVer):
+  `./bench release pounce` stamps today's date — `YYYY.MM.DD`, or `YYYY.MM.DD-N`
+  on a same-day repeat — into the repo's version source, commits it, and tags
+  `v<date>`; CI then publishes the GitHub release and bumps `homebrew-tap`. No
+  version number is ever typed by hand — the date IS the version, so there's
+  nothing to bump before releasing. Never hand-bump the formula's url/sha lines.
+  Ship first, then release (the date-stamp moves HEAD, so `bench ship` again
+  afterward to ripple that lock downstream).
 - Don't cross-edit: a color hex in `nebelhaus`, or launchd logic in `pounce`,
   is in the wrong repo even if it would work. Each repo's CLAUDE.md enforces
   its own boundary — respect it from up here too.
