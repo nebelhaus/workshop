@@ -40,11 +40,12 @@ before running:
 curl -fsSL https://nebelhaus.com/init.sh | less
 
 # or pin an exact release tag and diff it against GitHub
-curl -fsSL 'https://nebelhaus.com/init.sh?ref=v0.1.0' | less
+curl -fsSL 'https://nebelhaus.com/init.sh?ref=v2026.07.18' | less
 ```
 
 By default the one-liner serves the **latest release tag**; before the first
-release it falls back to `main`. Add `?ref=vX.Y.Z` to pin a specific version.
+release it falls back to `main`. Releases are date-tagged, so add
+`?ref=v2026.07.18` to pin a specific day's version.
 
 ## What the bootstrap does
 

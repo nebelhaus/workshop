@@ -17,8 +17,9 @@
 #   bench rebuild   a plain, pinned rebuild of your machine (the normal day)
 #   bench pull      fast-forward every repo
 #   bench clone     fetch any family repo missing from this directory
-#   bench release   tag v<version> (read from the repo, never typed) — CI then
-#                  publishes the GitHub release and bumps the Homebrew tap
+#   bench release   stamp today's date as the version (YYYY.MM.DD, -N on a
+#                  same-day repeat) and tag it — CI then publishes the GitHub
+#                  release and bumps the Homebrew tap
 #
 # Rule of thumb: hack freely, `bench try` until happy, commit, `bench ship`.
 #
@@ -185,7 +186,7 @@ cmd_status() {
   say "release edges (what new users actually get)"
   local rel_stale=0
   for name in pounce trill nebelhaus; do
-    local dir tag ver behind audience
+    local dir tag behind audience
     dir="$(repo_dir "$name")"
     [ -d "$dir/.git" ] || continue
     case "$name" in
@@ -194,7 +195,6 @@ cmd_status() {
       nebelhaus) audience="nebelhaus.com/init.sh" ;;
     esac
     tag="$(latest_tag "$name")"
-    ver="$(read_version "$name")"
     if [ -z "$tag" ]; then
       printf '  ⚠ %-22s no release yet — %s falls back to main\n' "$name" "$audience"
       rel_stale=1
@@ -206,11 +206,8 @@ cmd_status() {
     else
       printf '  ⚠ %-22s %s is %s commit(s) behind main — %s get the old one\n' \
         "$name" "$tag" "$behind" "$audience"
-      if [ -n "$ver" ] && [ "v$ver" = "$tag" ]; then
-        printf '      bump the version first, then: bench release %s\n' "$name"
-      else
-        printf '      version already bumped to %s — bench release %s when ready\n' "${ver:-?}" "$name"
-      fi
+      # release date-stamps the version itself; nothing to bump by hand first.
+      printf '      cut a dated release: bench release %s\n' "$name"
       rel_stale=1
     fi
   done
@@ -349,39 +346,77 @@ read_version() { # read_version <repo> — the version string that repo tags at
   esac
 }
 
+write_version() { # write_version <repo> <version> — stamp the version source in place
+  local f; f="$(version_file "$1")" || return 1
+  case "$1" in
+    # Only the declaration line matches ^ *version = "…"; the POUNCE_VERSION="$version"
+    # line below it starts with POUNCE_, so it's left untouched.
+    pounce)    sed -i '' -E "s/^( *version = \")[^\"]*(\";.*)/\1$2\2/" "$f" ;;
+    trill)     printf '%s\n' "$2" > "$f" ;;
+    nebelhaus) printf '%s\n' "$2" > "$f" ;;
+  esac
+}
+
+# Date-based versions (CalVer). A release is stamped with the day it's cut —
+# YYYY.MM.DD — never a hand-typed semver. A second release on the same day gets
+# a -N disambiguator (…-1, …-2); git version-sort and Homebrew both order that
+# AFTER the bare date, so `latest_tag` and "vs main" stay right.
+today_version() { date +%Y.%m.%d; }
+
+next_version() { # next_version <repo> — today's date, with -N if today's already tagged
+  local dir base n; dir="$(repo_dir "$1")"; base="$(today_version)"
+  git -C "$dir" fetch -q --tags 2>/dev/null || true
+  if ! git -C "$dir" rev-parse -q --verify "refs/tags/v$base" >/dev/null; then
+    echo "$base"; return
+  fi
+  n=1
+  while git -C "$dir" rev-parse -q --verify "refs/tags/v$base-$n" >/dev/null; do
+    n=$((n + 1))
+  done
+  echo "$base-$n"
+}
+
 cmd_release() {
-  # Cut a release: tag v<version> — read from the repo, never typed, so the
-  # tag can't drift from what the code says (CI double-checks anyway). The
-  # tag push is the button; CI does the rest: GitHub release + source tarball
-  # + a version bump in homebrew-tap (which is CI-owned — never hand-bump it).
-  # Division of labor: commits are yours, lock bumps are ship's, tags are
-  # release's, formula bumps are CI's.
+  # Cut a release: stamp today's date as the version, commit it into the repo's
+  # own version source (so the tag can't drift from what the code says — CI
+  # double-checks anyway), push, then tag v<version>. The tag push is the
+  # button; CI does the rest: GitHub release + source tarball + a version bump
+  # in homebrew-tap (which is CI-owned — never hand-bump it). No number is ever
+  # typed by hand — the date IS the version. Division of labor: feature commits
+  # are yours, lock bumps are ship's, the date-stamp + tag are release's,
+  # formula bumps are CI's.
   local name="${1:-}"
   [ -n "$name" ] || die "usage: bench release <repo>   (releasable: pounce, trill, nebelhaus)"
 
   local dir; dir="$(repo_dir "$name")"
   [ -d "$dir/.git" ] || die "$name is not cloned here — bench clone"
+  local verfile
+  verfile="$(version_file "$name")" \
+    || die "bench release doesn't know '$name' yet (releasable: pounce, trill, nebelhaus)"
   [ -z "$(git -C "$dir" status --porcelain)" ] \
     || die "$name is dirty — commit (and bench ship) first"
   git -C "$dir" fetch -q --tags 2>/dev/null || true
   local ahead; ahead="$(git -C "$dir" rev-list --count '@{u}..HEAD' 2>/dev/null || echo '?')"
   [ "$ahead" = "0" ] || die "$name has unpushed commits — bench ship first, then release"
 
-  # Each releasable repo names its own version source (never typed, so the tag
-  # can't drift from the code — CI double-checks on the tag).
-  local verfile version
-  verfile="$(version_file "$name")" \
-    || die "bench release doesn't know '$name' yet (releasable: pounce, trill, nebelhaus)"
-  version="$(read_version "$name")"
-  [ -n "$version" ] || die "couldn't read a version for $name"
-  local tag="v$version"
-  git -C "$dir" rev-parse -q --verify "refs/tags/$tag" >/dev/null \
-    && die "$name $tag already exists — bump the version in $verfile first"
+  # Stamp today's date (YYYY.MM.DD, or …-N on a same-day repeat) into the
+  # version source and commit it, so HEAD already says what the tag will claim.
+  local version tag
+  version="$(next_version "$name")"
+  tag="v$version"
+  write_version "$name" "$version"
+  if ! git -C "$dir" diff --quiet -- "$verfile"; then
+    say "$name: stamping version $version…"
+    git -C "$dir" add "$verfile"
+    git -C "$dir" commit -m "$name $version"
+    git -C "$dir" rev-parse '@{u}' >/dev/null 2>&1 && git -C "$dir" push
+  fi
 
   say "releasing $name $tag — pushing the tag; CI takes it from here…"
   git -C "$dir" tag -a "$tag" -m "$name $version"
   git -C "$dir" push origin "$tag"
   say "watch it: https://github.com/$GH_ORG/$name/actions  (release → tap bump)"
+  warn "the date-stamp moved $name's HEAD — run bench ship to ripple its lock downstream."
 }
 
 cmd_clone() {

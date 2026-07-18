@@ -109,6 +109,60 @@ NIX
   [ "$output" = "0.3.0" ]
 }
 
+# ── write_version: stamp a (date) version back into the source, round-tripping ─
+
+@test "write_version stamps pounce's default.nix, leaving POUNCE_VERSION alone" {
+  mkdir -p "$ROOT/pounce/pkgs/pounce"
+  cat >"$ROOT/pounce/pkgs/pounce/default.nix" <<'NIX'
+{ lib }:
+stdenv.mkDerivation {
+  pname = "pounce";
+  version = "0.5.8";
+  buildPhase = ''
+    POUNCE_VERSION="$version" bash ./build.sh
+  '';
+}
+NIX
+  write_version pounce 2026.07.18
+  run read_version pounce
+  [ "$output" = "2026.07.18" ]
+  # the shell-var line that also says "version" must survive untouched
+  grep -q 'POUNCE_VERSION="\$version"' "$ROOT/pounce/pkgs/pounce/default.nix"
+}
+
+@test "write_version round-trips a same-day -N version through nebelhaus's VERSION" {
+  mkdir -p "$ROOT/nebelhaus"
+  printf '0.5.8\n' >"$ROOT/nebelhaus/VERSION"
+  write_version nebelhaus 2026.07.18-1
+  run read_version nebelhaus
+  [ "$output" = "2026.07.18-1" ]
+}
+
+# ── next_version: today's date, with -N on a same-day repeat ───────────────────
+
+@test "next_version is the bare date when nothing is tagged today" {
+  make_repo pounce
+  run next_version pounce
+  [ "$output" = "$(date +%Y.%m.%d)" ]
+}
+
+@test "next_version appends -1 when today's bare date is already tagged" {
+  make_repo pounce
+  git -C "$ROOT/pounce" tag "v$(date +%Y.%m.%d)"
+  run next_version pounce
+  [ "$output" = "$(date +%Y.%m.%d)-1" ]
+}
+
+@test "next_version keeps counting -N past existing same-day releases" {
+  make_repo pounce
+  today="$(date +%Y.%m.%d)"
+  git -C "$ROOT/pounce" tag "v$today"
+  git -C "$ROOT/pounce" tag "v$today-1"
+  git -C "$ROOT/pounce" tag "v$today-2"
+  run next_version pounce
+  [ "$output" = "$today-3" ]
+}
+
 # ── latest_tag / commits_since: the release-edge staleness check ───────────────
 
 make_repo() { # make_repo <name> — a fixture git repo with one commit

@@ -79,16 +79,18 @@ hack ──► test ──► try ──► merge ──► ship ──► relea
 2. **test** — `./bench try` builds your machine against the local checkouts.
 3. **merge** — fold the branches you like into `main`.
 4. **ship** — `./bench ship` pushes upstream→downstream, rippling every lock.
-5. **release** — bump the version and `./bench release <repo>`; CI does the
-   rest. Two repos are releasable: **pounce** (GitHub release + Homebrew
-   formula bump) and **nebelhaus** (the tag becomes what
-   `nebelhaus.com/init.sh` serves to new installs).
+5. **release** — `./bench release <repo>`; CI does the rest. Two repos are
+   releasable: **pounce** (GitHub release + Homebrew formula bump) and
+   **nebelhaus** (the tag becomes what `nebelhaus.com/init.sh` serves to new
+   installs).
 
 <Aside type="note" title="Releases ride tags">
-`bench release <repo>` tags `v<version>` (read from the repo). CI does the rest —
-the GitHub release and the `homebrew-tap` bump. Never hand-edit the formula's
-url/sha; bump the version in the source first, then release. And because the
-installer serves the latest **rice** release, user-visible rice changes aren't
+Versions are date-based (CalVer). `bench release <repo>` stamps today's date —
+`YYYY.MM.DD`, or `YYYY.MM.DD-N` on a same-day repeat — into the repo's version
+source, commits it, and tags `v<date>`. CI does the rest — the GitHub release
+and the `homebrew-tap` bump. No number is typed by hand, and you never hand-edit
+the formula's url/sha. And because the installer serves the latest **rice**
+release, user-visible rice changes aren't
 really "out" until nebelhaus gets a new tag.
 </Aside>
 
