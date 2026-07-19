@@ -15,7 +15,7 @@ of them painted in [nebelung](/reference/palette/) colours.
 | Layer | Tool | Notes |
 |---|---|---|
 | Terminal | [Ghostty](https://ghostty.org) | font size 19, title bar hidden, auto-attaches to zellij |
-| Multiplexer | [zellij](https://zellij.dev) | custom tab bar + status bar, spiral/columns/grid layouts |
+| Multiplexer | [zellij](https://zellij.dev) | custom tab bar + status bar, grid/spiral/columns layouts |
 | Shell | zsh | oh-my-zsh (git, sudo), fzf-tab, sensible history |
 | Prompt | [starship](https://starship.rs) | nebelung-tinted |
 | File manager | [yazi](https://yazi-rs.github.io) | markdown & code previews, image previews via chafa |
@@ -49,7 +49,7 @@ Launching Ghostty drops you straight into a persistent zellij session called
 | `Super Y` | **yazi peek** — a floating browser with live previews; `Enter` on a directory opens a new tab there |
 | `Super ⇧Y` | **yazi jump** — browse, then drop a shell in the landing directory |
 | `Ctrl Tab` / `Ctrl ⇧Tab` | Tab history back / forward (most-recently-used) |
-| `Alt <` / `Alt >` | Cycle swap layouts (spiral → columns → grid) |
+| `Alt <` / `Alt >` | Cycle swap layouts (grid → spiral → columns) |
 
 <Aside type="tip" title="Option-click a path">
 A custom zellij link handler means <kbd>Option</kbd>-clicking a file path in the
@@ -61,9 +61,9 @@ a build tool just printed.
 
 zellij ships three swap layouts, cycled with `Alt <` / `Alt >`:
 
-- **Spiral** (default) — balanced 50/50 nesting, largest pane top-left.
+- **Grid** (default) — the most balanced square arrangement, every pane equal area.
+- **Spiral** — balanced 50/50 nesting, largest pane top-left.
 - **Columns** — equal full-height columns side by side.
-- **Grid** — the most balanced square arrangement, every pane equal area.
 
 ## yazi previews
 
