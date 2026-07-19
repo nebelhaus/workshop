@@ -130,6 +130,11 @@ Toggle the Pounce daemon, the ⌘Space palette, and its Accessibility features.
 
 SHA-1 of an Apple Development code-signing identity. The daemon is re-signed with it so the Accessibility grant survives rebuilds. Find with `security find-identity -v -p codesigning`. Empty runs unsigned (palette works; auto-paste off).
 
+### `nebelhaus.pounce.windowSwitcher`
+`bool` · default `true`
+
+Replace the stock ⌘Tab app switcher with pounce's MRU *window* switcher — ⌘⇥ toggles to the last window (across workspaces), hold ⌘ and tap ⇥ to walk older ones, type to fuzzy-filter (frecency-ranked). Focus routes through AeroSpace so a window parked on another workspace surfaces. Needs the daemon's Accessibility grant (set `signingIdentity` so it survives rebuilds); without it, stock ⌘Tab keeps working.
+
 ## nebelhaus.hush
 
 The quiet switch. See [Focus & DND](/guides/hush/).
@@ -163,6 +168,30 @@ Pause Slack's own notifications (all devices) while hushed; ended on unhush, cap
 `listOf (path or str)` · default `[]`
 
 Extra scripts run on every hush/unhush, each called with `on` or `off`. Paths are copied into the store; strings run as-is. Failures log, never block the toggle.
+
+## nebelhaus.trill
+
+The [Trill](https://github.com/nebelhaus/trill) Messages client — a native
+iMessage/SMS/RCS client that reads `chat.db` read-only. Installed as a Homebrew
+cask from the nebelhaus tap. See the [Trill guide](/guides/trill/).
+
+### `nebelhaus.trill.enable`
+`bool` · default `true`
+
+Install the Trill Messages client. First launch needs **Full Disk Access**
+(granted to the app bundle, not Terminal) to read `~/Library/Messages/chat.db`;
+sending prompts for **Automation** on first use. Set `false` to leave it out.
+
+## nebelhaus.tour
+
+### `nebelhaus.tour.enable`
+`bool` · default `true`
+
+The first-run **haus tour** — one quiet bar pill that walks the four moves
+(launch / navigate / resize / palette), advancing as each is detected. Needs
+prowl + sill (it silently stays out of the bar without them); the palette step
+drops when pounce is off. A fresh machine shows a dormant "new here?" hint;
+`haus tour` or ⌘Space → tour starts the lap, right-click hides it forever.
 
 ## nebelhaus.homebrew
 

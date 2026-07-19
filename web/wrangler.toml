@@ -31,4 +31,4 @@ not_found_handling = "404-page"
 # auto-resolves the latest GitHub release tag (cached ~1h), falling back to
 # `main` before the first release exists.
 # [vars]
-# REF = "v0.1.0"
+# REF = "v2026.07.18"

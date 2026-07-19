@@ -61,6 +61,7 @@ export default defineConfig({
             { label: 'Focus & DND (hush)', slug: 'guides/hush' },
             { label: 'Pounce — the launcher', slug: 'guides/pounce' },
             { label: 'Writing pounce commands', slug: 'guides/pounce-commands' },
+            { label: 'Messages (trill)', slug: 'guides/trill' },
             { label: 'Theming & accents (nebelung)', slug: 'guides/theming' },
             { label: 'Keeping in sync (haus)', slug: 'guides/staying-in-sync' },
             { label: 'Moving to a new Mac', slug: 'guides/new-mac' },

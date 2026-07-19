@@ -75,7 +75,7 @@ needs no redeploy**. The *site* only changes when you rebuild and redeploy it.
 ```sh
 curl -fsSL https://nebelhaus.com/init.sh | head -5
 curl -sI  https://nebelhaus.com/init.sh | grep -i x-nebelhaus-ref   # which ref served
-curl -fsSL 'https://nebelhaus.com/init.sh?ref=v0.1.0' | head -2      # exact pin
+curl -fsSL 'https://nebelhaus.com/init.sh?ref=v2026.07.18' | head -2  # exact pin
 curl -sI  https://nebelhaus.com/ | head -1                          # site is up
 ```
 
