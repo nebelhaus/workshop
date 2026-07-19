@@ -238,8 +238,12 @@ cmd_try() {
   say "build OK — nothing pushed, nothing activated."
   if [ "${1:-}" = "switch" ]; then
     say "switching (this activates the LOCAL build on this machine)…"
+    # Activate via the stable /run/current-system path, not ./result: the
+    # collar module's passwordless-sudo rule matches that literal path (sudo no
+    # longer follows the command symlink), and the built system's own `activate`
+    # script runs either way, so the result is identical.
     # shellcheck disable=SC2046
-    (cd "$CONSUMER" && sudo ./result/sw/bin/darwin-rebuild switch --flake ".#$host" $(overrides))
+    (cd "$CONSUMER" && sudo /run/current-system/sw/bin/darwin-rebuild switch --flake ".#$host" $(overrides))
     warn "you are now running unpushed code. When happy: commit + bench ship,"
     warn "so a plain rebuild reproduces what you're running."
   else
@@ -315,7 +319,7 @@ cmd_rebuild() {
   say "pinned rebuild of $host from ${CONSUMER}…"
   (cd "$CONSUMER" \
     && nix build ".#darwinConfigurations.$host.system" \
-    && sudo ./result/sw/bin/darwin-rebuild switch --flake ".#$host")
+    && sudo /run/current-system/sw/bin/darwin-rebuild switch --flake ".#$host")
   say "the house stands."
 }
 
