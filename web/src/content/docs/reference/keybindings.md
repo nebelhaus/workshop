@@ -63,7 +63,7 @@ Notation: `⌥` Option/Alt · `⌘` Command · `⌃` Control · `⇧` Shift · `
 | `Super Y` | yazi peek (floating previews; `Enter` on a dir opens a new tab there) |
 | `Super ⇧Y` | yazi jump (browse, then shell in that dir) |
 | `Ctrl Tab` / `Ctrl ⇧Tab` | Tab history back / forward (most-recently-used, browser-style) |
-| `Alt <` / `Alt >` | Cycle swap layouts (spiral → columns → grid) |
+| `Alt <` / `Alt >` | Cycle swap layouts (grid → spiral → columns) |
 | `Super C` | Spawn an isolated Claude agent (own worktree) |
 | `Ctrl ⌥⇧C` | Spawn a resident Claude agent (this checkout) |
 
