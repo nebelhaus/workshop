@@ -211,7 +211,10 @@ Run `brew update` before every activation. Off for reproducibility.
 ### `nebelhaus.homebrew.upgrade`
 `bool` · default `false`
 
-Upgrade outdated packages on every rebuild. Off for reproducibility.
+Upgrade outdated packages on every rebuild. Off for reproducibility — so a
+cask stays on the version brew first installed until you bump it. Turn both
+this and `autoUpdate` on (ideally per-host) to keep casks like trill tracking
+upstream latest; see [Keeping casks current](/guides/making-it-yours/#homebrew-behaviour).
 
 ## nebelhaus.claude
 

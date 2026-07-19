@@ -132,6 +132,31 @@ homebrew.casks = [ "discord" ];         # plain installs, no launcher key
 Set it to `"zap"` if you want a *fully* declarative machine where undeclared
 casks get uninstalled on rebuild.
 
+<Aside type="tip" title="Keeping casks current (e.g. trill)">
+`autoUpdate` and `upgrade` are **off by default** so a rebuild is
+reproducible — it installs a cask once, then pins whatever version brew first
+laid down. That's why a cask app can sit on an old version even though your
+config is fully synced: a rebuild keeps it *installed*, not *current*. To
+pick up new releases of a date-versioned family app like
+[trill](/guides/trill/), either upgrade it on demand —
+
+```sh
+brew upgrade --cask trill
+```
+
+— or set both knobs to `true` so every rebuild tracks upstream latest:
+
+```nix
+nebelhaus.homebrew.autoUpdate = true;  # brew update first, so it sees new versions
+nebelhaus.homebrew.upgrade = true;     # then upgrade outdated casks
+```
+
+The trade-off is the flip side of reproducibility: a rebuild may now upgrade
+**all** your casks at once, so two rebuilds days apart can land different app
+versions. Prefer per-host: set these in your host file, not the rice default,
+so the rest of the family keeps deterministic rebuilds.
+</Aside>
+
 ## Turning rooms off
 
 Three rooms are opt-*out*; the rest are load-bearing:
