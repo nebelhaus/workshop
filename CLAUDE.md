@@ -2,9 +2,9 @@
 
 **The nebelhaus workshop** — the parent directory holding every repo in the
 [nebelhaus](https://github.com/nebelhaus) family, plus the `bench` script that
-moves changes between them. This folder's own repo contains ONLY the README,
-this file, `bench`, and `web/` (the nebelhaus.com Cloudflare Worker); the
-subdirectories are independent git repos.
+moves changes between them. This folder's own repo holds the README, this file,
+`bench`, `web/` (the nebelhaus.com Astro Starlight docs site + its Cloudflare
+Worker), plus `assets/` and `test/`; the subdirectories are independent git repos.
 
 ## Master routing table
 
@@ -17,7 +17,7 @@ CLAUDE.md with the deep rules.
 | the pounce app (UI, ranking) or a generic command script | `./pounce` |
 | the trill Messages client (UI, providers over `chat.db`) | `./trill` |
 | the rice: macOS defaults, tiling (prowl), bar (sill), shell (hearth), Touch ID (collar), pounce wiring | `./nebelhaus` |
-| the org's GitHub front page | `./org-profile` |
+| the org's GitHub front page | `./.github` (the `nebelhaus/.github` repo; `bench clone` maps the alias `org-profile` to it) |
 | this machine's apps / identity / secrets | `~/.config/nix` (not in this dir) |
 | the cross-repo workflow itself (`bench`, this README) | here |
 | the nebelhaus.com install front door (`curl … init.sh`, Cloudflare Worker) | `./web` |
@@ -77,7 +77,7 @@ points outside your toplevel):
 cannot see the child repos.** Check `git rev-parse --git-common-dir`: if it
 points at `…/nebelhaus/.git` (the workshop), your tree holds ONLY the workshop's
 own files (`README.md`, `CLAUDE.md`, `bench`, `assets`, `web/`). The family
-sub-repos — rice (`nebelhaus/`), `nebelung/`, `pounce/`, `trill/`, `org-profile/`,
+sub-repos — rice (`nebelhaus/`), `nebelung/`, `pounce/`, `trill/`, `.github/`,
 `homebrew-tap/` — are **not here at all.** This is **NOT** a `.gitignore`
 visibility problem, and re-reading the ignore file won't change it: a linked
 worktree of the workshop simply never checks out the sibling repos, because each
@@ -106,7 +106,7 @@ it — the isolated worktree is preferred.)
 
 Not a worktree, not a cloud session — this is where most work happens, and the
 worktree/cloud restrictions above do **not** apply here. The child repos
-(`nebelhaus`, `nebelung`, `pounce`, `trill`, `org-profile`, `homebrew-tap`) are
+(`nebelhaus`, `nebelung`, `pounce`, `trill`, `.github`, `homebrew-tap`) are
 `.gitignore`d by the workshop **only to keep the outer tree clean** — each is a
 full, independent repo I own solo, and from the main checkout you drive it
 end-to-end:

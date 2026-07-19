@@ -5,7 +5,7 @@ description: The repos that make up nebelhaus, what each one owns, and how they 
 
 nebelhaus is not one repo — it's a small family, each piece owning one job and
 usable on its own. The rice ([nebelhaus](https://github.com/nebelhaus/nebelhaus))
-ties them together, but pounce and nebelung stand alone too.
+ties them together, but pounce, trill, and nebelung stand alone too.
 
 ## The repos
 
@@ -13,6 +13,7 @@ ties them together, but pounce and nebelung stand alone too.
 |---|---|---|
 | 🏠 [**nebelhaus**](https://github.com/nebelhaus/nebelhaus) | the rice — nix-darwin modules for tiling, bar, shell, security, palette wiring | anything about *how the system behaves* |
 | 🐾 [**pounce**](https://github.com/nebelhaus/pounce) | the launcher — a native Swift command palette + its generic command scripts | the palette app or a built-in command changes |
+| 🐦 [**trill**](https://github.com/nebelhaus/trill) | the messages — a native iMessage/SMS/RCS client reading `chat.db` read-only | you want to change the Messages client |
 | 🌫 [**nebelung**](https://github.com/nebelhaus/nebelung) | the colours — a silver-mist Catppuccin variant + per-tool theme templates | you want a different shade of fog |
 | 🍺 [**homebrew-tap**](https://github.com/nebelhaus/homebrew-tap) | the Homebrew tap (`brew tap nebelhaus/tap`) | almost never — CI bumps it on every release |
 | 🧰 [**workshop**](https://github.com/nebelhaus/workshop) | every repo checked out side-by-side + the `bench` dev CLI | you're hacking on the family itself |
@@ -28,8 +29,8 @@ Your private machine config — identity, secrets, your app roster — lives at
   Ghostty, bat, lazygit, Slack, Zen — can consume its rendered themes without
   touching the rest.
 - **[nebelhaus](/start/what-is-nebelhaus/)** is the whole system, but its
-  modules (`den`, `hearth`, `prowl`, `sill`, `collar`, `pounce`) are exported
-  individually so you can cherry-pick.
+  modules (`den`, `hearth`, `prowl`, `sill`, `collar`, `pounce`, `hush`,
+  `secrets`) are exported individually so you can cherry-pick.
 
 ## How they feed each other
 

@@ -12,8 +12,9 @@
 
 This directory is the working checkout of the whole
 [nebelhaus](https://github.com/nebelhaus) org. Each subdirectory is its own
-repo; this folder itself is a tiny repo holding only this README, a
-`CLAUDE.md`, and the `bench` script. If you can only remember one thing:
+repo; this folder itself is a small repo holding this README, a `CLAUDE.md`, the
+`bench` script, and the `web/` docs site (nebelhaus.com), plus `assets/` and
+`test/`. If you can only remember one thing:
 **work anywhere, then `./bench status` tells you what's out of sync and
 `./bench ship` makes it right.**
 

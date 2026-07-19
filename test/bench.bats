@@ -50,7 +50,7 @@ JSON
 }
 
 # (hook_field + the worktree lifecycle moved to the standalone `wt` tool in
-# ~/.config/nix — bench no longer parses hook payloads.)
+# the rice (nebelhaus/modules/den) — bench no longer parses hook payloads.)
 
 # ── local_src / overrides: worktree-aware checkout substitution ────────────────
 

@@ -350,8 +350,10 @@ write_version() { # write_version <repo> <version> — stamp the version source 
   local f; f="$(version_file "$1")" || return 1
   case "$1" in
     # Only the declaration line matches ^ *version = "…"; the POUNCE_VERSION="$version"
-    # line below it starts with POUNCE_, so it's left untouched.
-    pounce)    sed -i '' -E "s/^( *version = \")[^\"]*(\";.*)/\1$2\2/" "$f" ;;
+    # line below it starts with POUNCE_, so it's left untouched. Written via a temp
+    # file rather than `sed -i` — GNU (Linux/CI) and BSD (macOS) disagree on the
+    # -i suffix arg, so the portable path is redirect + mv.
+    pounce)    local t; t="$(mktemp)"; sed -E "s/^( *version = \")[^\"]*(\";.*)/\1$2\2/" "$f" >"$t" && mv "$t" "$f" ;;
     trill)     printf '%s\n' "$2" > "$f" ;;
     nebelhaus) printf '%s\n' "$2" > "$f" ;;
   esac

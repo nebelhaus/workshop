@@ -64,8 +64,9 @@ glance.
 nebelhaus is built to be hacked on by several [Claude Code](https://claude.com/claude-code)
 agents at once. Each agent runs in its own **git worktree** — a separate checkout
 on a `worktree-<name>` branch, living outside the repo — so agents never yank the
-branch out from under each other. The workshop's `bench wt-create` / `wt-remove`
-plumb this into Claude Code's worktree hooks, and `bench try` is worktree-aware:
+branch out from under each other. The `wt` tool (shipped in the rice, on `PATH`)
+plumbs this into Claude Code's `WorktreeCreate`/`WorktreeRemove` hooks, and
+`bench try` is worktree-aware:
 run from inside a worktree, it builds against *that* branch, so a change can prove
 it builds before anyone merges it.
 

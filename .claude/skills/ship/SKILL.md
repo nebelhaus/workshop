@@ -22,7 +22,7 @@ run it from anywhere in the family.
 git rev-parse --git-common-dir   # points OUTSIDE your toplevel → linked worktree
 ```
 
-**If you're in a worktree** (spawned by `Ctrl Alt c`), you CANNOT ship — merging into
+**If you're in a worktree** (spawned by `Super c` / ⌘C), you CANNOT ship — merging into
 `main` is done from the main checkout and is my call. Instead:
 1. Commit your work on the `worktree-*` branch.
 2. Verify it builds: `bench try` (it's worktree-aware — it overrides the repo it belongs
@@ -73,8 +73,9 @@ in `pounce`, etc. Each repo's CLAUDE.md owns its boundary.
 
 ## Step 5 — propose a release (always gated)
 
-`bench release <repo>` puts a version in real users' hands (bump version in
-`default.nix` first → tag → CI publishes → bumps `homebrew-tap`). **Never run it
+`bench release <repo>` puts a version in real users' hands (it stamps today's date
+as the CalVer version → tag → CI publishes → bumps `homebrew-tap`; releasable repos
+are pounce, trill, nebelhaus). **Never run it
 unprompted.** But if this ship touched user-facing behavior in a tagged repo (pounce,
 nebelhaus…), DO propose one — nudging is expected, tagging is my call. Ship first, then
 release. Never hand-bump the formula's url/sha (CI owns `homebrew-tap`).

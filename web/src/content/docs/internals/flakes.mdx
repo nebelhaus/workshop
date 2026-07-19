@@ -48,11 +48,13 @@ nebelhaus.mkNebelhaus {
 }
 ```
 
-It composes the rooms — `den`, `hearth`, `prowl`, `sill`, `collar`, `pounce` —
-and layers in home-manager, the [nebelung](/reference/palette/) theme, and the
-[pounce](/guides/pounce/) app. Each room is also exported individually under
-`darwinModules` (`den`, `hearth`, `prowl`, `sill`, `collar`, `pounce`, and
-`default` for all of them) if you'd rather cherry-pick.
+It composes the rooms — `den`, `theme`, `hearth`, `prowl`, `sill`, `collar`,
+`pounce`, `trill`, `hush`, `secrets` — and layers in home-manager, the
+[nebelung](/reference/palette/) theme, and the [pounce](/guides/pounce/) app.
+Most rooms are also exported individually under `darwinModules` (`den`,
+`hearth`, `prowl`, `sill`, `collar`, `pounce`, `hush`, `secrets`, and `default`
+for all of them) if you'd rather cherry-pick; `theme` and `trill` ride along
+only with the full house.
 
 ## The inputs
 
