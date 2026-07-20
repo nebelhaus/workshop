@@ -128,7 +128,15 @@ Toggle the Pounce daemon, the ⌘Space palette, and its Accessibility features.
 ### `nebelhaus.pounce.signingIdentity`
 `str` · default `""`
 
-SHA-1 of an Apple Development code-signing identity. The daemon is re-signed with it so the Accessibility grant survives rebuilds. Find with `security find-identity -v -p codesigning`. Empty runs unsigned (palette works; auto-paste off).
+A code-signing identity — the daemon is re-signed with it so the Accessibility grant survives rebuilds. Takes either the identity's full common name or its SHA-1; prefer the name:
+
+```nix
+nebelhaus.pounce.signingIdentity = "Developer ID Application: Jane Doe (ABCDE12345)";
+```
+
+A **Developer ID Application** identity named this way is the durable choice — it matches on the team OU, so the grant survives certificate renewal. An Apple Development SHA-1 works but pins one certificate, and those expire yearly. List yours with `security find-identity -v -p codesigning`.
+
+Changing this value changes pounce's code identity, which invalidates the existing TCC grant — macOS asks you to approve Accessibility once more after the next rebuild. Empty runs unsigned (palette works; auto-paste off).
 
 ### `nebelhaus.pounce.windowSwitcher`
 `bool` · default `true`

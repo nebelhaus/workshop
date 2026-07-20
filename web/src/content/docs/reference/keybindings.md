@@ -78,6 +78,7 @@ Option-click a file path in the terminal to open a new tab `cd`'d there.
 | `Return` | Default action |
 | `⌘Return` | Modifier action (e.g. Reveal in Finder) |
 | `⌥Return` / `⌃Return` | Alternate actions (when shown) |
+| `⌥Return` *(Find Files)* | Copy the path |
 | `Tab` | Cycle sections / emoji categories |
 | `Esc` | Dismiss |
 

@@ -7,7 +7,7 @@ Most nebelhaus trouble is one of a few known macOS quirks with a known fix. Work
 top-down; `haus doctor` is a good first stop for any of them.
 
 ```sh
-haus doctor    # checks Nix, the Xcode CLT, and the GUI agents in one shot
+haus doctor    # Nix, the Xcode CLT, the GUI agents, and cask drift, in one shot
 ```
 
 ## ⌘Space / Pounce does nothing

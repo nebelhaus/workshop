@@ -186,10 +186,17 @@ system.defaults.dock.orientation = "left";
 Anything under [`system.defaults`](https://nix-darwin.github.io/nix-darwin/manual/)
 is fair game. Your plain value wins over the rice's default.
 
-<Aside type="note" title="One exception">
-The menu-bar auto-hide follows whether the bar (sill) is on — don't set
-`_HIHideMenuBar` by hand, or you'll get a bar and a menu bar fighting for the
-same strip of pixels.
+<Aside type="note" title="Two exceptions">
+Both menu-bar keys track whether the bar (sill) is on, and both override your
+value rather than yielding to it:
+
+- **`_HIHideMenuBar`** — the auto-hide. Set it by hand and you'll get a bar and a
+  menu bar fighting for the same strip of pixels.
+- **`NSGlobalDomain.SLSMenuBarUseBlurredAppearance`** — System Settings ▸ Menu
+  Bar ▸ "Show menu bar background". Tahoe's Liquid Glass made the hidden menu
+  bar's hover-reveal translucent, so Sill showed straight through it; the rice
+  forces it opaque again. Flip it in System Settings and the next rebuild flips
+  it back.
 </Aside>
 
 ## Secrets & private things
