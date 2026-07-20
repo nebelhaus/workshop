@@ -75,10 +75,18 @@ points outside your toplevel):
   `worktree-*` branch. Use it for the downstream lock ripple (e.g. after a
   release moved an upstream repo's HEAD). Still off-limits from a worktree:
   `bench try switch` / `darwin-rebuild switch` (activation) and `bench release`
-  (always gated). Folding your own branch into `main` is still the user's call
-  from the main checkout — but that's merging, not shipping.
-- When done, say the branch name; the worktree dies with the pane, the branch
-  survives until merged (and `bench status` nags about it).
+  (always gated).
+- **Land your work through a PR — never a direct push or a local `git merge`
+  into `main`.** When the branch is ready: push it and open a PR (`gh pr
+  create`) against `main`. Do **not** `git merge` your `worktree-*` branch into
+  `main` yourself, and do **not** push to `main` directly — parallel agents
+  doing that have clobbered each other's commits, and a PR is conflict-detected
+  and atomic, so nothing gets silently overwritten. Merging the PR stays **my
+  call**, done on GitHub — the PR is how you *propose* the merge, not how you
+  skip it ("merging is my call" still holds).
+- When done, push the branch, open the PR, and tell me the PR link. The worktree
+  dies with the pane; the branch + PR survive until merged (and `bench status`
+  nags about the branch).
 
 **A worktree is of whichever repo the pane sat in — and a *workshop* worktree
 cannot see the child repos.** Check `git rev-parse --git-common-dir`: if it
@@ -124,12 +132,14 @@ end-to-end:
   repo, and it is **not** a signal that git ops there are risky or need extra
   confirmation. Don't downgrade a solo repo to "ask first" just because it
   nests inside this one.
-- When I ask for the whole flow — fold in the `worktree-*` branches, `bench try
+- When I ask for the whole flow — merge the open `worktree-*` PRs, `bench try
   switch` to activate, `bench ship` the ripple, rebuild — run it straight through
-  across every repo it touches. "Merging is my call" means don't merge
-  *unprompted*; once I've asked, don't stop to re-confirm each repo
-  word-for-word. That per-repo hand-holding is the exact friction this whole
-  router dir exists to remove.
+  across every repo it touches. Land each branch by merging its **PR** (`gh pr
+  merge`), never a local `git merge` + push to `main` — the PR is what keeps two
+  agents' branches from clobbering each other, even in a batch merge. "Merging is
+  my call" means don't merge *unprompted*; once I've asked, don't stop to
+  re-confirm each repo word-for-word. That per-repo hand-holding is the exact
+  friction this whole router dir exists to remove.
 
 ## Claude Code on the web (cloud sessions)
 
@@ -189,8 +199,13 @@ So cloud is for **editing + own-org lock bumps**, not for building or switching.
   is in the wrong repo even if it would work. Each repo's CLAUDE.md enforces
   its own boundary — respect it from up here too.
 - The whole life of a change: **hack** (agents draft on `worktree-*` branches)
-  → **test** (`bench try`, worktree-aware) → **merge** (user folds branches into
-  main) → **try switch** (main checkouts only) → **ship** → **release**
-  (tagged repos only; CI does the rest). For small fixes an agent in the main
-  checkout drives it straight through **ship**; features pause for the user
-  before ship; **release** always waits for the user.
+  → **test** (`bench try`, worktree-aware) → **PR** (the worktree agent pushes
+  its branch and opens a PR against `main`) → **merge** (I review and merge the
+  PR on GitHub — worktree agents never push to or `git merge` into `main`) →
+  **try switch** (main checkouts only) → **ship** → **release** (tagged repos
+  only; CI does the rest). A single in-place agent editing the *main* checkout
+  directly (the `Ctrl Alt Shift c` mode, or a plain non-worktree session) can
+  still drive a small fix straight through **ship** — the PR rule exists to keep
+  *parallel* branches from clobbering each other, not to gate a lone editor on
+  main; features pause for the user before ship; **release** always waits for
+  the user.
