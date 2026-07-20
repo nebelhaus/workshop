@@ -1,7 +1,7 @@
 {
   "repos": {
     "workshop": {
-      "rev": "a1e27fe31b33012f6288ba7d8e16d645290b20d0"
+      "rev": "64e1d187ac6c0ebc9471ec5f46bee5056c524487"
     },
     "nebelung": {
       "rev": "cdbacfd8c48c5f8fd1e712b6e241c6c38485c0a5"
@@ -10,17 +10,17 @@
       "rev": "80f2b0ac75bd40ea49bb5eefb92e2daa102c683a"
     },
     "trill": {
-      "rev": "9ec34a3f35f6246040c851c7f6f1685a4459de6f"
+      "rev": "3bc5efb768b10215b46049fbcb00a96c35435452"
     },
     "nebelhaus": {
-      "rev": "26b147950558245e8a2abb1ce51bbb38aec492e2"
+      "rev": "10edf40f2a9d097988909d41ee52d9fe02d847c9"
     },
     "org-profile": {
-      "rev": "6cb30d8e1541b746466735f4d7acb344840644b1"
+      "rev": "881d50b12b102958c1690520a09fe06dad8db3e4"
     },
     "homebrew-tap": {
       "rev": "ec96ee00e7eb8931198110d975cabc76476ef9f8"
     }
   },
-  "last_run": "2026-07-20T11:32:32+00:00"
+  "last_run": "2026-07-20T12:24:23+00:00"
 }
