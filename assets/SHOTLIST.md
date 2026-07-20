@@ -199,6 +199,27 @@ sped up (~1.1–1.2×). Short = few retakes. *(V1 and V3 are shot — see §In t
 
 None of the pool items are obligations — pull from them as the landing page takes shape.
 
+### Where the shot stills are hosted
+
+The finished landing/pool stills (the two composites + standalone S3–S13) are
+served from **`web/`** — the one place with a stable public URL, so any repo's
+README *or* the docs site can reference the same file. Following the existing
+`logos/` precedent, each lives in **both**:
+
+- **`web/public/media/stills/<name>.png`** — served verbatim at
+  `https://nebelhaus.com/media/stills/<name>.png`. **The only form an external
+  GitHub README can hotlink.** Also usable from docs by absolute path.
+- **`web/src/assets/stills/<name>.png`** — same file, for when a docs/Astro page
+  imports it via `astro:assets` (auto resize + webp), so the docs site takes no
+  raw-PNG perf hit. No stable external URL — in-site use only.
+
+Files: `S2-trio.png` (three-rooms), `S16-gallery.png` (ports), `S3`–`S13`.
+Raw sub-frames (`S2a/b/c`, `S16-1…6`) stay in `assets/stills/` as sources only.
+
+**None are wired into a page yet** — no new shot is slated for a repo README (the
+table above is complete bar the org **S1** gap, which uses the existing
+`hero.png`). Reference them from `/media/stills/…` as pages want them.
+
 ---
 
 ## 4 · Capture-day running order (fewest setup changes)
