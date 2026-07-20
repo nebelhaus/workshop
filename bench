@@ -430,9 +430,14 @@ cmd_release() {
 
 # ── docs-since ────────────────────────────────────────────────────────────────
 # What has changed since the docs were last reconciled? Every repo carries a
-# watermark in .docs-sync.json (gitignored, local bookkeeping); this prints the
-# commits past it, so the daily docs sweep never re-reads what it already read
-# and never misses a day it slept through.
+# watermark in .docs-sync.json; this prints the commits past it, so the daily
+# docs sweep never re-reads what it already read and never misses a day it slept
+# through.
+#
+# The state file is COMMITTED, not gitignored: the sweep runs as a claude.ai
+# routine in a throwaway Linux container, so anything it needs to remember
+# between runs has to live in the repo. That also makes the watermark a visible
+# record of how far the docs have been reconciled.
 DOCS_STATE="$ROOT/.docs-sync.json"
 
 # Every repo whose commits can invalidate a doc — the flake family, plus the

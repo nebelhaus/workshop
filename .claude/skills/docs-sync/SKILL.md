@@ -197,6 +197,23 @@ Then put each repo back on `main` so the next sweep starts from a clean tree:
 git -C <repo> checkout main
 ```
 
+`.docs-sync.json` is **committed**, because the sweep normally runs as a claude.ai routine
+in a throwaway container — anything it must remember between runs has to live in the repo.
+So push the advanced watermark to the workshop's `main` on its own:
+
+```bash
+git -C <workshop> add .docs-sync.json
+git -C <workshop> commit -m "docs-sync: watermark <YYYY-MM-DD>
+
+Docs-Sync: <YYYY-MM-DD>"
+git -C <workshop> push origin main
+```
+
+This is the one commit the sweep puts on `main` directly, and it's deliberate: it must
+advance even on a day that produced no PR, or those commits get re-read forever. It
+carries the `Docs-Sync:` trailer like everything else, so it never feeds the next run.
+Content still only ever lands through a PR.
+
 ## Step 7 — report
 
 The PR bodies hold the detail, so keep the chat report short — it's an index, not a
