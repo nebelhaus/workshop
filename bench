@@ -493,10 +493,18 @@ except Exception:
     pass
 for name in repos:
     d = root if name == "workshop" else f"{root}/{name}"
+    # Mark `main`, never HEAD. A sweep ends sitting on its own docs-sync-* PR
+    # branch, and recording that tip would park the watermark on a commit main
+    # doesn't contain — every later run then re-reads from a bogus base. main is
+    # also the right ANSWER: the watermark tracks the source commits we've read,
+    # and those land on main; the doc PR is this sweep's output, not its input.
     try:
-        rev = subprocess.check_output(["git", "-C", d, "rev-parse", "HEAD"], text=True).strip()
+        rev = subprocess.check_output(["git", "-C", d, "rev-parse", "main"], text=True).strip()
     except Exception:
-        continue
+        try:
+            rev = subprocess.check_output(["git", "-C", d, "rev-parse", "HEAD"], text=True).strip()
+        except Exception:
+            continue
     state["repos"][name] = {"rev": rev}
 state["last_run"] = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
 json.dump(state, open(state_path, "w"), indent=2)

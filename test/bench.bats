@@ -243,3 +243,36 @@ JSON
   run docs_watermark pounce
   [ "$output" = "" ]
 }
+
+# ── docs-since --mark: the watermark must track main, never the current HEAD ──
+# A sweep ends sitting on its own docs-sync-* PR branch. Marking HEAD there parks
+# the watermark on a commit main doesn't contain, and every later run re-reads
+# from a bogus base.
+
+@test "docs-since --mark records main's tip, not the branch the sweep is sitting on" {
+  DOCS_STATE="$ROOT/.docs-sync.json"
+  DOCS_REPOS=(pounce)
+  make_repo pounce
+  git -C "$ROOT/pounce" branch -M main
+  local main_rev; main_rev="$(git -C "$ROOT/pounce" rev-parse main)"
+  # Simulate the end of a sweep: on a docs branch, one commit ahead of main.
+  git -C "$ROOT/pounce" checkout -q -b docs-sync-2026-07-20
+  git -C "$ROOT/pounce" -c user.name=t -c user.email=t@t commit -q --allow-empty -m "docs: sync"
+  [ "$(git -C "$ROOT/pounce" rev-parse HEAD)" != "$main_rev" ]   # HEAD really has diverged
+
+  cmd_docs_since --mark >/dev/null 2>&1
+  run docs_watermark pounce
+  [ "$output" = "$main_rev" ]
+}
+
+@test "docs-since --mark falls back to HEAD in a repo with no main branch" {
+  DOCS_STATE="$ROOT/.docs-sync.json"
+  DOCS_REPOS=(pounce)
+  make_repo pounce
+  git -C "$ROOT/pounce" branch -M trunk
+  local head_rev; head_rev="$(git -C "$ROOT/pounce" rev-parse HEAD)"
+
+  cmd_docs_since --mark >/dev/null 2>&1
+  run docs_watermark pounce
+  [ "$output" = "$head_rev" ]
+}

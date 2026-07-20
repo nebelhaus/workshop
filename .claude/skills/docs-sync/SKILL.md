@@ -179,6 +179,18 @@ If nothing needed changing and there is nothing to report anywhere, open no PR.
 This records where the next sweep starts. Marking before landing loses the day's work
 silently — if the sweep failed partway, leave the watermark alone so tomorrow re-reads it.
 
+It records each repo's **`main`**, deliberately, not the branch you're standing on: a
+sweep ends sitting on its own `docs-sync-*` branch, and parking the watermark on a commit
+`main` doesn't contain sends every later run reading from a bogus base. `main` is also the
+right answer — the watermark tracks the source commits you've *read*, and those live on
+`main`. Your doc PR is this sweep's output, not its input.
+
+Then put each repo back on `main` so the next sweep starts from a clean tree:
+
+```bash
+git -C <repo> checkout main
+```
+
 ## Step 7 — report
 
 The PR bodies hold the detail, so keep the chat report short — it's an index, not a
