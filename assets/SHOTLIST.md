@@ -11,7 +11,7 @@ each); the rest of the menu is for the landing page + social pool.
 
 | Asset | File | Where |
 |---|---|---|
-| **S1** hero | `nebelhaus/assets/hero.png` | rice README ✅ · **org README still TODO** ("the house") |
+| **S1** hero | `nebelhaus/assets/hero.png` | rice README ✅ · org README ✅ (copied to `.github/profile/assets/hero.png`) |
 | **V1** pounce demo | `pounce/assets/demo.webp` | pounce README |
 | **V3** tap-to-launch | `nebelhaus/assets/tap-to-launch.webp` | rice README |
 | **S14** command-is-a-file | `pounce/assets/command-is-a-file.webp` | pounce README |
@@ -31,8 +31,8 @@ dark bg (WebP, ≤~1.5 MB, barely moving).
 
 ## 🎯 Still to shoot
 
-The one README gap is **S1 into the org README**. Everything else below feeds the
-**landing page + social pool** — a menu, not a backlog. Videos are the priority.
+Every README placement is done. Everything below feeds the **landing page +
+social pool** — a menu, not a backlog. Videos are the priority.
 
 - **Videos:** V2, V4, V5, V6, V7, V8, V9, V10 (scripts in §2).
 - **Stills:** ✅ all shot — S2–S13, S16 in [`assets/stills/`](./stills/).

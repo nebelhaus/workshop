@@ -57,6 +57,14 @@ Every repo maps to a documentation surface. Follow the workshop's routing table,
 | a new/changed keybind | `reference/keybindings.md` — **always** |
 | `bench`, workshop `README.md` | `internals/contributing.mdx`, `internals/flakes.mdx`, workshop `README.md`/`CLAUDE.md` |
 | `homebrew-tap`, release CI | `start/install.mdx`, `guides/staying-in-sync.mdx` |
+| `org-profile` (the `nebelhaus/.github` repo) | `profile/README.md` — **the org front page, the first thing anyone sees** — and `profile/assets/README.md`. Reconcile its repo list and framing against `start/the-family.md` |
+| a shot/asset placement anywhere | `assets/SHOTLIST.md` in the workshop — it tracks which README each still has landed in, so a placement commit makes it stale |
+
+**Every repo here is both an input and a target.** The question is never only "does
+this commit change the site?" — it's also "did it make a doc *in that repo* wrong?" A
+repo with no bearing on the site can still have a stale README of its own, and the
+front-of-house repos (`org-profile`, `homebrew-tap`) are the easiest to overlook
+precisely because they don't feed nebelhaus.com.
 
 Grep before concluding something is undocumented — the feature may be described under a
 name you didn't search for:
@@ -86,6 +94,12 @@ Most commits need no doc change. Be a strict editor, not an eager one.
 - Refactors, perf work, test changes, CI plumbing, version stamps, lock bumps.
 - Anything experimental, reverted, or behind a flag not yet on by default. (Check for a
   later `Revert` in the same range before documenting a feature.)
+
+**Read the range as a sequence, not a set.** A later commit routinely invalidates an
+earlier one — a revert undoes a feature, and a placement commit closes a TODO that
+another doc still advertises as open. Two commits that each look like housekeeping can
+leave a doc wrong *between* them. When two commits in a range touch the same subject,
+check what the pair did before judging either.
 - Features whose shape is still moving — a doc written too early is worse than none.
 - Your own opinion about how something *should* work. Document what shipped.
 
