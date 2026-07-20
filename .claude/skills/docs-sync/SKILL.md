@@ -1,0 +1,159 @@
+---
+name: docs-sync
+description: >-
+  The daily docs sweep for the nebelhaus family: read every commit landed since the last
+  sweep, find what those commits made stale or left undocumented across the web docs (the
+  SOT), READMEs, in-repo docs and code comments, and open a PR per repo with the fixes.
+  Use when I say /docs-sync, "sync the docs", "docs audit", "are the docs stale", or when
+  the daily routine fires. Never lands on main unattended — one PR per affected repo.
+---
+
+# Docs sync — reconcile the docs with what actually shipped
+
+Code moves daily across seven repos; the docs don't follow on their own. This sweep
+closes that gap once a day: read what landed, decide what it broke or left unsaid, fix
+it in the right place, open a PR.
+
+**The site is the source of truth.** `web/src/content/docs/` (Astro Starlight,
+nebelhaus.com) is where anything a *user* experiences gets documented. READMEs,
+`CLAUDE.md`s and in-repo docs serve contributors and agents. When the two disagree, the
+site wins and the repo doc gets corrected — never the reverse.
+
+## Step 1 — what landed?
+
+```bash
+cd ~/code/nebelhaus && ./bench docs-since
+```
+
+This prints, per repo, every commit past the last reconciled watermark plus the files
+each touched. It is watermark-based, not "since yesterday" — a sweep that didn't run for
+four days still picks up all four. **Do not `--mark` yet**; that happens at the very end,
+only for what you actually reconciled.
+
+If it says nothing is new, say so and stop. A no-op day is a fine outcome — don't go
+hunting for something to change.
+
+For any commit whose subject is thin, read the actual diff before judging it:
+
+```bash
+git -C <repo> show <sha> --stat
+git -C <repo> show <sha> -- <the file that matters>
+```
+
+Version-stamp commits (`pounce 2026.07.20-4`), lock bumps and merge commits carry no
+doc consequence — skip them fast and spend the budget on behavior changes.
+
+## Step 2 — route each change to its doc
+
+Every repo maps to a documentation surface. Follow the workshop's routing table, then:
+
+| Changed… | Reconcile against |
+|---|---|
+| `pounce/pkgs/pounce/*.swift`, commands | `web/.../guides/pounce.mdx`, `guides/pounce-commands.mdx`, `reference/pounce.md`, `pounce/README.md` |
+| `nebelung/` palette, ports | `web/.../reference/palette.mdx`, `guides/theming.mdx`, `nebelung/README.md` |
+| `trill/` app behavior | `web/.../guides/trill.mdx`, `trill/README.md`, `trill/ARCHITECTURE.md`, `trill/docs/` |
+| `nebelhaus/modules/*` (rice) | `web/.../guides/*` (the-bar, the-shell, window-management, touch-id, hush), `reference/options.md`, `reference/keybindings.md` |
+| a new/renamed nix option | `reference/options.md` — **always**; an option users can set and can't discover is a bug |
+| a new/changed keybind | `reference/keybindings.md` — **always** |
+| `bench`, workshop `README.md` | `internals/contributing.mdx`, `internals/flakes.mdx`, workshop `README.md`/`CLAUDE.md` |
+| `homebrew-tap`, release CI | `start/install.mdx`, `guides/staying-in-sync.mdx` |
+
+Grep before concluding something is undocumented — the feature may be described under a
+name you didn't search for:
+
+```bash
+grep -ril "<feature>\|<flag>\|<option>" web/src/content/docs/ <repo>/README.md
+```
+
+## Step 3 — the bar (don't be trigger-happy)
+
+Most commits need no doc change. Be a strict editor, not an eager one.
+
+**Fix it — no hesitation:**
+- The docs state something now factually **wrong** (a flag, path, default, keybind,
+  option name, version, or behavior that changed).
+- A documented step would **fail** if a user followed it today.
+- A dead link, a renamed file, a moved section, a stale screenshot reference.
+- A code comment that lies about what the code beside it now does.
+
+**Document it new — only if it clears all three:**
+1. A **user** can see or act on it (not an internal refactor), **and**
+2. it is **discoverable nowhere** today, **and**
+3. not knowing it would cost someone real time — a new option, command, keybind,
+   permission prompt, or a changed default.
+
+**Leave it alone:**
+- Refactors, perf work, test changes, CI plumbing, version stamps, lock bumps.
+- Anything experimental, reverted, or behind a flag not yet on by default. (Check for a
+  later `Revert` in the same range before documenting a feature.)
+- Features whose shape is still moving — a doc written too early is worse than none.
+- Your own opinion about how something *should* work. Document what shipped.
+
+When a change sits on the line, **note it in the report instead of writing the doc**.
+A surfaced judgment call is cheap; a wrong doc is expensive.
+
+## Step 4 — write it in the house voice
+
+The docs read like a person who knows the system explaining it to a friend — never like
+generated reference. Match the file you're editing; when in doubt, read
+`guides/trill.mdx` as the reference for tone.
+
+- **Slim and dense.** Every sentence earns its place. Cut hedging, preamble and
+  restatement. If a paragraph can be a sentence, make it a sentence.
+- **Lead with the point.** What it does and why you'd want it, then the mechanics.
+- **Show the command.** A fenced block a reader can paste beats a description of it.
+- **Fun, lightly.** Dry wit and a strong turn of phrase are house style — *"reads
+  everything, changes nothing"*. One good line per page, not one per paragraph. Never
+  jokey at the reader's expense when they're mid-problem.
+- **Pretty.** Use the Starlight components already imported in the file — `<Aside>` for
+  the gotcha that will bite them, `<Steps>` for ordered setup, `<CardGrid>`/`<Card>` for
+  parallel choices, tables for dense reference. Keep frontmatter `description` accurate;
+  it's the search and social snippet.
+- **Link, don't repeat.** Cross-link to `/reference/options/#…` rather than restating an
+  option inline. One fact, one home.
+- **Keep it honest.** Say what's read-only, what needs a permission, what's a non-goal.
+  Under-promising is house style.
+
+Prefer **editing an existing page over adding one**. A new page is justified only when a
+subject has no home at all; otherwise the site grows faster than anyone reads it.
+
+## Step 5 — land it, one PR per repo
+
+Nothing lands on `main` unattended. For each repo you changed:
+
+```bash
+git -C <repo> checkout -b docs-sync-<YYYY-MM-DD>
+git -C <repo> add <the doc files>
+git -C <repo> commit -m "docs: <what you reconciled>"
+git -C <repo> push -u origin docs-sync-<YYYY-MM-DD>
+gh pr create -R nebelhaus/<repo> --fill
+```
+
+- Commit **only** doc files. If a fix needs a code change, don't make it — report it.
+- Branch per repo, never a cross-repo commit. Each repo owns its own boundary.
+- If the site changed, build it before pushing — a broken build is worse than a stale
+  page: `cd web && npm run build`.
+- If nothing needed changing anywhere, open no PR.
+
+## Step 6 — mark the watermark
+
+**Only after the PRs are open**, and only then:
+
+```bash
+./bench docs-since --mark
+```
+
+This records where the next sweep starts. Marking before landing loses the day's work
+silently — if the sweep failed partway, leave the watermark alone so tomorrow re-reads it.
+
+## Step 7 — report
+
+Short and scannable:
+
+- **Reconciled** — the PR links, one line each on what was stale and what it now says.
+- **Documented new** — what got a first home, and why it cleared the bar.
+- **Judgment calls** — what you deliberately left alone and what would change your mind.
+  This section is the useful one; don't skip it when it's non-empty.
+- **Code smells** — anything you found that needs a *code* fix, not a doc fix.
+
+Never claim a doc is now accurate unless you read the code it describes.

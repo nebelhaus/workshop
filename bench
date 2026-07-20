@@ -17,6 +17,9 @@
 #   bench rebuild   a plain, pinned rebuild of your machine (the normal day)
 #   bench pull      fast-forward every repo
 #   bench clone     fetch any family repo missing from this directory
+#   bench docs-since   commits in every repo since the docs were last
+#                  reconciled (--mark records new watermarks) — the input
+#                  to the daily /docs-sync sweep
 #   bench release   stamp today's date as the version (YYYY.MM.DD, -N on a
 #                  same-day repeat) and tag it — CI then publishes the GitHub
 #                  release and bumps the Homebrew tap
@@ -425,6 +428,83 @@ cmd_release() {
   warn "the date-stamp moved $name's HEAD — run bench ship to ripple its lock downstream."
 }
 
+# ── docs-since ────────────────────────────────────────────────────────────────
+# What has changed since the docs were last reconciled? Every repo carries a
+# watermark in .docs-sync.json (gitignored, local bookkeeping); this prints the
+# commits past it, so the daily docs sweep never re-reads what it already read
+# and never misses a day it slept through.
+DOCS_STATE="$ROOT/.docs-sync.json"
+
+# Every repo whose commits can invalidate a doc — the flake family, plus the
+# workshop itself (bench/README/web live here) and the two CI-owned leaves.
+DOCS_REPOS=(workshop "${FAMILY[@]}" org-profile homebrew-tap)
+
+docs_watermark() { # docs_watermark <repo> — last reconciled rev, "" if never
+  [ -f "$DOCS_STATE" ] || { echo ""; return; }
+  python3 - "$DOCS_STATE" "$1" <<'EOF'
+import json, sys
+try:
+    print(json.load(open(sys.argv[1])).get("repos", {}).get(sys.argv[2], {}).get("rev", ""))
+except Exception:
+    print("")
+EOF
+}
+
+cmd_docs_since() {
+  local mark="" any=0
+  [ "${1:-}" = "--mark" ] && mark=1
+
+  for name in "${DOCS_REPOS[@]}"; do
+    local dir; dir="$([ "$name" = workshop ] && echo "$ROOT" || repo_dir "$name")"
+    [ -d "$dir/.git" ] || continue
+    local head; head="$(git -C "$dir" rev-parse HEAD)"
+    local base; base="$(docs_watermark "$name")"
+
+    # Never reconciled, or the watermark was rewritten away? Fall back to a
+    # day's worth of history rather than replaying the repo from its birth.
+    if [ -z "$base" ] || ! git -C "$dir" cat-file -e "$base^{commit}" 2>/dev/null; then
+      base="$(git -C "$dir" rev-list -1 --before='1 day ago' HEAD 2>/dev/null || echo "")"
+    fi
+    [ "$base" = "$head" ] && continue
+
+    local range; range="$([ -n "$base" ] && echo "$base..HEAD" || echo HEAD)"
+    local log; log="$(git -C "$dir" log --no-merges --format='  %h %ad %s' --date=short "$range" 2>/dev/null)"
+    [ -n "$log" ] || continue
+
+    any=1
+    say "$name  ($(git -C "$dir" rev-list --count "$range") commits)"
+    printf '%s\n' "$log"
+    printf '  \033[38;5;245mfiles:\033[0m %s\n\n' \
+      "$(git -C "$dir" diff --name-only "$range" 2>/dev/null | head -40 | tr '\n' ' ')"
+  done
+
+  [ "$any" = 1 ] || say "nothing new since the last docs sweep."
+
+  if [ -n "$mark" ]; then
+    python3 - "$DOCS_STATE" "$ROOT" "$CONSUMER" "${DOCS_REPOS[@]}" <<'EOF'
+import json, subprocess, sys, datetime
+state_path, root, consumer, *repos = sys.argv[1:]
+state = {"repos": {}}
+try:
+    state = json.load(open(state_path))
+    state.setdefault("repos", {})
+except Exception:
+    pass
+for name in repos:
+    d = root if name == "workshop" else f"{root}/{name}"
+    try:
+        rev = subprocess.check_output(["git", "-C", d, "rev-parse", "HEAD"], text=True).strip()
+    except Exception:
+        continue
+    state["repos"][name] = {"rev": rev}
+state["last_run"] = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
+json.dump(state, open(state_path, "w"), indent=2)
+open(state_path, "a").write("\n")
+EOF
+    say "watermarks recorded — next sweep starts from here."
+  fi
+}
+
 cmd_clone() {
   for name in "${FAMILY[@]}" org-profile homebrew-tap; do
     local repo="$name"
@@ -448,6 +528,7 @@ case "${1:-status}" in
   rebuild) cmd_rebuild ;;
   pull)    cmd_pull ;;
   clone)   cmd_clone ;;
+  docs-since) cmd_docs_since "${2:-}" ;;
   release) cmd_release "${2:-}" ;;
   *)       sed -n '2,30p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
 esac

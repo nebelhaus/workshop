@@ -141,6 +141,7 @@ to ripple that lock downstream.)
 | `./bench pull` | fast-forward every repo |
 | `./bench clone` | fetch any family repo missing from this directory |
 | `./bench release <repo>` | date-stamp the version (`v<YYYY.MM.DD>`, `-N` on a same-day repeat) + tag it — CI publishes the release + bumps the brew tap |
+| `./bench docs-since [--mark]` | every commit since the docs were last reconciled, per repo — the input to the daily `/docs-sync` sweep (`--mark` moves the watermark) |
 
 Tip: the rice ships a `bench` shell alias, so these work from anywhere.
 

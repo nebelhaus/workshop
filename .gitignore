@@ -6,4 +6,6 @@
 /org-profile/
 /homebrew-tap/
 /web/.wrangler/
+# Local bookkeeping: where the last `bench docs-since` sweep stopped reading.
+.docs-sync.json
 .DS_Store

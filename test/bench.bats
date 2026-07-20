@@ -214,3 +214,32 @@ make_repo() { # make_repo <name> — a fixture git repo with one commit
   run commits_since nebelhaus v9.9.9
   [ "$output" = "?" ]
 }
+
+@test "docs_watermark is empty when no sweep has ever run" {
+  DOCS_STATE="$ROOT/.docs-sync.json"
+  run docs_watermark pounce
+  [ "$output" = "" ]
+}
+
+@test "docs_watermark reads the rev a previous sweep recorded" {
+  DOCS_STATE="$ROOT/.docs-sync.json"
+  cat > "$DOCS_STATE" <<'JSON'
+{"repos": {"pounce": {"rev": "deadbeef"}}, "last_run": "2026-07-20T05:00:00-05:00"}
+JSON
+  run docs_watermark pounce
+  [ "$output" = "deadbeef" ]
+}
+
+@test "docs_watermark is empty for a repo the state file doesn't know" {
+  DOCS_STATE="$ROOT/.docs-sync.json"
+  echo '{"repos": {"pounce": {"rev": "deadbeef"}}}' > "$DOCS_STATE"
+  run docs_watermark trill
+  [ "$output" = "" ]
+}
+
+@test "docs_watermark degrades to empty on malformed state (never crashes the sweep)" {
+  DOCS_STATE="$ROOT/.docs-sync.json"
+  echo 'not json at all' > "$DOCS_STATE"
+  run docs_watermark pounce
+  [ "$output" = "" ]
+}
