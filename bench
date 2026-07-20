@@ -157,13 +157,13 @@ cmd_status() {
     for b in $(unmerged_agent_branches "$name"); do
       # branches whose worktree is gone but whose commits aren't merged yet
       if ! git -C "$(repo_dir "$name")" worktree list --porcelain | grep -q "branch refs/heads/$b"; then
-        wt_lines+="$(printf '  %-12s %-24s %-6s %s' "$name" "$b" "·" "(parked — 'wt ${b#worktree-}' to resume, or merge/delete)")"$'\n'
+        wt_lines+="$(printf '  %-12s %-24s %-6s %s' "$name" "$b" "·" "(parked — 'wt ${b#worktree-}' to resume, or open a PR / delete)")"$'\n'
       fi
     done
   done
   if [ -n "$wt_lines" ]; then
     echo
-    say "agent worktrees (isolated Claude checkouts; merge into the main checkout when done)"
+    say "agent worktrees (isolated Claude checkouts; open a PR to land — never push to main)"
     printf '  %-12s %-24s %-6s %s\n' "repo" "branch" "dirty" "where"
     printf '%s' "$wt_lines"
   fi
@@ -231,7 +231,7 @@ cmd_try() {
   detect_worktree
   if [ -n "$WT_REPO" ]; then
     if [ "${1:-}" = "switch" ]; then
-      die "refusing to switch from an agent worktree of $WT_REPO — only the main checkouts get activated. Merge the branch, then try/switch from there."
+      die "refusing to switch from an agent worktree of $WT_REPO — only the main checkouts get activated. Land the branch via its PR, then try/switch from the main checkout."
     fi
     say "you're in an agent worktree — overriding $WT_REPO with $WT_PATH"
   fi
@@ -270,7 +270,7 @@ cmd_ship() {
   for name in "${FAMILY[@]}"; do
     local unmerged; unmerged="$(unmerged_agent_branches "$name" | tr '\n' ' ')"
     if [ -n "${unmerged// /}" ]; then
-      warn "$name has unmerged agent branches (not shipping them): $unmerged"
+      warn "$name has unmerged agent branches (not shipping them — open a PR to land): $unmerged"
     fi
   done
 

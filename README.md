@@ -96,9 +96,11 @@ one agent allowed to edit the checkout you're looking at.
 ./bench status               # …also lists agent worktrees + unmerged worktree-* branches
 # an agent (or you, cd'd into its worktree) can prove its branch builds:
 ./bench try                  # from inside a worktree: that repo's override points AT the worktree
-# happy with an agent's work? merge it from the main checkout:
-git -C nebelung merge worktree-<name>
-# closing the claude pane removes the worktree; the branch survives until merged
+# an agent lands work by opening a PR — never by pushing to or merging into main:
+git -C nebelung push -u origin worktree-<name> && gh pr create -R nebelhaus/nebelung
+# happy with the PR? merge it on GitHub (or `gh pr merge`) — a PR is conflict-
+# detected and atomic, so parallel agents can't clobber each other's commits
+# closing the claude pane removes the worktree; the branch + PR survive until merged
 ```
 
 **Catching up** — on another machine, or after shipping from elsewhere:
@@ -153,7 +155,7 @@ repos, `wt <name>` to resume one.
 ## the whole life of a change
 
 ```
-hack ──► test ──► try ──► merge ──► ship ──► release
+hack ──► test ──► try ──► PR ──► merge ──► ship ──► release
 ```
 
 1. **hack** — edit in place, or let `Super c` (⌘C) agents draft on `worktree-*`
@@ -162,8 +164,11 @@ hack ──► test ──► try ──► merge ──► ship ──► relea
    against the local checkouts (from inside an agent worktree, against *that*
    branch). `./bench try switch` activates it — main checkouts only; it refuses
    from a worktree.
-3. **merge** — fold the agent branches you like into `main` (the branch, and a
-   nagging `bench status` line, survive until you do).
+3. **PR + merge** — an agent lands its branch by opening a PR against `main`,
+   never by pushing to or `git merge`-ing into `main` (parallel agents doing
+   that clobbered each other — a PR is conflict-detected and atomic). You review
+   and merge the PRs you like; the branch, and a nagging `bench status` line,
+   survive until you do.
 4. **ship** — commit, then `./bench ship` pushes upstream→downstream, rippling
    every `flake.lock`.
 5. **release** — `./bench release <repo>` date-stamps the version and tags it,
