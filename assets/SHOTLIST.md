@@ -35,7 +35,14 @@ The one README gap is **S1 into the org README**. Everything else below feeds th
 **landing page + social pool** — a menu, not a backlog. Videos are the priority.
 
 - **Videos:** V2, V4, V5, V6, V7, V8, V9, V10 (scripts in §2).
-- **Stills:** S2 (three-rooms trio), S3–S13, S15, S16 (specs in §1).
+- **Stills:** ✅ all shot — S2–S13, S16 in [`assets/stills/`](./stills/).
+  S15 skipped (`palette.png`/`preview.png` cover it).
+
+**Composites built** (in `assets/stills/`): `S2-trio.png` (S2b nebelung · S2a
+pounce · S2c rice, matched side-by-side) and `S16-gallery.png` (fastfetch ·
+lazygit · bat · yazi · Zen · Helix, 3×2, menu bar + keycast footer cropped).
+The rest (S3–S13) stand alone. **Left to do:** place them in the proper repos /
+landing pool; once placed, the raw `S*` frames can be retired.
 
 ---
 
@@ -191,6 +198,27 @@ sped up (~1.1–1.2×). Short = few retakes. *(V1 and V3 are shot — see §In t
 - **Standalone clips:** V2, V5, V8, V9, V10.
 
 None of the pool items are obligations — pull from them as the landing page takes shape.
+
+### Where the shot stills are hosted
+
+The finished landing/pool stills (the two composites + standalone S3–S13) are
+served from **`web/`** — the one place with a stable public URL, so any repo's
+README *or* the docs site can reference the same file. Following the existing
+`logos/` precedent, each lives in **both**:
+
+- **`web/public/media/stills/<name>.png`** — served verbatim at
+  `https://nebelhaus.com/media/stills/<name>.png`. **The only form an external
+  GitHub README can hotlink.** Also usable from docs by absolute path.
+- **`web/src/assets/stills/<name>.png`** — same file, for when a docs/Astro page
+  imports it via `astro:assets` (auto resize + webp), so the docs site takes no
+  raw-PNG perf hit. No stable external URL — in-site use only.
+
+Files: `S2-trio.png` (three-rooms), `S16-gallery.png` (ports), `S3`–`S13`.
+Raw sub-frames (`S2a/b/c`, `S16-1…6`) stay in `assets/stills/` as sources only.
+
+**None are wired into a page yet** — no new shot is slated for a repo README (the
+table above is complete bar the org **S1** gap, which uses the existing
+`hero.png`). Reference them from `/media/stills/…` as pages want them.
 
 ---
 
