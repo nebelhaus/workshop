@@ -35,7 +35,13 @@ The one README gap is **S1 into the org README**. Everything else below feeds th
 **landing page + social pool** — a menu, not a backlog. Videos are the priority.
 
 - **Videos:** V2, V4, V5, V6, V7, V8, V9, V10 (scripts in §2).
-- **Stills:** S2 (three-rooms trio), S3–S13, S15, S16 (specs in §1).
+- **Stills:** ~~S3–S13~~, ~~S16~~ shot — S2 trio (need **S2a**, **S2b**),
+  S15 skipped (`palette.png`/`preview.png` cover it).
+
+**Raw captures staged in [`assets/stills/`](./stills/)** — not yet cropped,
+combined, or placed. Pending post-work: **S2a/S2b/S2c** combine into the S2 trio,
+**S16-1…6** combine into the one ports-gallery grid. Once combined + placed in
+their proper repos, retire the raw files.
 
 ---
 

@@ -5,6 +5,11 @@ Each entry is **Stage** (what's on screen) → **Steps** (how to reach the frame
 **View** (the exact crop/framing) → **Dest**. Ordered by *scene*, not asset number,
 so you restage the machine as few times as possible (SHOTLIST §4 running order).
 
+> **Status** — raw captures staged in [`stills/`](./stills/), not yet cropped/placed:
+> ✅ S3–S13, S2c, S16-1…6 (six ports).  ⏳ **S2a** (pounce room), **S2b** (nebelung
+> room) — still to shoot.  ⏭️ **S15** skipped (`palette.png`/`preview.png` cover it).
+> Post-work still owed: combine S2a/b/c → trio, S16-1…6 → one grid, then place.
+
 **Before the first shot, run the §0 machine-stage checklist** (wallpaper, mauve
 accent `#c9a8f1`, clock 9:41, SF/Vancouver weather, default gaps 10/20, clean state).
 Stills are shot at Ghostty **19px** (the 22px bump is video-only). No KeyCastr in
@@ -180,9 +185,9 @@ filenames).
 
 ## Scene 4 · Theme / palette (shoot last — rebuild changes the accent)
 
-### S15 — palette swatch board
-- **Note:** `nebelung/assets/palette.png` + `preview.png` largely cover this —
-  **only reshoot if the pool needs a dedicated board.** If you do:
+### S15 — palette swatch board *(⏭️ skipped)*
+- **Note:** `nebelung/assets/palette.png` + `preview.png` cover this, so it's
+  **skipped for now.** Recipe kept in case the pool later needs a dedicated board:
 - **Steps:** Render/lay out all **26 colors**: the grey ramp as the top row
   (`crust #121212 → text #d7d7d7`), then the **14 muted accents** below.
 - **View:** Each chip labeled with **name + hex**. Grey ramp visually continuous; accent
