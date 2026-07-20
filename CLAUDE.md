@@ -87,11 +87,23 @@ points outside your toplevel):
   `main` yourself, and do **not** push to `main` directly — parallel agents
   doing that have clobbered each other's commits, and a PR is conflict-detected
   and atomic, so nothing gets silently overwritten. Merging the PR stays **my
-  call**, done on GitHub — the PR is how you *propose* the merge, not how you
-  skip it ("merging is my call" still holds).
-- When done, push the branch, open the PR, and tell me the PR link. The worktree
-  dies with the pane; the branch + PR survive until merged (and `bench status`
-  nags about the branch).
+  call** — but **"my call" means don't merge *unprompted*, not "never merge."**
+  When I explicitly tell you to land it (`/ship`, "ship it", "land this", "merge
+  and clean up"), that IS the go-ahead: merge it with `gh pr merge` (still never
+  a local merge or direct push — the PR's atomicity is the whole point). Absent
+  that instruction, stop at "PR open" and report the link.
+- **When I say ship/land/merge, `/ship` finishes the whole job** (see
+  `.claude/skills/ship`): merge the PR, ripple the locks (`bench ship`), then
+  clean up every worktree *this session* spun up — a workshop worktree
+  hand-creates child-repo worktrees for out-of-repo work, and those aren't
+  auto-reaped, so merge their PRs too and `git worktree remove` them. When it's
+  all landed and nothing ≥3/5 needs my attention (don't wait on CI unless that's
+  the point), `/ship` may close this pane with
+  `zellij action close-pane -p "$ZELLIJ_PANE_ID"` (target the pane id, not
+  whatever's focused); closing reaps the merged branch via the `wt` hook.
+- When done, push the branch, open the PR, and — if I didn't say ship — tell me
+  the PR link. The worktree dies with the pane; the branch + PR survive until
+  merged (and `bench status` nags about the branch).
 
 **A worktree is of whichever repo the pane sat in — and a *workshop* worktree
 cannot see the child repos.** Check `git rev-parse --git-common-dir`: if it
@@ -205,8 +217,9 @@ So cloud is for **editing + own-org lock bumps**, not for building or switching.
   its own boundary — respect it from up here too.
 - The whole life of a change: **hack** (agents draft on `worktree-*` branches)
   → **test** (`bench try`, worktree-aware) → **PR** (the worktree agent pushes
-  its branch and opens a PR against `main`) → **merge** (I review and merge the
-  PR on GitHub — worktree agents never push to or `git merge` into `main`) →
+  its branch and opens a PR against `main`) → **merge** (I review and merge on
+  GitHub — or, when I say `/ship`, the agent merges its own PR with `gh pr
+  merge`; either way, never a direct push or local `git merge` into `main`) →
   **try switch** (main checkouts only) → **ship** → **release** (tagged repos
   only; CI does the rest). A single in-place agent editing the *main* checkout
   directly (the `Ctrl Alt Shift c` mode, or a plain non-worktree session) can
