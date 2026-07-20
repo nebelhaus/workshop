@@ -377,8 +377,11 @@ const swatches = [
       .family { margin: 5rem 0; }
       .family-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        grid-template-columns: repeat(2, 1fr);
         gap: 1.1rem;
+      }
+      @media (max-width: 640px) {
+        .family-grid { grid-template-columns: 1fr; }
       }
       .room {
         display: flex;
