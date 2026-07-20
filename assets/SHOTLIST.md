@@ -35,13 +35,14 @@ The one README gap is **S1 into the org README**. Everything else below feeds th
 **landing page + social pool** — a menu, not a backlog. Videos are the priority.
 
 - **Videos:** V2, V4, V5, V6, V7, V8, V9, V10 (scripts in §2).
-- **Stills:** ~~S3–S13~~, ~~S16~~ shot — S2 trio (need **S2a**, **S2b**),
+- **Stills:** ✅ all shot — S2–S13, S16 in [`assets/stills/`](./stills/).
   S15 skipped (`palette.png`/`preview.png` cover it).
 
-**Raw captures staged in [`assets/stills/`](./stills/)** — not yet cropped,
-combined, or placed. Pending post-work: **S2a/S2b/S2c** combine into the S2 trio,
-**S16-1…6** combine into the one ports-gallery grid. Once combined + placed in
-their proper repos, retire the raw files.
+**Composites built** (in `assets/stills/`): `S2-trio.png` (S2a pounce · S2b
+nebelung · S2c rice, matched side-by-side) and `S16-gallery.png` (fastfetch ·
+lazygit · bat · yazi · Zen · Helix, 3×2, menu bar + keycast footer cropped).
+The rest (S3–S13) stand alone. **Left to do:** place them in the proper repos /
+landing pool; once placed, the raw `S*` frames can be retired.
 
 ---
 
@@ -69,9 +70,6 @@ Consistency is what makes a rice read as *designed*, not *dumped*. Lock in first
 ---
 
 ## 1 · Screenshots still to shoot (landing + social pool)
-
-> **Capture recipes:** [`STILLS.md`](./STILLS.md) expands every still below into
-> exact stage → steps → view, ordered by scene (§4) to minimize restaging.
 
 **Org / hero**
 - [ ] **S2 — three-rooms trio** (matched framing, same wallpaper): **S2a** pounce (palette open, query typed, results) · **S2b** nebelung (swatch render or three themed TUIs) · **S2c** rice (clean 2-pane tiling + bar).
