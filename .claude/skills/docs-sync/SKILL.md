@@ -126,14 +126,47 @@ git -C <repo> checkout -b docs-sync-<YYYY-MM-DD>
 git -C <repo> add <the doc files>
 git -C <repo> commit -m "docs: <what you reconciled>"
 git -C <repo> push -u origin docs-sync-<YYYY-MM-DD>
-gh pr create -R nebelhaus/<repo> --fill
+# write the findings body to a scratch file first (see the template below)
+gh pr create -R nebelhaus/<repo> --head docs-sync-<YYYY-MM-DD> \
+  --title "docs: sync <YYYY-MM-DD>" --body-file /tmp/docs-sync-<repo>.md
 ```
 
 - Commit **only** doc files. If a fix needs a code change, don't make it — report it.
 - Branch per repo, never a cross-repo commit. Each repo owns its own boundary.
 - If the site changed, build it before pushing — a broken build is worse than a stale
   page: `cd web && npm run build`.
-- If nothing needed changing anywhere, open no PR.
+
+**The PR body carries the findings.** A scheduled run's chat output is read once and
+lost; the PR is where the reasoning has to live, so a reviewer can judge the diff without
+re-deriving it. Never use `--fill`. Write the body as:
+
+```markdown
+Daily docs sweep — reconciled <N> commits landed since <date>.
+
+## Corrected
+- `<file>` — was: <the wrong claim>. Now: <what shipped>. (<sha>)
+
+## Documented new
+- `<file>` — <what got a first home>, because <how it cleared the bar>.
+
+## Left alone (deliberately)
+- <change> (<sha>) — <why it didn't earn a doc>. Would change if <trigger>.
+
+## Needs code, not docs
+- <the smell>, at `<path>` — <why a doc can't fix it>.
+
+<!-- opened by the daily /docs-sync routine -->
+```
+
+Drop any section that's empty. **"Left alone" is the section a reviewer actually needs**
+— it's the audit trail for the judgment bar, and the only way you'd catch the sweep
+being too timid or too eager. Include it even when the diff is trivial.
+
+If a repo has **findings but no doc change** — everything landed cleanly, but you spotted
+something code-level — carry those findings in the *workshop* PR under "Needs code, not
+docs", tagged with the repo they belong to. Don't open an empty PR.
+
+If nothing needed changing and there is nothing to report anywhere, open no PR.
 
 ## Step 6 — mark the watermark
 
@@ -148,12 +181,13 @@ silently — if the sweep failed partway, leave the watermark alone so tomorrow 
 
 ## Step 7 — report
 
-Short and scannable:
+The PR bodies hold the detail, so keep the chat report short — it's an index, not a
+duplicate:
 
-- **Reconciled** — the PR links, one line each on what was stale and what it now says.
-- **Documented new** — what got a first home, and why it cleared the bar.
-- **Judgment calls** — what you deliberately left alone and what would change your mind.
-  This section is the useful one; don't skip it when it's non-empty.
-- **Code smells** — anything you found that needs a *code* fix, not a doc fix.
+- **PR links**, one line each on what that repo's sweep covered.
+- **The judgment calls worth a human's attention** — the two or three closest to the
+  line, not the whole "left alone" list.
+- **Anything that blocked you** — a repo you couldn't read, a build that failed, a
+  watermark you deliberately left unmarked.
 
 Never claim a doc is now accurate unless you read the code it describes.
