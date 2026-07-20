@@ -111,10 +111,19 @@ The status bar. See [The bar](/guides/the-bar/).
 
 Toggle SketchyBar. When on, the native macOS menu bar is hidden.
 
-### `nebelhaus.sill.plugins`
-`listOf enum` · default `[]`
+### `nebelhaus.sill.items`
+`submodule` (one `bool` per pill) · default `{}`
 
-Opt-in personal bar items: `"agents"` (a pill tracking your Claude agent panes), `"elgato"` (toggle an Elgato Key Light), and `"harvest"` (a Harvest time tracker — reads `~/.config/sketchybar/harvest_secrets.sh`, which you provide). See [The bar](/guides/the-bar/#optional-personal-plugins).
+Which bar pills to draw, one bool each. Set only what you want to change. The **core** pills — `clock`, `weather`, `media`, `battery`, `wifi` — default `true`; the **extras** default `false`: readouts `cpu` (load %), `memory` (pressure %), `volume` (output level / mute), `calendar` (next event + a popup of the next five; pulls in `ical-buddy` and reads Calendar), plus the personal `agents` (a pill tracking your Claude agent panes), `elgato` (toggle an Elgato Key Light), and `harvest` (a Harvest time tracker — reads `~/.config/sketchybar/harvest_secrets.sh`, which you provide). A pill set `false` is never created and its update script doesn't run.
+
+```nix
+nebelhaus.sill.items = {
+  weather = false;
+  cpu = true;
+};
+```
+
+See [The bar](/guides/the-bar/#toggling-bar-items).
 
 ## nebelhaus.pounce
 
