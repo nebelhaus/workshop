@@ -66,6 +66,11 @@ into `claude --resume`. This is `wt`'s job, not `bench`'s.
 If YOU are running in a worktree (check: `git rev-parse --git-common-dir`
 points outside your toplevel):
 
+- **Committing, pushing, and opening the PR are standing permission — just do
+  all three, never ask first.** The default answer to "want me to commit / push
+  / open a PR?" is always yes, so don't ask the question — do the work and report
+  the PR link. The ONLY step that waits for me is *merging* the PR (see below);
+  everything up to "PR is open" is yours to drive unprompted, in default mode.
 - Commit on your `worktree-*` branch as usual; verify with `./bench try` (it
   builds against your branch automatically).
 - **`bench ship` is allowed from a worktree** — standing permission, default
