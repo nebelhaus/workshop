@@ -4,6 +4,8 @@ description: Tiling windows and the Caps-Lock launcher — how prowl arranges yo
 ---
 
 import { Aside } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+import tilingGrid from '../../../assets/stills/S6.png';
 
 **prowl** is the tiling room. It wraps
 [AeroSpace](https://github.com/nikitabobko/AeroSpace) — a tiling window manager
@@ -12,6 +14,8 @@ resize windows without ever reaching for the mouse or a far-flung modifier.
 
 Windows arrange themselves into a tree; the keyboard moves them around it. It
 feels like a tiling Linux rig, but it's native macOS windows underneath.
+
+<Image src={tilingGrid} alt="four windows tiled into an even grid — a browser, terminal, notes, and chat — with the sill bar on top and equal fog-grey gaps between the floating panes" />
 
 ## The leader key: Caps-Lock
 
