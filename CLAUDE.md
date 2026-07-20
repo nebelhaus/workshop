@@ -68,8 +68,15 @@ points outside your toplevel):
 
 - Commit on your `worktree-*` branch as usual; verify with `./bench try` (it
   builds against your branch automatically).
-- **Never** `bench try switch`, `bench ship`, or touch the main checkouts —
-  merging into `main` happens from the main checkout, and it's the user's call.
+- **`bench ship` is allowed from a worktree** — standing permission, default
+  mode, no need to ask. It only pushes already-committed work and never
+  activates: `cmd_ship` operates on the *main* checkouts, so it ripples
+  merged/released upstream work downstream — it does **not** push your unmerged
+  `worktree-*` branch. Use it for the downstream lock ripple (e.g. after a
+  release moved an upstream repo's HEAD). Still off-limits from a worktree:
+  `bench try switch` / `darwin-rebuild switch` (activation) and `bench release`
+  (always gated). Folding your own branch into `main` is still the user's call
+  from the main checkout — but that's merging, not shipping.
 - When done, say the branch name; the worktree dies with the pane, the branch
   survives until merged (and `bench status` nags about it).
 
@@ -157,7 +164,8 @@ So cloud is for **editing + own-org lock bumps**, not for building or switching.
 - **Verify by actually running it.** `./bench try` to build, then
   `./bench try switch` to activate on the machine — testing in prod is the
   house style, and `darwin-rebuild` is passwordless, so drive the whole loop
-  yourself (main checkouts only; worktrees stop at `try`).
+  yourself (activation is main-checkouts-only; from a worktree you stop at
+  `bench try` — no `try switch` — but `bench ship` IS allowed from a worktree).
 - **Ship by default, sized to the change.** `./bench ship` pushes to GitHub.
   Small stuff — bugfixes, typos, config/theme tweaks, docs — commit, verify,
   ship, without asking; a verified fix left unpushed is a bug here. Big
