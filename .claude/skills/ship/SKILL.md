@@ -5,7 +5,9 @@ description: >-
   edited repo, verify with `bench try`, activate with `bench try switch`, then `bench ship`
   to ripple the flake-lock updates downstream. Use when I say /ship, "ship it", "land
   this", or want to wrap up a change across the nebelung → pounce → nebelhaus → config
-  chain. Worktree-aware: from inside an agent worktree it stops at commit-and-report.
+  chain. Worktree-aware: from an agent worktree you commit + report the branch, but
+  `bench ship` (the downstream lock ripple) IS allowed — only `try switch` (activation)
+  and `bench release` stay main-checkout-only.
 ---
 
 # Ship (nebelhaus workshop): verify → activate → ripple the locks
@@ -16,21 +18,27 @@ until each downstream `flake.lock` is bumped — `bench ship` does that ripple. 
 hand-walk it. `bench` lives at `~/code/nebelhaus/bench` (aliased `bench` in the shell);
 run it from anywhere in the family.
 
-## Step 0 — am I in a worktree? (decides everything)
+## Step 0 — am I in a worktree? (decides how far you go)
 
 ```bash
 git rev-parse --git-common-dir   # points OUTSIDE your toplevel → linked worktree
 ```
 
-**If you're in a worktree** (spawned by `Super c` / ⌘C), you CANNOT ship — merging into
-`main` is done from the main checkout and is my call. Instead:
+**If you're in a worktree** (spawned by `Super c` / ⌘C):
 1. Commit your work on the `worktree-*` branch.
 2. Verify it builds: `bench try` (it's worktree-aware — it overrides the repo it belongs
-   to with YOUR checkout automatically). Never `bench try switch` / `bench ship` /
-   `bench release` from a worktree.
-3. Report the branch name so I can merge it from the main checkout. Stop here.
+   to with YOUR checkout automatically). You may NOT `bench try switch` (activation is a
+   main-checkout job) or `bench release` (always gated).
+3. **`bench ship` IS allowed** — standing permission, no need to ask. It only pushes
+   already-committed work and never activates, and `cmd_ship` operates on the MAIN
+   checkouts (not your worktree), so it ripples merged/released upstream work downstream.
+   It does NOT push your unmerged `worktree-*` branch — so it can't "ship your feature"
+   out from under a review. Use it for the downstream lock ripple (e.g. after a release
+   moved an upstream repo's HEAD and its lock needs to walk down the chain). Folding your
+   own branch into `main` is still my call.
+4. Report the branch name so I can merge it from the main checkout.
 
-Everything below is for the **main checkout** only.
+Everything below (activate, release) is for the **main checkout** only.
 
 ## Step 1 — commit stragglers
 
