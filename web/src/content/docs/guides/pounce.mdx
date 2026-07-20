@@ -27,6 +27,17 @@ it up as a login daemon and re-signs it so its permissions survive rebuilds.
 - Change it in [config](/reference/pounce/#config-file): the `hotkey` object
   takes a `key` and `modifiers`.
 
+<Aside type="caution" title="If ⌘Space does nothing on a stock Mac">
+Installing standalone, Spotlight still owns ⌘Space — and it wins silently.
+Registration *succeeds*, so pounce can't tell; macOS simply routes the key
+elsewhere. The daemon checks for this at startup and says so in its log, naming
+the shortcut that beat it.
+
+Free the key in **System Settings → Keyboard → Keyboard Shortcuts → Spotlight**,
+then restart the daemon. (Rice users get this for free — nebelhaus turns
+Spotlight's binding off.)
+</Aside>
+
 ## What you can do
 
 <CardGrid>
@@ -41,6 +52,10 @@ it up as a login daemon and re-signs it so its permissions survive rebuilds.
   <Card title="Clipboard history" icon="clipboard">
     Browse and restore recent copies in a two-pane view; optionally auto-paste
     into the app you came from.
+  </Card>
+  <Card title="Find Files" icon="magnifier">
+    Search files and folders by name as you type, over Spotlight's index. ⏎
+    opens, ⌘⏎ reveals in Finder, ⌥⏎ copies the path.
   </Card>
   <Card title="Emoji, screenshots, more" icon="star">
     Built-in modes for an emoji grid, a screenshot browser, a camera peek, and a
@@ -86,9 +101,16 @@ no window flicker. Any command you write can do this by declaring
 ## Built-in commands
 
 Out of the box you get: **Activity Monitor**, **Brew Services**, **Camera**,
-**Clipboard History**, **Emoji**, **Force Quit**, **Lock Screen**, **Ports**,
-**System Settings**, **Screenshots**, and **Wi-Fi**. Each is just a script you
-can read, copy, or replace.
+**Clipboard History**, **Emoji**, **Find Files**, **Force Quit**, **Lock
+Screen**, **Ports**, **Report Issue**, **System Settings**, **Screenshots**, and
+**Wi-Fi**. Each is just a script you can read, copy, or replace.
+
+Every System Settings pane is its own command too, so typing "Displays" or
+"Accessibility" jumps straight there instead of dropping you at the front door.
+
+**Report Issue** opens a pre-filled GitHub issue with your pounce and macOS
+versions already in the body — the rice ships a matching one for nebelhaus
+itself.
 
 ## Optional plugins
 
@@ -132,6 +154,14 @@ brew install pounce
 brew services start pounce        # start the daemon
 pounce --request-accessibility    # one-time, for paste-back features
 ```
+
+The formula installs a prebuilt `Pounce.app` signed with our Apple **Developer
+ID** and **notarized** by Apple — it opens straight away, no Gatekeeper prompt
+and no compile step. Requires **macOS 14 Sonoma or later on Apple Silicon**; the
+release is arm64 only.
+
+Because that signing identity is stable, the Accessibility grant **survives
+`brew upgrade`** — you approve it once, not once per release.
 
 Or with Nix: `nix run github:nebelhaus/pounce -- --help`.
 

@@ -25,6 +25,11 @@ re-read each time the palette opens (no daemon restart needed).
     "maxEntries": 200,       // history size
     "blacklistBundleIds": ["com.apple.Passwords"],  // never record from these
     "autoPaste": false       // synthesize ⌘V into the prior app (needs Accessibility)
+  },
+  "fileSearch": {
+    "enabled": true,         // the Find Files mode
+    "homeOnly": true,        // scope to ~ instead of the whole index
+    "maxResults": 60         // rows kept per query
   }
 }
 ```
@@ -40,6 +45,9 @@ re-read each time the palette opens (no daemon restart needed).
 | `clipboard.maxEntries` | number | `200` |
 | `clipboard.blacklistBundleIds` | array of bundle ids | `["com.apple.Passwords"]` |
 | `clipboard.autoPaste` | `true` \| `false` | `false` |
+| `fileSearch.enabled` | `true` \| `false` | `true` |
+| `fileSearch.homeOnly` | `true` \| `false` | `true` |
+| `fileSearch.maxResults` | number | `60` |
 
 Setting `hotkey.enabled` to `false` frees the hotkey so an external launcher
 (skhd, AeroSpace) can bind a key to `pounce-palette` instead.
@@ -77,6 +85,7 @@ pounce --check-bluetooth          # exit 0 / prints true when granted
 | `--launcher` | Apps + commands mode |
 | `--max-empty N` | Rows shown before any query is typed |
 | `--clipboard` / `--emoji` / `--screenshots` / `--camera` | Built-in modes |
+| `--find-files` | Live file/folder search over the Spotlight index |
 | `--cheatsheet [path]` | Overlay a cheatsheet (JSON) |
 | `--version` | Print the version |
 | `--request-accessibility` / `--check-accessibility` | Manage the Accessibility (TCC) grant |

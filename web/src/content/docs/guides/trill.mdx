@@ -47,7 +47,9 @@ conversations. It asks for only what a given feature needs, when it needs it:
 1. **Full Disk Access** — required to read `~/Library/Messages/chat.db`. Grant it
    to the **Trill app bundle** (not Terminal) in System Settings → Privacy &
    Security → Full Disk Access. Selecting the Messages provider runs a read-only
-   probe first and links you here if the grant is missing.
+   probe first and links you here if the grant is missing. macOS only hands the
+   new access to a fresh process, so trill offers a **Relaunch Trill** button
+   rather than making you quit and reopen it yourself.
 
 2. **Automation ("control Messages")** — prompted the first time you send. This
    is how trill sends without ever writing to `chat.db`.
@@ -60,6 +62,10 @@ conversations. It asks for only what a given feature needs, when it needs it:
    provider, for incoming-message banners with inline reply.
 
 </Steps>
+
+Grant something while trill is in the background and it re-checks on return, so
+Automation and Contacts start working the moment you switch back — no Recheck
+button, no restart. Full Disk Access is the one exception, hence the relaunch.
 
 <Aside type="caution" title="Marking read is local-only">
 Marking a conversation read *upstream* would require writing to `chat.db`, which
@@ -88,7 +94,11 @@ trill is a triage tool, not just a viewer — everything Messages can't do:
   unanswered; a per-thread **stats** panel shows counts, reply-time medians, and
   most-active hours.
 - **Compose faster** — snippets and slash-commands (`/shrug`, `/date`, …) from
-  one `/`-trigger picker, fill-in-the-blank templates, and persistent drafts.
+  one `/`-trigger picker, fill-in-the-blank templates, and persistent drafts
+  (with a **Drafts** filter to find the ones you abandoned).
+- **Scroll back without asking** — threads load 100 messages at a time and fetch
+  the next page automatically as you near the top. **Load Earlier Messages** is
+  still there if you'd rather drive.
 - **Stay ambient** — a menu-bar mini-inbox with unread count, conversation tabs
   (⌘T) to keep several threads open, and ⌘[ / ⌘] to walk recently-viewed threads.
 
@@ -118,11 +128,25 @@ The bulk export is framed as *"ready to hand to an LLM"*: it's the clean corpus
 for feeding your own history to a model. It's read-only throughout — nothing is
 sent anywhere or written back to `chat.db`.
 
+## Your writing style, as a document
+
+**Messages → Writing Style Profile…** builds a portrait of how you actually
+write — across everyone, or for one thread from the conversation toolbar. Copy it
+or save it as Markdown.
+
+It's computed on your Mac by counting things, not by asking a model: no AI, no
+network, nothing leaves the machine. The output is meant for you to paste into an
+assistant yourself, so it can write in your voice without ever being handed your
+messages.
+
 ## Honest scope
 
 - trill **displays** tapbacks, threaded replies, and edits, but can't *send*
   them — the native (AppleScript) send path has no automation surface for them,
   so those actions aren't offered rather than faked.
+- Attachments your Mac has offloaded to iCloud show as **"In iCloud"** rather
+  than downloading on demand — fetching them is Messages.app's job, and trill
+  says so instead of pretending the file is missing.
 - It reads `chat.db`; it does not sync, relay, or push. There's no server and no
   network messaging (a future [BlueBubbles relay](https://github.com/nebelhaus/trill/blob/main/ARCHITECTURE.md)
   is designed-for but not built).

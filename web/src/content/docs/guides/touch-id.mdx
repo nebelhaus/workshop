@@ -12,7 +12,7 @@ tmux, where stock Touch-ID-for-sudo silently fails.
 
 ## What it turns on
 
-collar configures two PAM settings for `sudo`:
+collar configures two PAM settings for `sudo`, and installs one sudoers rule:
 
 ```nix
 security.pam.services.sudo_local.touchIdAuth = true;   # fingerprint for sudo
@@ -22,6 +22,34 @@ security.pam.services.sudo_local.reattach   = true;    # make it work in tmux/ze
 - **`touchIdAuth`** adds the Touch ID PAM module to `sudo`.
 - **`reattach`** pulls in [`pam_reattach`](https://github.com/fabianishere/pam_reattach),
   which reattaches the sudo process to your GUI login session.
+- **`/etc/sudoers.d/darwin-rebuild`** exempts one command from authentication
+  entirely — see below.
+
+## The one command that never asks
+
+Activating a build is the privileged thing this rice does constantly, and a
+prompt per rebuild buys nothing: you already authenticated to *build* it. So
+collar grants that one command a pass:
+
+```
+<you> ALL=(ALL) NOPASSWD: /run/current-system/sw/bin/darwin-rebuild
+```
+
+`haus switch` and `bench try switch` both route through that exact path, so
+rebuilds run straight through. Nothing else is exempt.
+
+<Aside type="caution" title="Why the stable path, not the store path">
+macOS 26.6 shipped sudo 1.9.17, which stopped dereferencing a command's symlink
+before matching sudoers. A rule written against `/nix/store/…-darwin-rebuild/…`
+now matches only if you type that store path literally — which nobody does — so
+the exemption silently stops applying and Touch ID quietly returns on every
+rebuild. Matching `/run/current-system/sw/bin/darwin-rebuild` is what survives.
+
+One cosmetic wrinkle: nix-darwin's `environment.etc` is symlink-only, so the rule
+lands as a `0444` store symlink and `visudo -c` may grumble that it "should be
+0440". Harmless — sudo refuses group/world-**writable** sudoers files, not merely
+readable ones.
+</Aside>
 
 ## Why the reattach matters
 
@@ -31,9 +59,10 @@ beachballs. With it, the prompt reattaches to your GUI session and the sensor
 lights up as expected. If you cancel, it falls back to a typed password.
 
 <Aside type="tip" title="Yes, it works inside zellij">
-The payoff: type `sudo darwin-rebuild switch` in a zellij pane and the macOS
-Touch ID dialog floats up right over the multiplexer. Touch the sensor, and the
-command runs — no password typed.
+The payoff: type `sudo -v` in a zellij pane and the macOS Touch ID dialog floats
+up right over the multiplexer. Touch the sensor, and the command runs — no
+password typed. (`darwin-rebuild` is the exception, and a happier one: it doesn't
+even ask.)
 </Aside>
 
 ## What it does *not* do
@@ -49,6 +78,7 @@ Commit signing itself is wired up in [hearth](/guides/the-shell/) from your
 ## Nothing to configure
 
 collar has no options of its own — it's on as part of the rice. If you ever want
-to opt out, remove or override the two PAM settings in your host file. For most
-people it just works from the first `switch`, and typing your password to `sudo`
-becomes a memory.
+to opt out, remove or override the two PAM settings (and the sudoers rule, if the
+passwordless rebuild isn't to your taste) in your host file. For most people it
+just works from the first `switch`, and typing your password to `sudo` becomes a
+memory.
