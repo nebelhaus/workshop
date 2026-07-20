@@ -455,7 +455,8 @@ cmd_docs_since() {
   [ "${1:-}" = "--mark" ] && mark=1
 
   for name in "${DOCS_REPOS[@]}"; do
-    local dir; dir="$([ "$name" = workshop ] && echo "$ROOT" || repo_dir "$name")"
+    local dir
+    if [ "$name" = workshop ]; then dir="$ROOT"; else dir="$(repo_dir "$name")"; fi
     [ -d "$dir/.git" ] || continue
     local head; head="$(git -C "$dir" rev-parse HEAD)"
     local base; base="$(docs_watermark "$name")"
