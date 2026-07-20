@@ -124,13 +124,19 @@ Nothing lands on `main` unattended. For each repo you changed:
 ```bash
 git -C <repo> checkout -b docs-sync-<YYYY-MM-DD>
 git -C <repo> add <the doc files>
-git -C <repo> commit -m "docs: <what you reconciled>"
+git -C <repo> commit -m "docs: <what you reconciled>
+
+Docs-Sync: <YYYY-MM-DD>"
 git -C <repo> push -u origin docs-sync-<YYYY-MM-DD>
 # write the findings body to a scratch file first (see the template below)
 gh pr create -R nebelhaus/<repo> --head docs-sync-<YYYY-MM-DD> \
   --title "docs: sync <YYYY-MM-DD>" --body-file /tmp/docs-sync-<repo>.md
 ```
 
+- **Every commit gets the `Docs-Sync:` trailer.** Your PRs land on `main` like anything
+  else, so without it the next sweep reads yesterday's output as today's input — every
+  day, forever. `bench docs-since` filters on that trailer; a commit missing it will come
+  back to haunt you tomorrow.
 - Commit **only** doc files. If a fix needs a code change, don't make it — report it.
 - Branch per repo, never a cross-repo commit. Each repo owns its own boundary.
 - If the site changed, build it before pushing — a broken build is worse than a stale

@@ -469,11 +469,17 @@ cmd_docs_since() {
     [ "$base" = "$head" ] && continue
 
     local range; range="$([ -n "$base" ] && echo "$base..HEAD" || echo HEAD)"
-    local log; log="$(git -C "$dir" log --no-merges --format='  %h %ad %s' --date=short "$range" 2>/dev/null)"
+    # Skip the sweep's OWN commits. Doc PRs land on main like anything else, so
+    # without this the routine reads yesterday's output as today's input — every
+    # day, forever. The skill stamps each of its commits with a Docs-Sync
+    # trailer precisely so they can be filtered back out here.
+    local skip_own=(--invert-grep --grep='^Docs-Sync: ')
+    local log; log="$(git -C "$dir" log --no-merges "${skip_own[@]}" \
+      --format='  %h %ad %s' --date=short "$range" 2>/dev/null)"
     [ -n "$log" ] || continue
 
     any=1
-    say "$name  ($(git -C "$dir" rev-list --count "$range") commits)"
+    say "$name  ($(printf '%s\n' "$log" | grep -c .) commits)"
     printf '%s\n' "$log"
     printf '  \033[38;5;245mfiles:\033[0m %s\n\n' \
       "$(git -C "$dir" diff --name-only "$range" 2>/dev/null | head -40 | tr '\n' ' ')"

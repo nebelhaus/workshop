@@ -276,3 +276,41 @@ JSON
   run docs_watermark pounce
   [ "$output" = "$head_rev" ]
 }
+
+# ── docs-since skips the sweep's own commits ──────────────────────────────────
+# Doc PRs land on main like anything else. Without the Docs-Sync trailer filter
+# the routine reads yesterday's output as today's input, every day, forever.
+
+@test "docs-since skips commits carrying the Docs-Sync trailer" {
+  DOCS_STATE="$ROOT/.docs-sync.json"
+  DOCS_REPOS=(pounce)
+  make_repo pounce
+  git -C "$ROOT/pounce" branch -M main
+  cmd_docs_since --mark >/dev/null 2>&1          # watermark at the first commit
+
+  git -C "$ROOT/pounce" -c user.name=t -c user.email=t@t commit -q --allow-empty \
+    -m "docs: sync 2026-07-20
+
+Docs-Sync: 2026-07-20"
+  run cmd_docs_since
+  [[ "$output" == *"nothing new since the last docs sweep"* ]]
+}
+
+@test "docs-since still reports real work landed alongside a swept commit" {
+  DOCS_STATE="$ROOT/.docs-sync.json"
+  DOCS_REPOS=(pounce)
+  make_repo pounce
+  git -C "$ROOT/pounce" branch -M main
+  cmd_docs_since --mark >/dev/null 2>&1
+
+  git -C "$ROOT/pounce" -c user.name=t -c user.email=t@t commit -q --allow-empty \
+    -m "docs: sync 2026-07-20
+
+Docs-Sync: 2026-07-20"
+  git -C "$ROOT/pounce" -c user.name=t -c user.email=t@t commit -q --allow-empty \
+    -m "feat: a real behavior change"
+  run cmd_docs_since
+  [[ "$output" == *"a real behavior change"* ]]
+  [[ "$output" != *"docs: sync 2026-07-20"* ]]
+  [[ "$output" == *"(1 commits)"* ]]            # count matches what's shown
+}
