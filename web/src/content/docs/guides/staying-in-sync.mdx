@@ -46,7 +46,7 @@ this — your machine stays exactly as it was until you choose to move it.
 ```sh
 haus rollback      # atomically return to the previous generation
 haus generations   # list generations you can roll back to
-haus doctor        # health check: Nix, Xcode CLT, GUI agents
+haus doctor        # health check: Nix, Xcode CLT, GUI agents, cask drift
 ```
 
 Every `switch` creates a new generation; `rollback` steps back to the last one
@@ -63,7 +63,7 @@ took is your coarser rewind.
 | `haus generations` | List available generations |
 | `haus status` | Current generation and how stale the rice is |
 | `haus edit` | Open your host file in `$EDITOR` |
-| `haus doctor` | Diagnose Nix / CLT / agent health |
+| `haus doctor` | Diagnose Nix / CLT / agent health and cask drift |
 | `haus btm` | On macOS Tahoe+, diagnose Background Task Management blocks on nix login items |
 
 <Aside type="tip" title="From the palette, too">
