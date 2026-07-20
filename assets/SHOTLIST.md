@@ -64,6 +64,9 @@ Consistency is what makes a rice read as *designed*, not *dumped*. Lock in first
 
 ## 1 · Screenshots still to shoot (landing + social pool)
 
+> **Capture recipes:** [`STILLS.md`](./STILLS.md) expands every still below into
+> exact stage → steps → view, ordered by scene (§4) to minimize restaging.
+
 **Org / hero**
 - [ ] **S2 — three-rooms trio** (matched framing, same wallpaper): **S2a** pounce (palette open, query typed, results) · **S2b** nebelung (swatch render or three themed TUIs) · **S2c** rice (clean 2-pane tiling + bar).
 
