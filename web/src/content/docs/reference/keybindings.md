@@ -58,8 +58,9 @@ Notation: `⌥` Option/Alt · `⌘` Command · `⌃` Control · `⇧` Shift · `
 |---|---|
 | `Super P` | New pane (inherits cwd; hops to the main checkout inside a worktree) |
 | `Super ⇧P` | New pane, stay here (inherits cwd, no worktree hop) |
-| `Super T` | New tab (inherits cwd; same worktree hop as `Super P`) |
-| `Super ⇧T` | New tab at `$HOME` |
+| `Super T` | New tab at `$HOME` |
+| `Super ⇧T` | New tab at the focused pane's directory |
+| `Super F` | Toggle the focused pane fullscreen (zoom to fill the tab, again to restore) |
 | `Super Y` | yazi peek (floating previews; `Enter` on a dir opens a new tab there) |
 | `Super ⇧Y` | yazi jump (browse, then shell in that dir) |
 | `Ctrl Tab` / `Ctrl ⇧Tab` | Tab history back / forward (most-recently-used, browser-style) |
@@ -84,6 +85,6 @@ Option-click a file path in the terminal to open a new tab `cd`'d there.
 
 ## Ghostty note
 
-Ghostty deliberately **unbinds** `⌘T`, `⌘P`, `⌘Y`, `⌘⇧Y`, `⌘⇧T`, and `⌘C` so
-zellij owns them — the same keys work whether or not you're multiplexed.
+Ghostty deliberately **unbinds** `⌘T`, `⌘P`, `⌘Y`, `⌘⇧Y`, `⌘⇧T`, `⌘F`, and `⌘C`
+so zellij owns them — the same keys work whether or not you're multiplexed.
 `Ctrl-Tab` is forwarded to zellij via the kitty keyboard protocol.
