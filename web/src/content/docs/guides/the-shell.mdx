@@ -45,8 +45,9 @@ Launching Ghostty drops you straight into a persistent zellij session called
 |---|---|
 | `Super P` | New pane, inheriting cwd — but a shell born inside a `claude --worktree` checkout hops to the repo's **main checkout** |
 | `Super ⇧P` | New pane, **stay here** — inherits cwd with no hop, so you get a shell right inside the worktree |
-| `Super T` | New tab, inheriting cwd — with the **same worktree hop** as `Super P` |
-| `Super ⇧T` | New tab at `$HOME` |
+| `Super T` | New tab at `$HOME` — a clean shell, wherever the focused pane lives |
+| `Super ⇧T` | New tab at the **focused pane's directory** — open a tab right here |
+| `Super F` | **Fullscreen** the focused pane — zoom it to fill the tab, tap again to drop back into the tiled layout |
 | `Super Y` | **yazi peek** — a floating browser with live previews; `Enter` on a directory opens a new tab there |
 | `Super ⇧Y` | **yazi jump** — browse, then drop a shell in the landing directory |
 | `Ctrl Tab` / `Ctrl ⇧Tab` | Tab history back / forward (most-recently-used) |
