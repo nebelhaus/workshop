@@ -45,8 +45,8 @@ Launching Ghostty drops you straight into a persistent zellij session called
 |---|---|
 | `Super P` | New pane, inheriting cwd — but a shell born inside a `claude --worktree` checkout hops to the repo's **main checkout** |
 | `Super ⇧P` | New pane, **stay here** — inherits cwd with no hop, so you get a shell right inside the worktree |
-| `Super T` | New tab at `$HOME` — a clean shell, wherever the focused pane lives |
-| `Super ⇧T` | New tab at the **focused pane's directory** — open a tab right here |
+| `Super T` | New tab at `$HOME` — born named `~` (fresh tabs are never `Tab #N`) |
+| `Super ⇧T` | New tab at the **focused pane's directory** — with the **same worktree hop** as `Super P` |
 | `Super F` | **Fullscreen** the focused pane — zoom it to fill the tab, tap again to drop back into the tiled layout |
 | `Super Y` | **yazi peek** — a floating browser with live previews; `Enter` on a directory opens a new tab there |
 | `Super ⇧Y` | **yazi jump** — browse, then drop a shell in the landing directory |
@@ -102,10 +102,13 @@ One related knob:
 - **zoxide** — `cd` learns your habits; `cdi` opens an fuzzy picker of your
   frequent directories.
 - **Auto-renaming tabs** — `cd` into a repo and the zellij tab renames itself
-  after it.
-- **Claude Code aware** — new shells opened (`Super P` / `Super T`) inside a
-  `~/.cache/claude-worktrees` checkout hop to the parent repo automatically. Want
-  a shell *inside* the worktree instead? `Super ⇧P` is the no-hop escape hatch.
+  after it; `cd ~` renames it back to `~`, the name every fresh tab is born
+  with (no `Tab #N` anywhere).
+- **Claude Code aware** — new shells opened (`Super P` / `Super ⇧T`) inside a
+  `~/.cache/claude-worktrees` checkout hop to the parent repo automatically —
+  and the `Super ⇧T` tab is named after the main repo, not the throwaway
+  worktree. Want a shell *inside* the worktree instead? `Super ⇧P` is the
+  no-hop escape hatch.
 
 See [Theming & accents](/guides/theming/) for how every tool above gets its
 colours, and the [options reference](/reference/options/#nebelhaushearth) for
