@@ -197,3 +197,5 @@ personal anything → `~/.config/nix`**. When in doubt, start here and read
 - **nebelhaus tui options program** — A custom install script that people can `curl` and pipe into bash. It will spawn a (ts/bun/node) TUI allowing people to input information and choose preferences for their rice (like favorite IDE, accent color, etc.). These answers will template `nebelhaus.*` options into the generated host file.
 - **Screenshots** — `assets/hero.png` in the rice is still a placeholder
   (pounce's `assets/demo.webp` hero is shot); for a rice, the screenshot *is* the pitch.
+
+<!-- noop: agent-worktree panel UI test (PR #50) — safe to close -->
