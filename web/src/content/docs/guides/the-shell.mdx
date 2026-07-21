@@ -45,7 +45,7 @@ Launching Ghostty drops you straight into a persistent zellij session called
 |---|---|
 | `Super P` | New pane, inheriting cwd — but a shell born inside a `claude --worktree` checkout hops to the repo's **main checkout** |
 | `Super ⇧P` | New pane, **stay here** — inherits cwd with no hop, so you get a shell right inside the worktree |
-| `Super T` | New tab at `$HOME` — born named `den` (fresh tabs are never `Tab #N`) |
+| `Super T` | New tab at `$HOME` — born named `~` (fresh tabs are never `Tab #N`) |
 | `Super ⇧T` | New tab at the **focused pane's directory** — with the **same worktree hop** as `Super P` |
 | `Super F` | **Fullscreen** the focused pane — zoom it to fill the tab, tap again to drop back into the tiled layout |
 | `Super Y` | **yazi peek** — a floating browser with live previews; `Enter` on a directory opens a new tab there |
@@ -102,7 +102,7 @@ One related knob:
 - **zoxide** — `cd` learns your habits; `cdi` opens an fuzzy picker of your
   frequent directories.
 - **Auto-renaming tabs** — `cd` into a repo and the zellij tab renames itself
-  after it; `cd ~` renames it back to `den`, the name every fresh tab is born
+  after it; `cd ~` renames it back to `~`, the name every fresh tab is born
   with (no `Tab #N` anywhere).
 - **Claude Code aware** — new shells opened (`Super P` / `Super ⇧T`) inside a
   `~/.cache/claude-worktrees` checkout hop to the parent repo automatically —
