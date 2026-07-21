@@ -147,32 +147,36 @@ is the reliable copy.
   *risky* activation (something a user could feel break), a release worth proposing —
   **surface it and stop. Don't close.** Routine activation is NOT this; it rides the landing
   pane below.
-- **Otherwise it's settled — close this pane, but never strand me in a naked terminal.** If
-  closing would exit zellij (this is the last real pane in the only tab), spawn a
-  main-checkout **landing pane first** — mimicking Super-p — and have it run the activation
-  so I come back to the change already going live:
+- **Otherwise it's settled — close this pane, spawning a main-checkout landing pane first
+  whenever this is the last real pane in *its own tab*.** I keep ~1 tab per repo, so a tab
+  emptying = that repo's work is done: land me in main there, running the activation, so I
+  come back to the change already going live (this also covers the naked-terminal case —
+  the last pane in the *only* tab — as a subset, since we always spawn before closing it):
 
   ```bash
   main="$(dirname "$(git rev-parse --git-common-dir)")"          # e.g. ~/code/nebelhaus
   if [ -n "$ZELLIJ_PANE_ID" ]; then
-    tabs=$(zellij action query-tab-names | wc -l | tr -d ' ')
-    panes=$(zellij action dump-layout | sed '/swap_tiled_layout/q' \
+    # real panes in THIS tab only: the focus=true block, stopping before swap_tiled_layout
+    panes=$(zellij action dump-layout \
+              | awk '/^    tab[ ].*focus=true/{f=1} f{print} f&&/^    }[[:space:]]*$/{exit}' \
               | grep -E '^[[:space:]]+pane' | grep -vcE 'borderless=true|split_direction=')
-    if [ "$tabs" = 1 ] && [ "${panes:-0}" -le 1 ]; then
-      # last real pane → land me in main running the activation, dropping to a shell after
+    if [ "${panes:-0}" -le 1 ]; then
+      # last real pane in this tab → land me in main running the activation, shell after
       zellij action new-pane --cwd "$main" --name activate -- zsh -ic 'bench try switch; exec zsh'
     fi
     zellij action close-pane -p "$ZELLIJ_PANE_ID"               # target the id, not the focused pane
   fi
   ```
 
-  Only the last-pane case spawns the landing pane: with sibling panes still open (other
-  agents working) don't spawn or auto-activate — activating mid-other-work is my call, and
-  the 🧪 block already carries `bench try switch` for when I'm ready; just close this pane,
-  zellij lives on. When the shipped change needs no activation at all (docs, a lock-only
-  ripple), still spawn the landing pane in the last-pane case but drop the command — use
-  `-- zsh` so I land in main instead of a bare terminal. Closing reaps the merged branch via
-  the `wt` remove hook; don't wait on CI unless CI is what this thread was about.
+  The count is **per-tab, not per-session**: with sibling panes still open *in this tab*
+  don't spawn — just close, the tab lives on. But when this tab's last pane closes, spawn and
+  auto-activate **even if other tabs still have live agents** — that's deliberate. Activation
+  surfacing per-repo is what I want; if two tabs empty near-simultaneously and their
+  `bench try switch` runs race, I'd rather see that race and fix it than have it hidden
+  behind a per-session guard. When the shipped change needs no activation at all (docs, a
+  lock-only ripple), still spawn the landing pane but drop the command — use `-- zsh` so I
+  land in main instead of a bare terminal. Closing reaps the merged branch via the `wt`
+  remove hook; don't wait on CI unless CI is what this thread was about.
 
 ## The whole lifecycle (for context)
 
