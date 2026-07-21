@@ -63,6 +63,33 @@ nix shell nixpkgs#nodejs_22 --command 'npx wrangler deploy --dry-run'
 > The nixpkgs `wrangler` currently fails to build from source on this machine, so
 > use node's `npx wrangler` (shown above) rather than `nix run nixpkgs#wrangler`.
 
+Pushing to `main` (touching `web/**`) auto-deploys via
+`.github/workflows/deploy-web.yml`, which also **purges the Cloudflare cache**
+after each deploy — see the gotcha below for why.
+
+### Gotcha: fingerprinted assets + Cloudflare's immutable cache
+
+Astro fingerprints CSS/JS into `/_astro/<name>.<hash>.css`, and Cloudflare
+serves those `immutable` (cache-forever). That's normally ideal, but it has a
+sharp edge: if a request for a hashed asset hits an edge colo *mid-deploy* and
+gets a transient miss/404, Cloudflare can cache that **bad 404 hard**. Because
+the URL is immutable, the stale 404 sticks long after the deploy settles — the
+HTML keeps loading (it isn't immutable-cached) but the one stylesheet it points
+at 404s, so the page renders as raw, unstyled HTML. It looks like "the CSS
+broke" with no code change and no deploy.
+
+The fix is the post-deploy **cache purge** in `deploy-web.yml` (needs the
+`CLOUDFLARE_ZONE_ID` secret + Zone → Cache Purge on the token). To clear a stuck
+page by hand: Cloudflare dash → Caching → Configuration → **Purge Everything**,
+or a hard reload (Cmd+Shift+R) for a browser-only stale copy. To confirm the
+origin is healthy, grab a stylesheet URL from a live page and fetch it — expect
+`200` and `content-type: text/css`:
+
+```sh
+css=$(curl -s https://nebelhaus.com/ | grep -o '/_astro/[^"]*\.css' | head -1)
+curl -sI "https://nebelhaus.com${css}"
+```
+
 ## On a release
 
 `bench release nebelhaus` date-stamps `VERSION` and tags `v<date>`; CI publishes
