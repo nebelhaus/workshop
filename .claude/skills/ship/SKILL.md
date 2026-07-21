@@ -100,35 +100,79 @@ never activating. Size it to the change: small (bugfix/typo/config/theme/docs) �
 big (feature/refactor/anything a user could feel break) — you'll already have paused before
 merging, so confirm it's approved before you ripple.
 
-## Step 6 — activation & release (main-checkout only — note them, don't do them from a worktree)
+## Step 6 — activation rides the landing pane; release stays gated
 
-- **Activation** (`bench try switch` → `darwin-rebuild switch`) makes the shipped change
-  live on the machine. It's a main-checkout job — from a worktree you *can't*, so if the
-  change needs activating to be seen, say so in the report as a follow-up for me.
+- **Activation** (`bench try switch` → `darwin-rebuild switch`) is what makes the shipped
+  change live. A worktree can't run it in place — but you **no longer surface it as a
+  follow-up and stay open.** Step 7 spawns a main-checkout *landing pane* that runs
+  `bench try switch` for me as it closes this one (activation is passwordless and
+  testing-in-prod is house style, so "you need to rebuild to see it" is not news worth
+  halting on). Only flag an activation when it's genuinely *risky* — something a user could
+  feel break, or a change that's hard to roll back.
 - **Release** (`bench release <repo>`: stamps today's CalVer date → tag → CI publishes →
   bumps `homebrew-tap`; releasable repos are pounce, trill, nebelhaus) is **always gated.**
   Never run it unprompted — but if this ship touched user-facing behavior in a tagged repo,
   **propose one** (nudging is expected, tagging is my call). Ship first, then release.
 
-## Step 7 — report, then settle-or-surface
+## Step 7 — report, land the verify-list, then settle-or-surface
 
-Print the report *first* — closing the pane wipes it from screen. Then judge whether
-anything deserves my attention:
+Print the report, then a bottom-anchored **verify-list**, then decide whether to close.
 
-- **Something ≥ ~3/5 importance** — a broken build you worked around, a decision I need to
-  make, a pending activation for a user-facing change, a release worth proposing, a risky
-  change — **surface it and stop. Don't close.**
-- **Only low-importance notes (≤ 2.5/5) and it's all landed + rippled** — **close this pane:**
+**1. Report** — closing the pane wipes the screen, so print it first: which repos shipped
+and their new SHAs, what `bench try` verified, which PRs merged, which worktrees you removed.
+
+**2. The verify-list — ALWAYS the last thing in the thread**, so it survives a pane close
+and is my test checklist. A single session often opens more than one PR (a workshop PR plus
+child-repo PRs) — list **every** one, oldest first:
+
+```
+## 🧪 To verify — live on `main`, not released. Break something? Fresh agent + the link + what broke.
+
+- [pounce#35](https://github.com/nebelhaus/pounce/pull/35) — <one line: what changed> · **check:** <1–3 concrete, observable steps>
+- [nebelung#12](https://github.com/nebelhaus/nebelung/pull/12) — <what changed> · **check:** <steps>
+
+Activate (idempotent, skip if the landing pane already did): `bench try switch`
+```
+
+Rules for the list: each entry is a `[repo#N](url)` markdown link — repo-qualified, never
+the word "PR", the link itself is the highlight. Test steps are concrete and observable
+("⌘Space 5×, no filter flash"; "hover the hidden bar, pill is opaque"), never "confirm it
+works." Then **open every one of those PR URLs in Chrome** via the browser tools if they're
+loadable (ToolSearch them first); skip silently in a headless/cron ship — the block above
+is the reliable copy.
+
+**3. Settle-or-surface.**
+
+- **Something genuinely ≥ ~3/5** — a broken build you worked around, a decision I owe you, a
+  *risky* activation (something a user could feel break), a release worth proposing —
+  **surface it and stop. Don't close.** Routine activation is NOT this; it rides the landing
+  pane below.
+- **Otherwise it's settled — close this pane, but never strand me in a naked terminal.** If
+  closing would exit zellij (this is the last real pane in the only tab), spawn a
+  main-checkout **landing pane first** — mimicking Super-p — and have it run the activation
+  so I come back to the change already going live:
+
   ```bash
-  [ -n "$ZELLIJ_PANE_ID" ] && zellij action close-pane -p "$ZELLIJ_PANE_ID"
+  main="$(dirname "$(git rev-parse --git-common-dir)")"          # e.g. ~/code/nebelhaus
+  if [ -n "$ZELLIJ_PANE_ID" ]; then
+    tabs=$(zellij action query-tab-names | wc -l | tr -d ' ')
+    panes=$(zellij action dump-layout | sed '/swap_tiled_layout/q' \
+              | grep -E '^[[:space:]]+pane' | grep -vcE 'borderless=true|split_direction=')
+    if [ "$tabs" = 1 ] && [ "${panes:-0}" -le 1 ]; then
+      # last real pane → land me in main running the activation, dropping to a shell after
+      zellij action new-pane --cwd "$main" --name activate -- zsh -ic 'bench try switch; exec zsh'
+    fi
+    zellij action close-pane -p "$ZELLIJ_PANE_ID"               # target the id, not the focused pane
+  fi
   ```
-  Target `$ZELLIJ_PANE_ID` explicitly — plain `close-pane` kills whatever pane is
-  *focused*, which may not be this one. Closing kills this session; the `wt` remove hook
-  reaps the merged branch. Don't wait on CI unless CI is what this thread was about.
 
-**Report:** which repos shipped and their new SHAs, what you verified with `bench try`,
-which PRs merged, which worktrees you removed, and either the one thing you're surfacing
-(activation follow-up, release proposal) or "settled — closing the pane."
+  Only the last-pane case spawns the landing pane: with sibling panes still open (other
+  agents working) don't spawn or auto-activate — activating mid-other-work is my call, and
+  the 🧪 block already carries `bench try switch` for when I'm ready; just close this pane,
+  zellij lives on. When the shipped change needs no activation at all (docs, a lock-only
+  ripple), still spawn the landing pane in the last-pane case but drop the command — use
+  `-- zsh` so I land in main instead of a bare terminal. Closing reaps the merged branch via
+  the `wt` remove hook; don't wait on CI unless CI is what this thread was about.
 
 ## The whole lifecycle (for context)
 
