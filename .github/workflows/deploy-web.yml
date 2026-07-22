@@ -7,9 +7,14 @@
 # Required repo secrets (Settings → Secrets and variables → Actions):
 #   CLOUDFLARE_API_TOKEN   — token with "Edit Cloudflare Workers" permissions
 #                            (Workers Scripts:Edit) on the account that owns the
-#                            nebelhaus.com zone.
+#                            nebelhaus.com zone. For the post-deploy cache purge
+#                            below, also give it Zone → Cache Purge on that zone.
 #   CLOUDFLARE_ACCOUNT_ID  — the account ID (Cloudflare dashboard → Workers &
 #                            Pages → Account details).
+# Optional repo secret (enables the post-deploy cache purge):
+#   CLOUDFLARE_ZONE_ID     — the nebelhaus.com zone ID (dashboard → the domain →
+#                            Overview → API, bottom right). Without it the purge
+#                            step is a no-op and the deploy still succeeds.
 name: Deploy nebelhaus.com
 
 on:
@@ -51,3 +56,30 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      # Astro fingerprints assets (/_astro/index.<hash>.css) and Cloudflare serves
+      # them `immutable`, cache-forever. If a request for one hits an edge colo
+      # mid-deploy and gets a transient miss/404, that bad response can be cached
+      # hard and stick long after the deploy settles — the HTML loads but its one
+      # stylesheet 404s, so the page renders completely unstyled. Purging after
+      # every deploy evicts any stale/negative entries so the new build is served
+      # cleanly. No-op (with a warning) until CLOUDFLARE_ZONE_ID is set, so the
+      # deploy keeps working before the secret is added.
+      - name: Purge Cloudflare cache
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+        run: |
+          if [ -z "$CLOUDFLARE_ZONE_ID" ]; then
+            echo "::warning::CLOUDFLARE_ZONE_ID not set — skipping cache purge. Add the secret (and give the token Zone → Cache Purge) to enable it."
+            exit 0
+          fi
+          resp=$(curl -fsS -X POST \
+            "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/purge_cache" \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}')
+          echo "$resp"
+          echo "$resp" | grep -q '"success":true' \
+            || { echo "::error::Cloudflare cache purge failed (see response above)"; exit 1; }
+          echo "Purged the nebelhaus.com cache."
