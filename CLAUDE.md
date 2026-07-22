@@ -118,21 +118,26 @@ So the moment a task turns out to belong to a child repo (per the routing table)
 don't grep, edit, or hunt for those files in *this* tree, and don't report them as
 "hidden by gitignore." **You have standing permission — no need to ask — to make a
 dedicated worktree of that child repo and do the work there.** That's the default
-path from a workshop worktree; just do it:
+path from a workshop worktree; use `wt child` — **not** a raw `git worktree add`:
 
 ```
-git -C ~/code/nebelhaus/<repo> worktree add -b worktree-<name> \
-    ~/.cache/claude-worktrees/nebelhaus/<name> HEAD
-cd ~/.cache/claude-worktrees/nebelhaus/<name>
+cd "$(wt child ~/code/nebelhaus/<repo>)"
 ```
+
+`wt child` does the `git worktree add` **and registers it** with this pane as the
+parent, so the statusline HUD can see the child's PR — a raw `git worktree add`
+skips the registry, and the refresher then never queries that repo's GitHub, so
+the PR is invisible in the bar (this is a real gotcha we hit). It names the child
+after this pane's own worktree and prints only the new checkout path, so the
+`cd "$(…)"` above drops you straight into it.
 
 Then work, commit on the `worktree-<name>` branch, and — when the change is
 ready — push it and open a PR against that child repo, all without asking. A
-hand-made sub-repo worktree isn't auto-cleaned on pane close, so remove it after
-merge (`git -C ~/code/nebelhaus/<repo> worktree remove …`). Tell me the child
-repo, the branch, and the PR when you're done. (Editing the child's *main*
-checkout at `~/code/nebelhaus/<repo>` directly is the fallback only if I ask for
-it — the isolated worktree is preferred.)
+child worktree isn't auto-reaped on pane close, so remove it after merge
+(`git -C ~/code/nebelhaus/<repo> worktree remove …`). Tell me the child repo,
+the branch, and the PR when you're done. (Editing the child's *main* checkout at
+`~/code/nebelhaus/<repo>` directly is the fallback only if I ask for it — the
+isolated worktree is preferred.)
 
 ## Working from the main checkout (`~/code/nebelhaus` — the normal case)
 
