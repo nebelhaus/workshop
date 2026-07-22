@@ -35,7 +35,17 @@
 # worktrees and unmerged agent branches; `bench ship` warns about them.
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# ROOT is the workshop MAIN checkout (~/code/nebelhaus) — the dir holding the
+# family repos as subdirs. Derive it from the script's git-common-dir, NOT just
+# dirname(BASH_SOURCE): a workshop *worktree* checks out its own copy of this
+# script, so dirname would point at the worktree (which has NO child repos),
+# silently breaking status/ship (an unguarded `git -C <missing>` under `set -e`
+# → exit 128, no output). --git-common-dir resolves to the MAIN checkout's .git
+# from any linked worktree, so ROOT stays correct however bench was invoked.
+# Fall back to the script dir if git can't answer (run outside any checkout).
+_bench_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_bench_common="$(git -C "$_bench_dir" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)"
+if [ -n "$_bench_common" ]; then ROOT="$(dirname "$_bench_common")"; else ROOT="$_bench_dir"; fi
 CONSUMER="${HAUS_CONSUMER:-$HOME/.config/nix}"
 
 # Dependency order matters: upstream first, so lock bumps can see pushed revs.
