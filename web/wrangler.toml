@@ -13,6 +13,11 @@ name = "nebelhaus"
 main = "worker.js"
 compatibility_date = "2024-11-06"
 
+# The production Worker only runs on the custom route below, so Wrangler infers
+# workers_dev = false. Keep per-version workers.dev preview URLs enabled
+# independently for the PR preview workflow.
+preview_urls = true
+
 # The whole apex zone routes through this Worker. Static assets short-circuit
 # first; only /init.sh (and any non-asset path) reaches worker.js.
 routes = [
