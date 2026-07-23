@@ -59,6 +59,22 @@ That's three repos of ceremony for one hex value — which is why `bench` exists
 `./bench ship` performs exactly that ripple, in order, and `./bench status`
 shows every pin that's fallen behind.
 
+## the four CLIs (which tool does what)
+
+Four command-line tools, two jobs — keeping them straight is half the battle:
+
+| tool | for | does | ships in |
+|------|-----|------|----------|
+| **`haus`** | *using* a nebelhaus machine | rebuild / update / rollback / doctor — drives **your Mac** | the rice (every install) |
+| **`wt`** | *any Claude Code user* | agent worktrees for **any repo** — spawn, resume, reap, `wt child` | the rice (every install) |
+| **`bench`** | *developing* the family | try / try-batch / ship / release / status — moves changes **across these repos** | the workshop (here) |
+| **`zscratch`** | *developing* the rice | feel-test a zellij edit with **no rebuild** | the rice |
+
+`haus` and `bench` never overlap — named apart on purpose so they can't shadow
+each other (`haus` = your machine; `bench` = these repos). `wt` and `zscratch`
+are dev tools the rice puts on `PATH` regardless of whether you contribute.
+Everything in this README below is `bench`.
+
 ## the workflows
 
 **Daily driving** — you only touch your machine (a new app, an alias):
@@ -182,7 +198,7 @@ at the end. Full flag set in the rice's `CLAUDE.md`
 ## the whole life of a change
 
 ```
-hack ──► test ──► try ──► PR ──► merge ──► ship ──► release
+hack ──► test ──► PR ──► batch-test ──► merge ──► ship ──► release
 ```
 
 1. **hack** — edit in place, or let `Super c` (⌘C) agents draft on `worktree-*`
@@ -191,14 +207,18 @@ hack ──► test ──► try ──► PR ──► merge ──► ship �
    against the local checkouts (from inside an agent worktree, against *that*
    branch). `./bench try switch` activates it — main checkouts only; it refuses
    from a worktree.
-3. **PR + merge** — an agent lands its branch by opening a PR against `main`,
-   never by pushing to or `git merge`-ing into `main` (parallel agents doing
-   that clobbered each other — a PR is conflict-detected and atomic). You review
-   and merge the PRs you like; the branch, and a nagging `bench status` line,
-   survive until you do.
-4. **ship** — commit, then `./bench ship` pushes upstream→downstream, rippling
+3. **PR** — an agent lands its branch by opening a PR against `main`, never by
+   pushing to or `git merge`-ing into `main` (parallel agents doing that clobbered
+   each other — a PR is conflict-detected and atomic). Give it a **What / Why /
+   Verify / Watch-out** body so it's testable long after the session is gone.
+4. **batch-test** — `./bench try-batch` feels every open PR together in ONE
+   rebuild, `main` untouched, so you verify the whole queue before landing any of
+   it (test-then-merge, not merge-then-test).
+5. **merge** — review and merge the PRs that pass (`gh pr merge`); the branch, and
+   a nagging `bench status` line, survive until you do.
+6. **ship** — commit, then `./bench ship` pushes upstream→downstream, rippling
    every `flake.lock`.
-5. **release** — `./bench release <repo>` date-stamps the version and tags it,
+7. **release** — `./bench release <repo>` date-stamps the version and tags it,
    and CI does the rest (pounce: GitHub release + Homebrew formula; nebelhaus:
    the tag `init.sh` serves to new installs).
 

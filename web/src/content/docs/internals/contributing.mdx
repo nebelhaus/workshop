@@ -32,6 +32,7 @@ Each change belongs to exactly one repo. Start in the right one:
 |---|---|
 | colours / palette / how a tool is themed | `nebelung` |
 | the launcher app or a generic command | `pounce` |
+| the Messages client (trill) | `trill` |
 | macOS defaults, tiling, bar, shell, Touch ID | `nebelhaus` |
 | your own machine's apps / identity / secrets | `~/.config/nix` |
 
@@ -62,44 +63,90 @@ glance.
 ## Parallel agents & worktrees
 
 nebelhaus is built to be hacked on by several [Claude Code](https://claude.com/claude-code)
-agents at once. Each agent runs in its own **git worktree** — a separate checkout
+agents at once. Each agent runs in its own **git worktree** — an isolated checkout
 on a `worktree-<name>` branch, living outside the repo — so agents never yank the
-branch out from under each other. The `wt` tool (shipped in the rice, on `PATH`)
-plumbs this into Claude Code's `WorktreeCreate`/`WorktreeRemove` hooks, and
-`bench try` is worktree-aware:
-run from inside a worktree, it builds against *that* branch, so a change can prove
-it builds before anyone merges it.
+branch out from under each other. That whole mechanism (spawning with `Super c`,
+never losing work when a pane closes, resuming a parked session, the statusline
+HUD) is the rice's [`wt` tool](/guides/claude-agents/), and it works for any repo.
+Two things matter specifically when the repo is a *family* one:
 
-The rice points Claude Code's status bar at `claude-statusline`, so you can see
-where every agent stands without leaving the pane. Row one is *this* session's
-worktree — its status token, its own GitHub PR pill, and the name; the rows below
-are the worktrees this session spawned — across whatever repos they live in —
-each with its repo, name, the same token, and its PR state. The cross-repo
-lookups run detached and cached, so the bar never stalls the prompt.
+- **`bench try` is worktree-aware.** Run it from inside a worktree and that repo's
+  flake override points at *your branch* instead of the main checkout — so an
+  agent can prove its branch builds before anyone merges it. (`bench try switch`
+  refuses from a worktree: only the main checkouts get activated.)
+- **Land work through a PR — never a push or local merge into `main`.** Parallel
+  agents pushing straight to `main` clobber each other; a PR is conflict-detected
+  and atomic. Push the branch, open a PR with a **What / Why / Verify / Watch-out**
+  body, and merge it from GitHub. `bench status` lists every agent worktree and
+  unmerged `worktree-*` branch so nothing rots silently.
 
-The token is one mutually-exclusive slot:
+Working from the workshop on a task that belongs to a *sub*-repo? Make its
+worktree with `cd "$(wt child ~/code/nebelhaus/<repo>)"` — that registers it so
+its PR shows in the statusline, which a raw `git worktree add` would not.
 
-| Token | Means |
-|---|---|
-| `⏏` | branch is merged into `main` — `wt` reaps the worktree when you close the pane |
-| `N^` | `N` commits on the branch, not merged yet |
-| `+A -D` | uncommitted line changes, when nothing's committed yet |
-| *(nothing)* | identical to `main` — no news is good news |
+## Feel-testing the whole PR queue (try-batch)
+
+Activating a Mac is **serial** — one `darwin-rebuild switch` is one machine state
+— so with a stack of PRs waiting you can only feel-test one at a time. The
+tempting shortcut is to merge them all to `main` first, then rebuild and tick them
+off — but now unverified code is on `main` before you've felt it.
+
+`bench try-batch` inverts that. For each repo it builds a throwaway integration
+tree (the committed `main` plus every open PR merged in), overrides the flake at
+those trees, and builds — or activates — the whole queue in **one** rebuild,
+`main` untouched:
+
+```sh
+./bench try-batch            # build every open PR together; prints a tick-off checklist
+./bench try-batch switch     # …and activate the combined tree on this Mac
+```
+
+Verify each PR (its body carries the Verify steps), then merge only the ones that
+pass and leave the rest open. This is test-then-merge, not merge-then-test.
+
+## Feel-testing a zellij edit (zscratch)
+
+One rice change escapes the ripple entirely. A zellij edit — a keybind, a theme
+colour, a freshly-built plugin `.wasm` — doesn't need `bench try switch` at all:
+that restarts the `main` zellij session and nukes every open tab. The rice ships
+**`zscratch`** for exactly this. It renders your candidate over a copy of your
+live `~/.config/zellij` into a temp config dir and boots a throwaway session in
+its **own Ghostty window**, so your working multiplexer is untouched:
+
+```sh
+zscratch --config config.kdl             # try a candidate config.kdl
+zscratch --layout my-layout.kdl          # …or a layout
+zscratch --theme  nebelung.kdl           # …or a theme
+zscratch --plugin tab-bar=tab-bar.wasm   # …or swap a freshly-built plugin
+zscratch clean                           # kill the scratch session + temp dir
+```
+
+Feel it there; the real `bench try switch` happens once, at the end, already
+knowing it works.
 
 ## The whole life of a change
 
 ```
-hack ──► test ──► try ──► merge ──► ship ──► release
+hack ──► test ──► PR ──► batch-test ──► merge ──► ship ──► release
 ```
 
-1. **hack** — edit in place, or let agents draft on `worktree-*` branches.
-2. **test** — `./bench try` builds your machine against the local checkouts.
-3. **merge** — fold the branches you like into `main`.
-4. **ship** — `./bench ship` pushes upstream→downstream, rippling every lock.
-5. **release** — `./bench release <repo>`; CI does the rest. Three repos are
+1. **hack** — edit in place, or let `Super c` agents draft on `worktree-*`
+   branches in parallel; the main checkouts never move.
+2. **test** — `./bench try` builds your real machine against the local checkouts
+   (from inside a worktree, against *that* branch). `./bench try switch` activates
+   it — main checkouts only.
+3. **PR** — push the branch and open a PR against `main`; never push to or
+   `git merge` into `main` directly.
+4. **batch-test** — `./bench try-batch` feels the whole open-PR queue in one
+   rebuild, `main` untouched — so you verify *before* landing anything.
+5. **merge** — merge the PRs that passed (on GitHub, or `gh pr merge`); leave the
+   rest open.
+6. **ship** — `./bench ship` pushes upstream→downstream, rippling every
+   `flake.lock` in dependency order.
+7. **release** — `./bench release <repo>`; CI does the rest. Three repos are
    releasable: **pounce** (GitHub release + Homebrew formula bump), **trill**
-   (Homebrew cask bump), and **nebelhaus** (the tag becomes what
-   `nebelhaus.com/init.sh` serves to new installs).
+   (Homebrew cask bump + the rice's flake pin), and **nebelhaus** (the tag becomes
+   what `nebelhaus.com/init.sh` serves to new installs).
 
 <Aside type="note" title="Releases ride tags">
 Versions are date-based (CalVer). `bench release <repo>` stamps today's date —

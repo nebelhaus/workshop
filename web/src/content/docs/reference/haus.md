@@ -45,10 +45,16 @@ haus rollback    # back to the previous generation
 haus doctor      # if something still looks off
 ```
 
-## The contributor's counterpart: `bench`
+## The other CLIs
 
-Hacking on the nebelhaus family itself? The [workshop repo](/internals/contributing/)
-ships a separate CLI called **`bench`** — with commands like `try`, `ship`, and
-`release` for moving changes between the family's repos. It's for contributors and
-lives in the workshop checkout. As an end user, the `haus` on your `PATH` (the one
-documented here) is all you need.
+`haus` is the only command an end user needs. The rice and workshop ship three
+more, each for a different job — see [the CLIs at a glance](/start/the-family/#the-clis-at-a-glance)
+for the full map:
+
+- **[`wt`](/guides/claude-agents/)** — Claude Code agent worktrees for any repo.
+  Also on your `PATH` (it ships in the rice), and useful to anyone who runs Claude
+  Code, contributor or not.
+- **[`bench`](/internals/contributing/)** — the contributor CLI in the workshop
+  checkout: `try`, `ship`, `release` for moving changes between the family's repos.
+- **`zscratch`** — feel-test a zellij edit without a rebuild (for rice
+  contributors); ships in the rice.
