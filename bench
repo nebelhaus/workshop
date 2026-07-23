@@ -181,6 +181,12 @@ ensure_trill_dev_app() {
              | sed -n 's/.*"\(Apple Development[^"]*\)".*/\1/p' | head -1)"
   [ -n "$ident" ] || die "trill dev build needs a stable signing identity (Developer ID or Apple Development) in your keychain so its Full Disk Access grant survives rebuilds — open Xcode once to create one."
 
+  # A `<version>-dev` marketing version so Trill's About window reads e.g.
+  # "2026.07.23-1-dev" at a glance — otherwise it shows the stale MARKETING_VERSION
+  # baked into project.pbxproj and you can't tell the dev build from the release.
+  local ver; ver="$(tr -d '[:space:]' < "$src/VERSION" 2>/dev/null || true)"
+  [ -n "$ver" ] && ver="${ver}-dev" || ver="dev"
+
   # Persistent DerivedData → incremental rebuilds; a real (non-symlinked) temp dir
   # for the .app because Nix's path: fetcher rejects a symlinked component (/tmp
   # is a symlink on macOS, so mktemp there breaks — hence pwd -P).
@@ -189,12 +195,13 @@ ensure_trill_dev_app() {
   mkdir -p "$dd"
 
   say "trill: building a signed dev app from $src"
-  say "       (bundle com.nebelhaus.trill.dev, $ident) — xcodebuild, first run is slow…"
+  say "       (bundle com.nebelhaus.trill.dev, version $ver, $ident) — first run is slow…"
   if ! ( cd "$src" && /usr/bin/xcodebuild \
            -project Trill.xcodeproj -scheme Trill -configuration Debug \
            -destination 'platform=macOS' -derivedDataPath "$dd" \
            -skipMacroValidation \
            PRODUCT_BUNDLE_IDENTIFIER=com.nebelhaus.trill.dev \
+           MARKETING_VERSION="$ver" \
            CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="$ident" \
            build >/dev/null ); then
     die "trill dev build failed — re-run that xcodebuild in $src by hand to see why."
@@ -407,7 +414,11 @@ cmd_try_batch() {
   fi
 
   local host; host="$(host_name)"
-  BATCH_SCRATCH="$(mktemp -d "${TMPDIR:-/tmp}/bench-batch.XXXXXX")"
+  # pwd -P to a REAL path: the integration trees become `path:` flake overrides,
+  # and Nix's fetcher rejects a symlinked component — $TMPDIR is under /var
+  # (→ /private/var) on macOS, so the raw mktemp path fails with "path is a
+  # symlink". (Same gotcha the dev-app temp dir already dodges.)
+  BATCH_SCRATCH="$(cd "$(mktemp -d "${TMPDIR:-/tmp}/bench-batch.XXXXXX")" && pwd -P)"
   trap cleanup_batch EXIT
 
   local -a checklist=() dropped=()
