@@ -87,6 +87,8 @@ describe('public/_headers cache policy', () => {
       '/media/*',
       '/social/*',
       '/favicon.png',
+      '/pagefind/fragment/*',
+      '/pagefind/index/*',
     ]);
   });
 
@@ -135,6 +137,31 @@ describe('public/_headers cache policy', () => {
   it('unsets Cache-Control before re-setting it on every image rule', () => {
     for (const path of ['/logos/*', '/media/*', '/social/*', '/favicon.png']) {
       expect(rules.find((r) => r.path === path).unset).toContain('Cache-Control');
+    }
+  });
+
+  it('pins the content-hashed Pagefind shards as immutable', () => {
+    // fragment/ and index/ are content-addressed → safe to cache forever, so the
+    // in-app WebView never revalidates them on a search.
+    for (const path of [
+      '/pagefind/fragment/en_13bf98d.pf_fragment',
+      '/pagefind/index/en_1463ead.pf_index',
+    ]) {
+      expect(resolveCacheControl(rules, path)).toBe('public, max-age=31536000, immutable');
+    }
+  });
+
+  it('keeps the freshness-critical Pagefind loader/entry files revalidating', () => {
+    // pagefind-entry.json maps to the CURRENT shard hashes; pinning it (or the
+    // loader/UI) would let a stale pointer reference since-deleted shards and
+    // break search. These must stay on the /* must-revalidate policy.
+    for (const path of [
+      '/pagefind/pagefind.js',
+      '/pagefind/pagefind-entry.json',
+      '/pagefind/pagefind-ui.css',
+      '/pagefind/pagefind.en_9dd1f03522.pf_meta',
+    ]) {
+      expect(resolveCacheControl(rules, path)).toBe('public, max-age=0, must-revalidate');
     }
   });
 });
