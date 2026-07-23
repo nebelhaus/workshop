@@ -166,9 +166,13 @@ end-to-end:
   repo, and it is **not** a signal that git ops there are risky or need extra
   confirmation. Don't downgrade a solo repo to "ask first" just because it
   nests inside this one.
-- When I ask for the whole flow — merge the open `worktree-*` PRs, `bench try
-  switch` to activate, `bench ship` the ripple, rebuild — run it straight through
-  across every repo it touches. Land each branch by merging its **PR** (`gh pr
+- When I ask for the whole flow — **batch-test first**: `bench try-batch [switch]`
+  builds every open `worktree-*` PR together in one rebuild (main untouched —
+  test-then-merge, not merge-then-test), so you feel the whole queue *before*
+  landing anything; then merge only the PRs that pass, `bench ship` the ripple,
+  rebuild — run it straight through across every repo it touches. (Skip straight
+  to merge only when there's a single PR, or I've already felt them.) Land each
+  branch by merging its **PR** (`gh pr
   merge`), never a local `git merge` + push to `main` — the PR is what keeps two
   agents' branches from clobbering each other, even in a batch merge. "Merging is
   my call" means don't merge *unprompted*; once I've asked, don't stop to
@@ -234,10 +238,12 @@ So cloud is for **editing + own-org lock bumps**, not for building or switching.
   its own boundary — respect it from up here too.
 - The whole life of a change: **hack** (agents draft on `worktree-*` branches)
   → **test** (`bench try`, worktree-aware) → **PR** (the worktree agent pushes
-  its branch and opens a PR against `main`) → **merge** (I review and merge on
-  GitHub — or, when I say `/ship`, the agent merges its own PR with `gh pr
-  merge`; either way, never a direct push or local `git merge` into `main`) →
-  **try switch** (main checkouts only) → **ship** → **release** (tagged repos
+  its branch and opens a PR against `main`) → **batch-test** (main checkout only:
+  `bench try-batch` feels the whole review queue — every open PR — in ONE rebuild,
+  main untouched; the antidote to landing unverified code) → **merge** (I review
+  and merge on GitHub — or, when I say `/ship`, the agent merges its own PR with
+  `gh pr merge`; either way, never a direct push or local `git merge` into `main`)
+  → **try switch** (main checkouts only) → **ship** → **release** (tagged repos
   only; CI does the rest). A single in-place agent editing the *main* checkout
   directly (the `Ctrl Alt Shift c` mode, or a plain non-worktree session) can
   still drive a small fix straight through **ship** — the PR rule exists to keep
