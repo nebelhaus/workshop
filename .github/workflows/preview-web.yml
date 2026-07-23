@@ -62,7 +62,7 @@ jobs:
             --preview-alias "$PREVIEW_ALIAS" 2>&1 | tee /dev/stderr)
           url=$(printf '%s\n' "$output" \
             | grep -Eo 'https://[^[:space:]]+\.workers\.dev' \
-            | tail -1)
+            | tail -1 || true)
           if [ -z "$url" ]; then
             echo "::error::Wrangler uploaded the version but did not report a workers.dev preview URL."
             exit 1
