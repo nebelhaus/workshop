@@ -170,6 +170,15 @@ standalone `wt` tool (`wt create` / `wt remove`, JSON on stdin) that ships in
 the rice. Run `wt` bare to list every parked/live agent worktree across all
 repos, `wt <name>` to resume one.
 
+The rice's `modules/den` ships one more dev CLI worth knowing here:
+**`zscratch`** feel-tests a zellij edit (`config.kdl`, a layout, a freshly-built
+plugin `.wasm`) in a throwaway session in its own Ghostty window, so you skip
+the `bench try switch` + `main`-session restart that would nuke every open tab.
+`zscratch --config`/`--layout`/`--theme FILE`, `--plugin tab-bar=WASM`,
+`zscratch clean`; the real activation still happens once via `bench try switch`,
+at the end. Full flag set in the rice's `CLAUDE.md`
+([nebelhaus#69](https://github.com/nebelhaus/nebelhaus/pull/69)).
+
 ## the whole life of a change
 
 ```

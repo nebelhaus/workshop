@@ -47,6 +47,20 @@ Never hand-walk that ripple; the tooling does it:
 - `./bench ship` — after commits exist: pushes upstream→downstream, running
   `nix flake update` + a lock-bump commit at each hop.
 
+**Iterating on a zellij edit — skip the ripple entirely.** A zellij change
+(`config.kdl`, a layout, a freshly-built plugin `.wasm`) doesn't even need
+`bench try switch`: that restarts the `main` session and nukes every open tab.
+Instead use **`zscratch`** — a rice dev CLI (`nebelhaus/modules/den`, next to
+`wt`, on PATH) that renders your candidate over a copy of the live
+`~/.config/zellij` into a temp `--config-dir` and boots a throwaway session in
+its own Ghostty window, so the working multiplexer is untouched (`zscratch
+--config`/`--layout`/`--theme FILE`, `--plugin tab-bar=WASM`; `zscratch clean`
+reaps it). Feel it there; the real `bench try switch` happens once, at the end,
+already knowing it works. It's not a `bench` command — the full flag set + the
+permission-cache gotchas live in the [rice's
+CLAUDE.md](https://github.com/nebelhaus/nebelhaus/blob/main/CLAUDE.md) and the
+`zscratch.sh` header ([nebelhaus#69](https://github.com/nebelhaus/nebelhaus/pull/69)).
+
 ## Agent worktrees (parallel Claude sessions)
 
 Claude panes spawned with `Super c` (⌘C) run `claude --worktree`: each session
