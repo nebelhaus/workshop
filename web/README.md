@@ -69,11 +69,12 @@ after each deploy — belt-and-suspenders on top of the caching policy below.
 
 Pull requests that touch `web/**` get a live staging link from
 `.github/workflows/preview-web.yml`. The workflow builds and tests the site,
-uploads a non-production Worker version with a stable `pr-<number>` preview
-alias, and puts the resulting `workers.dev` URL in GitHub's deployment panel and
-the job summary. It never moves the version serving the `nebelhaus.com` route.
-Cloudflare secrets are unavailable to forked pull requests, so preview deploys
-run only for branches in this repository.
+deploys an isolated, route-less Worker named `nebelhaus-pr-<number>`, and puts
+its stable `workers.dev` URL in GitHub's deployment panel and the job summary.
+It never moves the Worker serving the `nebelhaus.com` route, and the preview
+Worker is deleted when the PR closes. Cloudflare secrets are unavailable to
+forked pull requests, so preview deploys run only for branches in this
+repository.
 
 ### Gotcha: stale HTML → a since-deleted stylesheet → "no CSS" (esp. on iOS)
 
