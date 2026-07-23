@@ -302,7 +302,10 @@ cmd_try() {
 # never touched; you test the whole queue in a single rebuild, then merge only
 # the PRs that passed and leave the rest open. It ends by printing the PRs as a
 # tick-off checklist — each PR's own body carries its Verify steps (see the ship
-# skill), so open the PR to know what to check.
+# skill), so open the PR to know what to check. A PR that conflicts with the
+# batch (or is a fork whose head isn't on origin) is dropped — with a warning AND
+# a "dropped" footer under the checklist, never silently — so it can't quietly
+# vanish from the summary; test that one on its own branch.
 cleanup_batch() { # remove every integration worktree + the scratch dir (EXIT trap)
   local repo
   if [ "${#BATCH_SRC[@]}" -gt 0 ]; then
@@ -340,7 +343,7 @@ cmd_try_batch() {
   BATCH_SCRATCH="$(mktemp -d "${TMPDIR:-/tmp}/bench-batch.XXXXXX")"
   trap cleanup_batch EXIT
 
-  local -a checklist=()
+  local -a checklist=() dropped=()
   local repo
   for repo in "${want_repos[@]}"; do
     local dir; dir="$(repo_dir "$repo")"
@@ -363,6 +366,8 @@ cmd_try_batch() {
       [ -n "$num" ] || continue
       if ! git -C "$wtdir" rev-parse -q --verify "origin/$head^{commit}" >/dev/null 2>&1; then
         warn "$repo: can't find origin/$head (fork PR?) — skipping #$num."
+        dropped+=("$(printf '      %-10s #%-4s %s' "$repo" "$num" "$title")")
+        dropped+=("$(printf '                  fork PR (head not on origin) — %s' "$url")")
         continue
       fi
       if git -C "$wtdir" merge --no-edit "origin/$head" >/dev/null 2>&1; then
@@ -372,6 +377,8 @@ cmd_try_batch() {
       else
         git -C "$wtdir" merge --abort 2>/dev/null || true
         warn "$repo: dropping #$num ($head) — it conflicts with the batch; test it on its own."
+        dropped+=("$(printf '      %-10s #%-4s %s' "$repo" "$num" "$title")")
+        dropped+=("$(printf '                  conflicts with the batch — %s' "$url")")
       fi
     done <<<"$prs"
 
@@ -383,7 +390,13 @@ cmd_try_batch() {
   done
 
   if [ "${#BATCH_SRC[@]}" -eq 0 ]; then
-    say "no open PRs to batch — nothing to do (plain 'bench try' tests the pinned tree)."
+    if [ "${#dropped[@]}" -gt 0 ]; then
+      warn "every open PR was dropped from the batch (conflicts/forks) — nothing to build:"
+      printf '%s\n' "${dropped[@]}"
+      warn "test each on its own branch (bench try from its worktree)."
+    else
+      say "no open PRs to batch — nothing to do (plain 'bench try' tests the pinned tree)."
+    fi
     return 0
   fi
 
@@ -402,6 +415,11 @@ cmd_try_batch() {
   echo
   say "test checklist — verify each PR (steps are in its body), then merge only the winners:"
   printf '%s\n' "${checklist[@]}"
+  if [ "${#dropped[@]}" -gt 0 ]; then
+    echo
+    warn "dropped from the batch — NOT built above; test each on its own branch:"
+    printf '%s\n' "${dropped[@]}"
+  fi
   echo
   warn "none of these are merged. gh pr merge the ones that pass; leave the rest open."
 }
