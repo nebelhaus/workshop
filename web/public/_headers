@@ -84,3 +84,19 @@
 /favicon.png
   ! Cache-Control
   Cache-Control: public, max-age=604800
+
+# Pagefind search assets. Only the content-hashed shards are safe to pin: the
+# fragment/ and index/ files are content-addressed (name changes when bytes do),
+# so they're immutable like /_astro/* — no per-search revalidation round-trip in
+# a flaky in-app WebView. The stable-named loader/UI/entry files (pagefind.js,
+# pagefind-ui.*, pagefind-entry.json) change every build and pagefind-entry.json
+# maps to the CURRENT shard hashes, so they must keep revalidating (left to the
+# /* rule) — pinning them would let a stale entry point at since-deleted shards
+# and break search. So: pin the shards, revalidate the pointer.
+/pagefind/fragment/*
+  ! Cache-Control
+  Cache-Control: public, max-age=31536000, immutable
+
+/pagefind/index/*
+  ! Cache-Control
+  Cache-Control: public, max-age=31536000, immutable
