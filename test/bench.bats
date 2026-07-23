@@ -77,6 +77,27 @@ JSON
   [[ "$output" == *"--override-input nebelhaus/pounce path:/tmp/wt/pounce"* ]]
 }
 
+# ── try-batch: a per-repo integration checkout wins over worktree + main ───────
+
+@test "local_src prefers a batch integration checkout over the active worktree" {
+  BATCH_SRC[nebelung]="/tmp/batch/nebelung"
+  # even when this same repo is also the active worktree, the batch tree wins…
+  WT_REPO="nebelung" WT_PATH="/tmp/wt/nebelung"
+  run local_src nebelung
+  [ "$output" = "/tmp/batch/nebelung" ]
+  # …and a repo with no batch entry still resolves to its main checkout.
+  run local_src pounce
+  [ "$output" = "$ROOT/pounce" ]
+}
+
+@test "overrides points a batched repo at its integration tree, the rest at main" {
+  BATCH_SRC[pounce]="/tmp/batch/pounce"
+  run overrides
+  [[ "$output" == *"--override-input nebelhaus/pounce path:/tmp/batch/pounce"* ]]
+  [[ "$output" == *"--override-input nebelhaus/nebelung path:$ROOT/nebelung"* ]]
+  [[ "$output" == *"--override-input nebelhaus path:$ROOT/nebelhaus"* ]]
+}
+
 # ── version_file / read_version: the release tag source (regression: $verfile) ─
 
 @test "version_file locates pounce's version source" {

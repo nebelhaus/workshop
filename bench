@@ -13,6 +13,10 @@
 #                  agent worktrees)
 #   bench try       build YOUR machine against the LOCAL checkouts — no pushes
 #   bench try switch    …and activate it (still no pushes; prod untouched)
+#   bench try-batch [switch] [repo…]   build (or activate) EVERY open PR's
+#                  branch together on ONE throwaway integration tree per repo —
+#                  feel-test the whole review queue in a single rebuild, main
+#                  untouched, then merge only the PRs that pass
 #   bench ship      push everything in dependency order, rippling lock updates
 #   bench rebuild   a plain, pinned rebuild of your machine (the normal day)
 #   bench pull      fast-forward every repo
@@ -53,6 +57,20 @@ CONSUMER="${HAUS_CONSUMER:-$HOME/.config/nix}"
 # (the rice installs it via Homebrew), so it has no EDGES and no override.
 FAMILY=(nebelung pounce trill nebelhaus)
 GH_ORG="nebelhaus"
+
+# The family repos that are flake INPUTS of the rice, so `overrides()` can point
+# them at a local checkout. trill is deliberately absent: it's a brew leaf, not a
+# flake input, so there's nothing to override — bench try-batch skips it.
+OVERRIDABLE=(nebelung pounce nebelhaus)
+
+# bench try-batch's scratch state. Global (not local to cmd_try_batch) so the
+# EXIT trap can still see it: an EXIT trap fires after the function has returned,
+# by which point any `local` it captured is already out of scope and empty.
+# -gA (not just -A): declare -A inside a function makes the array function-local,
+# and bench is *sourced* into a function by the bats harness — so without -g the
+# global vanishes and local_src's ${BATCH_SRC[…]:-} tries to read an unbound var.
+declare -gA BATCH_SRC=()  # repo → integration-worktree checkout it should build against
+BATCH_SCRATCH=""          # the mktemp dir holding those worktrees
 
 say()  { printf '\033[38;5;103m🌫  %s\033[0m\n' "$*"; }
 warn() { printf '\033[38;5;179m⚠  %s\033[0m\n' "$*"; }
@@ -106,7 +124,11 @@ detect_worktree() {
   done
 }
 
-local_src() { # local_src <repo> — the checkout to build against (worktree-aware)
+local_src() { # local_src <repo> — the checkout to build against (batch- + worktree-aware)
+  # A try-batch integration tree wins over everything: it's the combined
+  # main+PRs checkout we deliberately built for this repo. Otherwise fall through
+  # to the active agent worktree (if this repo is it), then the main checkout.
+  if [ -n "${BATCH_SRC[$1]:-}" ]; then echo "${BATCH_SRC[$1]}"; return; fi
   if [ "$1" = "$WT_REPO" ]; then echo "$WT_PATH"; else echo "$ROOT/$1"; fi
 }
 
@@ -262,6 +284,121 @@ cmd_try() {
   else
     say "to activate it too: bench try switch"
   fi
+}
+
+# ── bench try-batch: feel-test the whole review queue in ONE rebuild ─────────
+# Activating a machine is serial — one `darwin-rebuild switch` = one machine
+# state — so you can only feel-test one feature at a time. The tempting shortcut
+# (merge every ready PR to main, THEN rebuild and tick them off) puts unverified
+# code on main before you've felt it, so a bug you find is already landed.
+# try-batch inverts that: for each repo it builds a THROWAWAY integration tree
+# (the main checkout's committed HEAD + every open PR merged in), overrides the
+# flake at those trees, and builds/activates the combined result ONCE. main is
+# never touched; you test the whole queue in a single rebuild, then merge only
+# the PRs that passed and leave the rest open. It ends by printing the PRs as a
+# tick-off checklist — each PR's own body carries its Verify steps (see the ship
+# skill), so open the PR to know what to check.
+cleanup_batch() { # remove every integration worktree + the scratch dir (EXIT trap)
+  local repo
+  if [ "${#BATCH_SRC[@]}" -gt 0 ]; then
+    for repo in "${!BATCH_SRC[@]}"; do
+      git -C "$(repo_dir "$repo")" worktree remove --force "${BATCH_SRC[$repo]}" 2>/dev/null || true
+    done
+  fi
+  [ -n "$BATCH_SCRATCH" ] && rm -rf "$BATCH_SCRATCH"
+  return 0
+}
+
+cmd_try_batch() {
+  local do_switch=""
+  if [ "${1:-}" = "switch" ]; then do_switch=1; shift; fi
+  command -v gh >/dev/null 2>&1 || die "bench try-batch needs the gh CLI to find your open PRs."
+
+  # Which repos to sweep: any overridable repos named as args, else all of them.
+  # trill isn't a flake input, so overriding it does nothing — reject it loudly.
+  local -a want_repos=()
+  if [ "$#" -gt 0 ]; then
+    local a
+    for a in "$@"; do
+      if printf '%s\n' "${OVERRIDABLE[@]}" | grep -qx "$a"; then
+        want_repos+=("$a")
+      else
+        warn "skipping '$a' — not a flake-overridable repo (batchable: ${OVERRIDABLE[*]})."
+      fi
+    done
+    [ "${#want_repos[@]}" -gt 0 ] || die "nothing overridable to batch."
+  else
+    want_repos=("${OVERRIDABLE[@]}")
+  fi
+
+  local host; host="$(host_name)"
+  BATCH_SCRATCH="$(mktemp -d "${TMPDIR:-/tmp}/bench-batch.XXXXXX")"
+  trap cleanup_batch EXIT
+
+  local -a checklist=()
+  local repo
+  for repo in "${want_repos[@]}"; do
+    local dir; dir="$(repo_dir "$repo")"
+    [ -d "$dir/.git" ] || continue
+    # Open PRs, as "num<TAB>head<TAB>title<TAB>url" lines. gh's own --jq keeps
+    # us from shelling out to jq.
+    local prs
+    prs="$(gh pr list --repo "$GH_ORG/$repo" --state open \
+             --json number,headRefName,title,url \
+             --jq '.[] | [.number, .headRefName, .title, .url] | @tsv' 2>/dev/null || true)"
+    [ -n "$prs" ] || continue
+
+    say "$repo: integrating $(printf '%s\n' "$prs" | grep -c '') open PR(s) onto main's HEAD…"
+    git -C "$dir" fetch -q origin 2>/dev/null || true
+    local wtdir="$BATCH_SCRATCH/$repo"
+    git -C "$dir" worktree add -q --detach "$wtdir" HEAD
+
+    local num head title url included=0
+    while IFS=$'\t' read -r num head title url; do
+      [ -n "$num" ] || continue
+      if ! git -C "$wtdir" rev-parse -q --verify "origin/$head^{commit}" >/dev/null 2>&1; then
+        warn "$repo: can't find origin/$head (fork PR?) — skipping #$num."
+        continue
+      fi
+      if git -C "$wtdir" merge --no-edit "origin/$head" >/dev/null 2>&1; then
+        checklist+=("$(printf '  [ ] %-10s #%-4s %s' "$repo" "$num" "$title")")
+        checklist+=("$(printf '                  %s' "$url")")
+        included=$((included + 1))
+      else
+        git -C "$wtdir" merge --abort 2>/dev/null || true
+        warn "$repo: dropping #$num ($head) — it conflicts with the batch; test it on its own."
+      fi
+    done <<<"$prs"
+
+    if [ "$included" -gt 0 ]; then
+      BATCH_SRC["$repo"]="$wtdir"
+    else
+      git -C "$dir" worktree remove --force "$wtdir" 2>/dev/null || true
+    fi
+  done
+
+  if [ "${#BATCH_SRC[@]}" -eq 0 ]; then
+    say "no open PRs to batch — nothing to do (plain 'bench try' tests the pinned tree)."
+    return 0
+  fi
+
+  say "building $host against ${#BATCH_SRC[@]} batched integration tree(s)…"
+  # shellcheck disable=SC2046
+  (cd "$CONSUMER" && nix build ".#darwinConfigurations.$host.system" $(overrides))
+  say "build OK — nothing pushed, nothing merged, main untouched."
+
+  if [ -n "$do_switch" ]; then
+    say "switching (activates the COMBINED unmerged batch on this machine)…"
+    # shellcheck disable=SC2046
+    (cd "$CONSUMER" && sudo /run/current-system/sw/bin/darwin-rebuild switch --flake ".#$host" $(overrides))
+    warn "you are now running a COMBINATION of unmerged branches — none of it is on main."
+  fi
+
+  echo
+  say "test checklist — verify each PR (steps are in its body), then merge only the winners:"
+  printf '%s\n' "${checklist[@]}"
+  echo
+  warn "none of these are merged. gh pr merge the ones that pass; leave the rest open."
 }
 
 cmd_ship() {
@@ -554,12 +691,13 @@ if [ "${HAUS_LIB:-}" != "1" ]; then
 case "${1:-status}" in
   status)  cmd_status ;;
   try)     cmd_try "${2:-}" ;;
+  try-batch) shift; cmd_try_batch "$@" ;;
   ship)    cmd_ship ;;
   rebuild) cmd_rebuild ;;
   pull)    cmd_pull ;;
   clone)   cmd_clone ;;
   docs-since) cmd_docs_since "${2:-}" ;;
   release) cmd_release "${2:-}" ;;
-  *)       sed -n '2,30p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
+  *)       sed -n '2,31p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
 esac
 fi
