@@ -474,7 +474,11 @@ cmd_rebuild() {
 }
 
 cmd_pull() {
-  for name in "${FAMILY[@]}" consumer; do
+  # org-profile + homebrew-tap are CI-owned but still want a fresh local
+  # checkout: `bench status` diffs them, and a stale homebrew-tap clone hides
+  # cask/formula bumps CI already pushed (the "released but not installed"
+  # trap). Match cmd_ship's repo set so pull and ship never drift.
+  for name in "${FAMILY[@]}" org-profile homebrew-tap consumer; do
     local dir; dir="$(repo_dir "$name")"
     [ -d "$dir/.git" ] || continue
     say "pulling ${name}…"
