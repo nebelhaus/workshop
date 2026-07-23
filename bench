@@ -76,8 +76,12 @@ say()  { printf '\033[38;5;103m🌫  %s\033[0m\n' "$*"; }
 warn() { printf '\033[38;5;179m⚠  %s\033[0m\n' "$*"; }
 die()  { printf '\033[38;5;167m✗  %s\033[0m\n' "$*" >&2; exit 1; }
 
-repo_dir() { # repo_dir <name> — family repos live here; the consumer elsewhere
-  if [ "$1" = "consumer" ]; then echo "$CONSUMER"; else echo "$ROOT/$1"; fi
+repo_dir() { # repo_dir <name> — family repos live under ROOT; consumer + workshop elsewhere
+  case "$1" in
+    consumer) echo "$CONSUMER" ;;   # ~/.config/nix, outside the workshop dir
+    workshop) echo "$ROOT" ;;       # the workshop IS ROOT, not ROOT/workshop
+    *)        echo "$ROOT/$1" ;;
+  esac
 }
 
 head_rev() { git -C "$(repo_dir "$1")" rev-parse HEAD 2>/dev/null || echo "?"; }
@@ -474,11 +478,12 @@ cmd_rebuild() {
 }
 
 cmd_pull() {
-  # org-profile + homebrew-tap are CI-owned but still want a fresh local
-  # checkout: `bench status` diffs them, and a stale homebrew-tap clone hides
-  # cask/formula bumps CI already pushed (the "released but not installed"
-  # trap). Match cmd_ship's repo set so pull and ship never drift.
-  for name in "${FAMILY[@]}" org-profile homebrew-tap consumer; do
+  # workshop first (bench itself lives here — a stale clone is how a merged PR
+  # ambushes the next push). org-profile + homebrew-tap are CI-owned but still
+  # want a fresh local checkout: `bench status` diffs them, and a stale
+  # homebrew-tap clone hides cask/formula bumps CI already pushed (the
+  # "released but not installed" trap). Superset of cmd_ship's repo set.
+  for name in workshop "${FAMILY[@]}" org-profile homebrew-tap consumer; do
     local dir; dir="$(repo_dir "$name")"
     [ -d "$dir/.git" ] || continue
     say "pulling ${name}…"
