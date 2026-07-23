@@ -1,0 +1,144 @@
+---
+title: Claude Code agents (wt)
+description: The rice ships wt — safe, resumable Claude Code agent worktrees for any git repo, with a live statusline HUD. A productivity feature, not a nebelhaus-only tool.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+If you drive [Claude Code](https://claude.com/claude-code) from a nebelhaus
+machine, the rice hands you a small tool called **`wt`** — it makes running
+several agents at once safe, and makes closing a pane something you never have
+to think about. It works on **any git repo**, not just nebelhaus, and you get it
+for free the moment the rice is on your `PATH`.
+
+<Aside type="note" title="Where wt sits among the CLIs">
+`wt` is one of the [rice's four CLIs](/start/the-family/#the-clis-at-a-glance).
+It's the one that isn't *about* nebelhaus at all — it's a general Claude Code
+productivity tool the rice happens to ship, the same way it ships `haus` for
+your machine. You don't need to be a nebelhaus contributor to use it.
+</Aside>
+
+## The problem it solves
+
+Run two Claude agents in the same checkout and they fight: one switches the
+branch out from under the other, uncommitted edits collide, and closing a pane
+mid-thought can lose work. `wt` fixes both by giving **every agent its own
+checkout**.
+
+Press **`Super c` (⌘C)** in any repo's terminal tab and the rice spawns a fresh
+Claude Code session in an **isolated git worktree**:
+
+- its own checkout on a `worktree-<name>` branch, branched from the repo's local
+  `HEAD`;
+- living **outside** the repo, under `~/.cache/claude-worktrees/<repo>/<name>`,
+  so your working tree stays clean and no build tool ever trips over it;
+- so any number of agents can hack in parallel without ever touching each
+  other's branch — or yours.
+
+`Ctrl Alt Shift c` is the in-place variant: the one agent per tab that's allowed
+to edit the checkout you're actually looking at.
+
+<Aside type="tip" title="Closing a pane never loses work">
+When you close a `Super c` pane, the rice doesn't just delete the checkout. Any
+uncommitted edits are first parked as a `wip:` commit on the branch, then the
+checkout is removed. **Only branches whose work has already merged get reaped** —
+everything unmerged survives on its branch, and the Claude transcript survives
+too. The checkout dir is disposable; your work isn't.
+</Aside>
+
+## Resuming a session
+
+Because the work lives on the branch (and the chat in Claude's transcript),
+a closed pane is never a dead end. Run `wt` bare to see everything you can pick
+back up, across **every** repo:
+
+```sh
+wt                    # list every parked / live agent worktree, all repos
+```
+
+```
+🌫  agent worktrees you can resume (wt <name>, or <repo>/<name>)
+  repo         name                       state  chat  last commit
+  nebelung     sparkle                    parked yes   2 hours ago — wip: auto-saved on pane close
+  pounce       quick-emoji                live   yes   10 min ago — add fuzzy weights
+```
+
+To pick one back up, name it — `wt` rebuilds the checkout and reopens the chat
+in the same directory, so Claude resumes with its full history:
+
+```sh
+wt sparkle            # rebuild the checkout + reopen the chat (claude --resume)
+wt nebelung/sparkle   # qualify with the repo when a name exists in two repos
+```
+
+## Cross-repo work: `wt child`
+
+Sometimes an agent working in one repo needs to change **another** one — say a
+session in the workshop that has to touch a sub-repo. Don't reach for a raw
+`git worktree add`: that skips `wt`'s registry, so the statusline never learns to
+track it and its PR goes invisible. Use `wt child` instead:
+
+```sh
+cd "$(wt child ~/code/nebelhaus/nebelung)"
+```
+
+That creates a worktree of the *other* repo, **registers it as a child of your
+current pane** (so its PR shows up in the statusline where you're working), and
+prints only the new checkout path — hence the `cd "$(…)"`.
+
+## Cleaning up
+
+Most cleanup is automatic: closing a pane reaps a merged branch, and every `wt`
+listing first self-heals by sweeping parked branches whose PR has since merged.
+But some things end a pane *without* the graceful hook — a reboot, a crash, a
+`/ship` that closes the pane, or a `wt child` checkout (which the hook never
+owns). For those, sweep on demand:
+
+```sh
+wt reap               # reap every LANDED worktree now — parked ones, plus
+                      # clean & merged live checkouts
+```
+
+`wt reap` is deliberately conservative: it leaves anything **dirty**, anything
+**unmerged**, and the pane you're **standing in** — only genuinely-landed work
+is removed.
+
+## The statusline HUD
+
+The rice points Claude Code's status bar at a small HUD driven off `wt`'s
+registry, so you can see where every agent stands without leaving the pane.
+**Row one is this session's own worktree** — its name, a status token, and its
+GitHub PR pill. The **rows below are the worktrees this session spawned** (across
+whatever repos they live in), each with its repo, name, token, and PR state. The
+cross-repo GitHub lookups run detached and cached, so the bar never stalls your
+prompt.
+
+The token is one mutually-exclusive slot:
+
+| Token | Means |
+|---|---|
+| `⏏` | branch is merged into `main` — closing the pane reaps the worktree |
+| `N^` | `N` commits on the branch, not merged yet |
+| `+A -D` | uncommitted line changes, when nothing's committed yet |
+| *(nothing)* | identical to `main` — no news is good news |
+
+## Command summary
+
+| Command | What it does |
+|---|---|
+| `wt` | List every parked/live agent worktree across all repos (self-heals first) |
+| `wt <name>` | Resume one: rebuild its checkout and reopen its Claude chat |
+| `wt resume <name>` | The same thing, spelled out |
+| `wt reap` | Sweep every landed worktree now (keeps dirty/unmerged/your own pane) |
+| `wt child <repo>` | Make a worktree of another repo as a child of this pane (cross-repo) |
+| `wt create` / `wt remove` | The hooks `Super c` fires — you don't call these by hand |
+
+<Aside type="note" title="Related shell touches">
+New panes born inside a worktree hop back to the repo's **main checkout** by
+default (`Super P`), so a shell lands somewhere stable; `Super ⇧P` is the no-hop
+escape hatch that keeps you *inside* the worktree. See
+[The shell](/guides/the-shell/#zellij-keybindings) for the full set.
+</Aside>
+
+Hacking on nebelhaus itself? The [Contributing](/internals/contributing/) page
+shows how agent worktrees plug into the family's `bench try` / PR / ship flow.

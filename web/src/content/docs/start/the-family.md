@@ -21,6 +21,25 @@ ties them together, but pounce, trill, and nebelung stand alone too.
 Your private machine config — identity, secrets, your app roster — lives at
 `~/.config/nix` and is **yours**, never part of the rice.
 
+## The CLIs at a glance
+
+There are four command-line tools in nebelhaus, and knowing which is which saves
+a lot of confusion. **Two jobs, four commands** — and if you only *use*
+nebelhaus, you only ever need the first one:
+
+| Command | You reach for it to… | Works on | Ships in |
+|---|---|---|---|
+| **`haus`** | drive your own machine — [rebuild, update, roll back, diagnose](/reference/haus/) | your Mac (`~/.config/nix`) | the rice — every install has it |
+| **`wt`** | manage [Claude Code agent worktrees](/guides/claude-agents/) — safe parallel agents, resumable panes | any git repo | the rice — every install has it |
+| **`bench`** | [move a change across the family repos](/internals/contributing/) — try, ship, release | the workshop checkouts | the workshop — contributors only |
+| **`zscratch`** | [feel-test a zellij edit](/internals/contributing/#feel-testing-a-zellij-edit-zscratch) with no rebuild | the rice's zellij config | the rice — for rice contributors |
+
+`haus` and `bench` never overlap — they're named differently on purpose so they
+can't shadow each other. `haus` knows only *your machine*; `bench` knows only
+*the family repos*. `wt` and `zscratch` are dev tools the rice puts on your
+`PATH` whether or not you ever contribute — `wt` especially is worth knowing for
+**anyone** who runs Claude Code, nebelhaus contributor or not.
+
 ## The three rooms, standalone
 
 - **[pounce](/guides/pounce/)** installs from Homebrew (`brew install pounce`)
