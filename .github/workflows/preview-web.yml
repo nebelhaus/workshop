@@ -1,0 +1,127 @@
+# Build nebelhaus.com and deploy an isolated, route-less Cloudflare Worker for
+# each same-repository PR. The PR number gives it a stable workers.dev URL
+# without moving the Worker serving the nebelhaus.com route.
+name: Preview nebelhaus.com
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    paths:
+      - 'web/**'
+      - '.github/workflows/preview-web.yml'
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: preview-web-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    # GitHub withholds repository secrets from forks. Keep the preview deploy
+    # limited to trusted branches instead of exposing Cloudflare credentials via
+    # pull_request_target.
+    if: >-
+      github.event.action != 'closed' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: 'nebelhaus.com / PR #${{ github.event.pull_request.number }}'
+      url: ${{ steps.deploy.outputs.url }}
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test
+        run: npm test
+
+      - name: Build the site
+        run: npm run build
+
+      - name: Upload Cloudflare preview
+        id: deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PREVIEW_WORKER: nebelhaus-pr-${{ github.event.pull_request.number }}
+        run: |
+          for attempt in 1 2 3; do
+            set +e
+            output=$(npx wrangler deploy \
+              --config wrangler.preview.toml \
+              --name "$PREVIEW_WORKER" 2>&1)
+            status=$?
+            set -e
+            printf '%s\n' "$output"
+            if [ "$status" -eq 0 ]; then
+              break
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              exit "$status"
+            fi
+            delay=$((attempt * 5))
+            echo "::warning::Cloudflare upload failed (attempt $attempt/3); retrying in ${delay}s."
+            sleep "$delay"
+          done
+          url=$(printf '%s\n' "$output" \
+            | grep -Eo 'https://[^[:space:]]+\.workers\.dev' \
+            | tail -1 || true)
+          if [ -z "$url" ]; then
+            echo "::error::Wrangler uploaded the version but did not report a workers.dev preview URL."
+            exit 1
+          fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Add preview to job summary
+        env:
+          PREVIEW_URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          {
+            echo '### nebelhaus.com preview'
+            echo
+            echo "[$PREVIEW_URL]($PREVIEW_URL)"
+            echo
+            echo 'This is a non-production Worker version; nebelhaus.com is unchanged.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  cleanup:
+    if: >-
+      github.event.action == 'closed' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Delete Cloudflare preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PREVIEW_WORKER: nebelhaus-pr-${{ github.event.pull_request.number }}
+        run: npx wrangler delete "$PREVIEW_WORKER" --force
