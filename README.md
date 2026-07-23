@@ -139,7 +139,7 @@ it into the repo's version source, commits, and tags it.
 ./bench release pounce      # date-stamps pkgs/pounce/default.nix + tags v<date> —
                             # CI publishes the release + bumps the homebrew formula
 ./bench release trill       # date-stamps VERSION + tags v<date> — CI bumps the
-                            # homebrew cask
+                            # homebrew cask AND the rice's flake pin (nix/release.nix)
 ./bench release nebelhaus   # date-stamps VERSION + tags v<date> — this is what
                             # nebelhaus.com/init.sh serves to new installs
 ```
