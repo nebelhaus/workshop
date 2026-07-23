@@ -1,0 +1,50 @@
+# Cloudflare Workers static-assets header rules (same format as Cloudflare Pages;
+# read from the root of the [assets] directory, i.e. dist/_headers). Astro copies
+# public/ verbatim into dist/, so this file ships as dist/_headers on every build.
+#
+# ── Why this file exists ─────────────────────────────────────────────────────
+# THE recurring "nebelhaus.com has no CSS on iOS" bug. Every page — the custom
+# landing page and every Starlight doc — pulls its entire stylesheet from a
+# single content-hashed file (/_astro/index.<hash>.css) with no inline fallback.
+# The hash changes whenever the bundled CSS changes, so each deploy publishes a
+# NEW filename and deletes the old one.
+#
+# If a browser serves a *stale cached HTML document*, that document still points
+# at the previous /_astro/<oldhash>.css — which no longer exists — so the one
+# stylesheet 404s and the page renders completely unstyled. iOS WebKit (Safari
+# AND every WKWebView, including the Instagram/Facebook in-app browsers) caches
+# top-level HTML far more aggressively than desktop Chrome/Firefox: with no
+# explicit Cache-Control it applies *heuristic* freshness and serves the old
+# document from disk without revalidating. That is the entire "works on my
+# laptop, broken on my phone, and it keeps coming back after every deploy"
+# fingerprint. Purging Cloudflare's edge cache (the previous attempt) never
+# touched these *client-side* caches, so the bug returned.
+#
+# ── The fix ──────────────────────────────────────────────────────────────────
+# Make HTML always revalidate, and make the hashed assets truly immutable:
+#
+#   • HTML (/*)          max-age=0, must-revalidate → the browser must check with
+#                        the origin on every navigation. Unchanged pages come back
+#                        as a cheap 304 (cached HTML reused, its hashes still
+#                        valid); a redeploy returns fresh HTML with the new hash.
+#                        Either way a browser can never render a document that
+#                        points at a deleted stylesheet.
+#   • /_astro/*          Fingerprinted by content, so the name changes when the
+#                        bytes change → safe to cache for a year, immutable, never
+#                        revalidated. This keeps the win the hashing is meant to
+#                        give even though the broad /* rule above also matches.
+#
+# ── The one gotcha (do not "simplify" this) ──────────────────────────────────
+# wrangler MERGES every matching rule, and when two matching rules both *set* the
+# same header it APPENDS a second value rather than overriding — an /_astro asset
+# matches both /* and /_astro/* and would get a corrupt, self-contradictory
+# `Cache-Control: ...max-age=0..., ...max-age=31536000...`. The `! Cache-Control`
+# line first UNSETS what /* added so the immutable value is the only one that
+# survives. Rules apply top-to-bottom, so /* MUST stay above /_astro/*.
+
+/*
+  Cache-Control: public, max-age=0, must-revalidate
+
+/_astro/*
+  ! Cache-Control
+  Cache-Control: public, max-age=31536000, immutable
