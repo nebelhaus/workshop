@@ -53,15 +53,18 @@ if [ -n "$_bench_common" ]; then ROOT="$(dirname "$_bench_common")"; else ROOT="
 CONSUMER="${HAUS_CONSUMER:-$HOME/.config/nix}"
 
 # Dependency order matters: upstream first, so lock bumps can see pushed revs.
-# trill is a leaf: released to brew (a cask), but NOT a flake input of the rice
-# (the rice installs it via Homebrew), so it has no EDGES and no override.
+# trill sits before nebelhaus: it's now a flake input of the rice (which installs
+# it via Nix, not Homebrew), so its lock edge ripples downstream like the others.
 FAMILY=(nebelung pounce trill nebelhaus)
 GH_ORG="nebelhaus"
 
 # The family repos that are flake INPUTS of the rice, so `overrides()` can point
-# them at a local checkout. trill is deliberately absent: it's a brew leaf, not a
-# flake input, so there's nothing to override — bench try-batch skips it.
-OVERRIDABLE=(nebelung pounce nebelhaus)
+# them at a local checkout. trill's flake wraps its CI-built *release* binary
+# (macOS 26 blocks a from-source Nix build), so overriding it to a local checkout
+# still installs the last released .app — a trill *source* branch won't rebuild
+# through `bench try`. It's listed so the lock ripple + try-batch treat it
+# uniformly; just don't expect source-level feel-testing of it.
+OVERRIDABLE=(nebelung pounce trill nebelhaus)
 
 # bench try-batch's scratch state. Global (not local to cmd_try_batch) so the
 # EXIT trap can still see it: an EXIT trap fires after the function has returned,
@@ -102,6 +105,7 @@ EDGES=(
   "pounce nebelung nebelung"
   "nebelhaus nebelung nebelung"
   "nebelhaus pounce pounce"
+  "nebelhaus trill trill"
   "consumer nebelhaus nebelhaus"
 )
 
@@ -139,7 +143,8 @@ local_src() { # local_src <repo> — the checkout to build against (batch- + wor
 overrides() { # every family input redirected at the local checkouts
   echo "--override-input nebelhaus path:$(local_src nebelhaus) \
         --override-input nebelhaus/nebelung path:$(local_src nebelung) \
-        --override-input nebelhaus/pounce path:$(local_src pounce)"
+        --override-input nebelhaus/pounce path:$(local_src pounce) \
+        --override-input nebelhaus/trill path:$(local_src trill)"
 }
 
 # Release bookkeeping. Releases are what users actually consume — pounce via
@@ -231,7 +236,7 @@ cmd_status() {
     [ -d "$dir/.git" ] || continue
     case "$name" in
       pounce)    audience="brew installs" ;;
-      trill)     audience="brew installs" ;;
+      trill)     audience="brew + the rice's flake pin" ;;
       nebelhaus) audience="nebelhaus.com/init.sh" ;;
     esac
     tag="$(latest_tag "$name")"
