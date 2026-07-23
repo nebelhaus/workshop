@@ -1,0 +1,12 @@
+# PR-only Worker config. The workflow overrides `name` with
+# nebelhaus-pr-<number>; no custom route is present, so this can never replace
+# the Worker serving nebelhaus.com.
+name = "nebelhaus-preview"
+main = "worker.js"
+compatibility_date = "2024-11-06"
+workers_dev = true
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "404-page"
