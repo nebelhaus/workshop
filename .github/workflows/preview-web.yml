@@ -57,9 +57,23 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           PREVIEW_ALIAS: pr-${{ github.event.pull_request.number }}
         run: |
-          set -o pipefail
-          output=$(npx wrangler versions upload \
-            --preview-alias "$PREVIEW_ALIAS" 2>&1 | tee /dev/stderr)
+          for attempt in 1 2 3; do
+            set +e
+            output=$(npx wrangler versions upload \
+              --preview-alias "$PREVIEW_ALIAS" 2>&1)
+            status=$?
+            set -e
+            printf '%s\n' "$output"
+            if [ "$status" -eq 0 ]; then
+              break
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              exit "$status"
+            fi
+            delay=$((attempt * 5))
+            echo "::warning::Cloudflare upload failed (attempt $attempt/3); retrying in ${delay}s."
+            sleep "$delay"
+          done
           url=$(printf '%s\n' "$output" \
             | grep -Eo 'https://[^[:space:]]+\.workers\.dev' \
             | tail -1 || true)
