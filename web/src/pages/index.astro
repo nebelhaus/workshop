@@ -6,6 +6,15 @@ const desc =
   'An opinionated macOS, raised in the fog. Silver-grey, keyboard-first, reproducible, Nix-native. One curl and one Nix flake raise the whole house.';
 const install = 'curl -fsSL https://nebelhaus.com/init.sh | bash';
 
+// One-time cache-bust for the logo images. The Instagram/Facebook in-app
+// browsers cached broken/partial image entries during the "no CSS" era and don't
+// reliably revalidate; bumping this query string hands them a fresh URL so the
+// clean, cacheable response (see public/_headers) is fetched instead. Only bump
+// this if you ever need to force-evict a cached logo — routine logo changes
+// self-heal within the images' max-age.
+const assetV = '2';
+const bust = (path) => `${path}?v=${assetV}`;
+
 const family = [
   {
     name: 'nebelhaus',
@@ -71,7 +80,7 @@ const swatches = [
 
     <header class="nav">
       <a class="brand" href="/">
-        <img src="/logos/nebelhaus-mark-fill.png" alt="" width="28" height="28" />
+        <img src={bust('/logos/nebelhaus-mark-fill.png')} alt="" width="28" height="28" />
         <span>nebelhaus</span>
       </a>
       <nav class="nav-links">
@@ -124,7 +133,7 @@ const swatches = [
           {
             family.map((r) => (
               <a class="room" href={r.href}>
-                <img src={r.logo} alt={`${r.name} logo`} width="56" height="56" />
+                <img src={bust(r.logo)} alt={`${r.name} logo`} width="56" height="56" />
                 <div class="room-name">
                   <strong>{r.name}</strong>
                   <span>{r.tagline}</span>

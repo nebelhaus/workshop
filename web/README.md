@@ -108,6 +108,28 @@ purge** in `deploy-web.yml` (needs the `CLOUDFLARE_ZONE_ID` secret + Zone → Ca
 Purge on the token) stays as a secondary guard against a transient mid-deploy 404
 cached at an edge colo.
 
+### Gotcha: images broken *only* in the Instagram / Facebook in-app browser
+
+Sibling of the above, opposite cause. The logos (`/logos/*`), doc stills
+(`/media/*`), social card (`/social/*`) and favicon live at **stable, non-hashed
+paths** and are pulled by `<img>`. The `_headers` `/*` catch-all would give them
+`max-age=0, must-revalidate` too — forcing the browser to **revalidate every
+image on every load**. Instagram's and Facebook's in-app WebViews are
+memory-constrained and evict cached image *bodies* aggressively; when they
+revalidate and the origin returns `304 Not Modified` with the body already gone,
+the `<img>` renders as a broken-image glyph. Safari keeps the bodies, so it never
+hits this — which is why it only shows up in the in-app browser (and only became
+visible once the CSS was inlined and images were the last external subresource).
+
+The fix is a per-directory rule in [`public/_headers`](./public/_headers) giving
+those images a plain, finite `max-age` (a week) with **no `must-revalidate`**, so
+the WebView serves them straight from cache and never does the fragile 304 dance.
+Finite rather than `immutable` so a changed logo still self-heals; each rule
+`! Cache-Control`-unsets the `/*` value first (same merge gotcha as `/_astro/*`).
+`src/pages/index.astro` also appends a `?v=` query to the logo `<img>` srcs — a
+one-time bust that hands already-poisoned in-app caches a fresh URL. All guarded
+by `test/headers.test.js`.
+
 To clear a stuck page by hand: Cloudflare dash → Caching → Configuration →
 **Purge Everything**, or a hard reload for a browser-only stale copy. To confirm
 the origin is healthy, grab a stylesheet URL from a live page and fetch it —

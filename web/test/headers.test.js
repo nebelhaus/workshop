@@ -76,9 +76,18 @@ function resolveCacheControl(rules, path) {
 const rules = parseHeaders(readFileSync(HEADERS_FILE, 'utf8'));
 
 describe('public/_headers cache policy', () => {
-  it('declares exactly the /* then /_astro/* rules, in that order', () => {
-    // Order matters: /* must precede /_astro/* so the unset can override it.
-    expect(rules.map((r) => r.path)).toEqual(['/*', '/_astro/*']);
+  it('declares the /* catch-all first, before every override rule', () => {
+    // Order matters: /* must precede the specific rules so their `! Cache-Control`
+    // unset can drop the value /* added (wrangler MERGES + appends otherwise).
+    expect(rules[0].path).toBe('/*');
+    expect(rules.map((r) => r.path)).toEqual([
+      '/*',
+      '/_astro/*',
+      '/logos/*',
+      '/media/*',
+      '/social/*',
+      '/favicon.png',
+    ]);
   });
 
   it('serves HTML with a must-revalidate, zero-max-age policy', () => {
@@ -101,5 +110,31 @@ describe('public/_headers cache policy', () => {
   it('unsets Cache-Control before re-setting it on /_astro/*', () => {
     const astro = rules.find((r) => r.path === '/_astro/*');
     expect(astro.unset).toContain('Cache-Control');
+  });
+
+  it('serves stable-path static images cacheable WITHOUT forced revalidation', () => {
+    // The Instagram/Facebook in-app-browser image bug: the /* catch-all would
+    // slap max-age=0, must-revalidate on these <img> assets, forcing a 304 dance
+    // that those memory-constrained WebViews fail (evicted body → broken image).
+    // They must resolve to a plain finite max-age — cacheable, and crucially NO
+    // must-revalidate — with the /* value cleanly unset (not appended).
+    for (const path of [
+      '/logos/nebelhaus.png',
+      '/logos/pounce-peeking.png',
+      '/media/stills/bar.png',
+      '/social/og.png',
+      '/favicon.png',
+    ]) {
+      const cc = resolveCacheControl(rules, path);
+      expect(cc).toBe('public, max-age=604800');
+      expect(cc).not.toMatch(/must-revalidate/);
+      expect(cc).not.toMatch(/max-age=0\b/);
+    }
+  });
+
+  it('unsets Cache-Control before re-setting it on every image rule', () => {
+    for (const path of ['/logos/*', '/media/*', '/social/*', '/favicon.png']) {
+      expect(rules.find((r) => r.path === path).unset).toContain('Cache-Control');
+    }
   });
 });
