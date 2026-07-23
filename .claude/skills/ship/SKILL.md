@@ -92,22 +92,28 @@ other context.
 Not mergeable (conflicts / non-fast-forward)? `git fetch origin && git rebase origin/main`,
 push, retry. On conflicts you can't cleanly resolve, **stop and show them** — never
 force-push `main`. On the current worktree's own branch the *local* delete may be skipped
-because you're standing on it — fine, the `wt` remove hook reaps the merged branch when the
-pane closes.
+because you're standing on it — fine, Step 7's `wt reap` deletes the merged branch (and
+removes the checkout) as the pane closes. Don't rely on the `wt` remove hook for this: it
+only fires on Claude's own graceful teardown, and a `close-pane` kill bypasses it — which is
+exactly how merged worktrees used to pile up.
 
 ## Step 4 — clean up every worktree this session spun up
 
 A workshop worktree can't see the child repos, so when a task belongs to one you
-hand-create a child-repo worktree (`git worktree add …`) to do the work. Those are **NOT**
-auto-reaped. For each worktree you created (this repo or any other): confirm its branch is
-merged (open + merge its PR as in Step 3), then remove it:
+hand-create a child-repo worktree (`wt child …`) to do the work. The `WorktreeRemove` hook
+never reaps children, so confirm each one's branch is merged (open + merge its PR as in
+Step 3), then let `wt reap` sweep them all at once:
 
 ```bash
-git -C ~/code/nebelhaus/<repo> worktree remove <path>   # --force only if confirmed clean
+wt reap        # removes every LANDED worktree across all repos: parked ones + clean,
+               # merged live checkouts (dirty / unmerged / the pane you're in are kept)
 ```
 
-`wt` lists every agent worktree across all repos — use it to catch any you forgot. Don't
-delete worktrees you didn't create.
+`wt reap` is idempotent and safe — it only touches checkouts whose PR has merged and whose
+tree is clean, so it can't drop live work. Fall back to a targeted
+`git -C ~/code/nebelhaus/<repo> worktree remove <path>` only if you need to force-remove a
+child you *know* is clean. `wt` lists every agent worktree across all repos — run it after to
+confirm nothing you created is left. Don't delete worktrees you didn't create.
 
 ## Step 5 — ripple the locks
 
@@ -191,9 +197,16 @@ is the reliable copy.
       # last real pane in this tab → land me in main running the activation, shell after
       zellij action new-pane --cwd "$main" --name activate -- zsh -ic 'bench try switch; exec zsh'
     fi
+    ( cd "$main" && wt reap ) || true                           # reap THIS now-merged worktree (+ any other landed ones) — do NOT trust the hook to fire on the kill below
     zellij action close-pane -p "$ZELLIJ_PANE_ID"               # target the id, not the focused pane
   fi
   ```
+
+  The `wt reap` runs from `$main` (not the worktree), so `wt`'s "never reap the pane you're
+  standing in" guard doesn't skip this worktree — it's merged and clean now, so it gets swept.
+  Only landed, clean checkouts are touched; unmerged or dirty worktrees (other live agents)
+  are always left. This is the belt to the hook's suspenders: `close-pane` SIGKILLs the
+  process, which does not reliably run the `WorktreeRemove` hook, so we reap explicitly here.
 
   The count is **per-tab, not per-session**: with sibling panes still open *in this tab*
   don't spawn — just close, the tab lives on. But when this tab's last pane closes, spawn and
@@ -202,8 +215,8 @@ is the reliable copy.
   `bench try switch` runs race, I'd rather see that race and fix it than have it hidden
   behind a per-session guard. When the shipped change needs no activation at all (docs, a
   lock-only ripple), still spawn the landing pane but drop the command — use `-- zsh` so I
-  land in main instead of a bare terminal. Closing reaps the merged branch via the `wt`
-  remove hook; don't wait on CI unless CI is what this thread was about.
+  land in main instead of a bare terminal. The `wt reap` above (not the remove hook) is what
+  reaps the merged branch; don't wait on CI unless CI is what this thread was about.
 
 ## The whole lifecycle (for context)
 

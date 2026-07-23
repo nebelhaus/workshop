@@ -202,6 +202,7 @@ cmd_status() {
     say "agent worktrees (isolated Claude checkouts; open a PR to land — never push to main)"
     printf '  %-12s %-24s %-6s %s\n' "repo" "branch" "dirty" "where"
     printf '%s' "$wt_lines"
+    printf '  \033[38;5;103m↳ landed ones linger if a pane was killed without the remove hook — sweep them with `wt reap`\033[0m\n'
   fi
 
   echo
