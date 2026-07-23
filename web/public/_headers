@@ -34,14 +34,32 @@
 #                        bytes change → safe to cache for a year, immutable, never
 #                        revalidated. This keeps the win the hashing is meant to
 #                        give even though the broad /* rule above also matches.
+#   • static images      Logos/media/social/favicon live at STABLE paths (not
+#     (/logos, /media,    content-hashed) and are pulled by <img>. The /* rule
+#      /social, favicon)  above would slap max-age=0, must-revalidate on them too —
+#                        forcing the browser to REVALIDATE every image on every
+#                        load. That is the "images broken only in the Instagram /
+#                        Facebook in-app browser" bug: those WebViews are
+#                        memory-constrained and evict cached image BODIES
+#                        aggressively, so when they revalidate and the origin
+#                        answers 304 Not Modified with the body already gone, the
+#                        <img> renders as a broken-image glyph. Safari keeps the
+#                        bodies, so it never hits this. The cure is to let images
+#                        be cached WITHOUT forced revalidation (a plain, finite
+#                        max-age, no must-revalidate) so the WebView serves them
+#                        straight from cache and never does the fragile 304 dance.
+#                        Finite (a week, not immutable-forever) so a changed logo
+#                        still self-heals without a content hash; index.astro also
+#                        appends a ?v= bust that evicts caches poisoned before this
+#                        fix. See src/pages/index.astro.
 #
 # ── The one gotcha (do not "simplify" this) ──────────────────────────────────
 # wrangler MERGES every matching rule, and when two matching rules both *set* the
-# same header it APPENDS a second value rather than overriding — an /_astro asset
-# matches both /* and /_astro/* and would get a corrupt, self-contradictory
-# `Cache-Control: ...max-age=0..., ...max-age=31536000...`. The `! Cache-Control`
-# line first UNSETS what /* added so the immutable value is the only one that
-# survives. Rules apply top-to-bottom, so /* MUST stay above /_astro/*.
+# same header it APPENDS a second value rather than overriding — e.g. an /_astro
+# asset matches both /* and /_astro/* and would get a corrupt, self-contradictory
+# `Cache-Control: ...max-age=0..., ...max-age=31536000...`. Each rule below first
+# UNSETS with `! Cache-Control` so the /* value is dropped and only its own value
+# survives. Rules apply top-to-bottom, so /* MUST stay above the others.
 
 /*
   Cache-Control: public, max-age=0, must-revalidate
@@ -49,3 +67,20 @@
 /_astro/*
   ! Cache-Control
   Cache-Control: public, max-age=31536000, immutable
+
+# Static, stable-path images — cache without forced revalidation (see above).
+/logos/*
+  ! Cache-Control
+  Cache-Control: public, max-age=604800
+
+/media/*
+  ! Cache-Control
+  Cache-Control: public, max-age=604800
+
+/social/*
+  ! Cache-Control
+  Cache-Control: public, max-age=604800
+
+/favicon.png
+  ! Cache-Control
+  Cache-Control: public, max-age=604800
