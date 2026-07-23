@@ -65,25 +65,38 @@ nix shell nixpkgs#nodejs_22 --command 'npx wrangler deploy --dry-run'
 
 Pushing to `main` (touching `web/**`) auto-deploys via
 `.github/workflows/deploy-web.yml`, which also **purges the Cloudflare cache**
-after each deploy — see the gotcha below for why.
+after each deploy — belt-and-suspenders on top of the caching policy below.
 
-### Gotcha: fingerprinted assets + Cloudflare's immutable cache
+### Gotcha: stale HTML → a since-deleted stylesheet → "no CSS" (esp. on iOS)
 
-Astro fingerprints CSS/JS into `/_astro/<name>.<hash>.css`, and Cloudflare
-serves those `immutable` (cache-forever). That's normally ideal, but it has a
-sharp edge: if a request for a hashed asset hits an edge colo *mid-deploy* and
-gets a transient miss/404, Cloudflare can cache that **bad 404 hard**. Because
-the URL is immutable, the stale 404 sticks long after the deploy settles — the
-HTML keeps loading (it isn't immutable-cached) but the one stylesheet it points
-at 404s, so the page renders as raw, unstyled HTML. It looks like "the CSS
-broke" with no code change and no deploy.
+Astro fingerprints CSS/JS into `/_astro/<name>.<hash>.css`, and **every page —
+the landing page and every Starlight doc — links exactly one hashed stylesheet
+with no inline fallback.** The hash changes whenever the bundled CSS changes, so
+each deploy publishes a *new* filename and deletes the old one.
 
-The fix is the post-deploy **cache purge** in `deploy-web.yml` (needs the
-`CLOUDFLARE_ZONE_ID` secret + Zone → Cache Purge on the token). To clear a stuck
-page by hand: Cloudflare dash → Caching → Configuration → **Purge Everything**,
-or a hard reload (Cmd+Shift+R) for a browser-only stale copy. To confirm the
-origin is healthy, grab a stylesheet URL from a live page and fetch it — expect
-`200` and `content-type: text/css`:
+That means a browser holding a **stale cached HTML document** is holding a
+`<link>` to an `/_astro/<oldhash>.css` that no longer exists → the stylesheet
+404s → the page renders as raw, unstyled HTML, with no code change since the
+last deploy. iOS WebKit (Safari **and** every WKWebView — the Instagram /
+Facebook in-app browsers) caches top-level HTML *heuristically* and far more
+aggressively than desktop Chrome/Firefox, so it takes the hit first and hardest.
+Purging Cloudflare's **edge** cache never touched those **client-side** caches,
+which is why the bug kept coming back after "fixes."
+
+The real fix is [`public/_headers`](./public/_headers): HTML is served
+`max-age=0, must-revalidate` so a browser must revalidate every navigation and
+can never render a page pointing at a deleted hash, while `/_astro/*` stays
+`immutable`. (Watch the merge gotcha documented in that file — an `/_astro`
+asset matches both rules, and wrangler *appends* duplicate `Cache-Control`
+values, so the `/_astro/*` rule must `! Cache-Control` first. `test/headers.test.js`
+guards all of this.) The post-deploy **cache purge** in `deploy-web.yml` (needs
+the `CLOUDFLARE_ZONE_ID` secret + Zone → Cache Purge on the token) stays as a
+secondary guard against a transient mid-deploy 404 cached at an edge colo.
+
+To clear a stuck page by hand: Cloudflare dash → Caching → Configuration →
+**Purge Everything**, or a hard reload for a browser-only stale copy. To confirm
+the origin is healthy, grab a stylesheet URL from a live page and fetch it —
+expect `200` and `content-type: text/css`:
 
 ```sh
 css=$(curl -s https://nebelhaus.com/ | grep -o '/_astro/[^"]*\.css' | head -1)
