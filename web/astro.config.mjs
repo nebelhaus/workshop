@@ -5,6 +5,17 @@ import starlight from '@astrojs/starlight';
 // https://astro.build/config
 export default defineConfig({
   site: 'https://nebelhaus.com',
+  // Inline ALL CSS into each page's <head> instead of linking one content-hashed
+  // /_astro/index.<hash>.css. This is the durable cure for the recurring "no CSS
+  // on iOS" bug: every deploy publishes a new hash and deletes the old file, so a
+  // browser holding a stale cached HTML document (iOS WebKit / in-app WebViews
+  // cache top-level HTML hard) points its one <link> at a since-deleted stylesheet
+  // → 404 → a completely unstyled page. Inlining removes that single point of
+  // failure entirely — the styles travel with the document, so even a stale HTML
+  // page renders fully styled without fetching anything. public/_headers still
+  // keeps HTML revalidating (belt-and-suspenders, and it freshens hashed JS), but
+  // rendering no longer depends on any cache header being honored by any client.
+  build: { inlineStylesheets: 'always' },
   // Custom landing page lives at src/pages/index.astro; Starlight owns the rest.
   integrations: [
     starlight({

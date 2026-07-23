@@ -69,29 +69,44 @@ after each deploy — belt-and-suspenders on top of the caching policy below.
 
 ### Gotcha: stale HTML → a since-deleted stylesheet → "no CSS" (esp. on iOS)
 
-Astro fingerprints CSS/JS into `/_astro/<name>.<hash>.css`, and **every page —
-the landing page and every Starlight doc — links exactly one hashed stylesheet
-with no inline fallback.** The hash changes whenever the bundled CSS changes, so
-each deploy publishes a *new* filename and deletes the old one.
+Astro used to fingerprint the whole stylesheet into `/_astro/index.<hash>.css`
+and **every page — the landing page and every Starlight doc — linked exactly one
+hashed stylesheet with no inline fallback.** The hash changes whenever the
+bundled CSS changes, so each deploy published a *new* filename and deleted the
+old one.
 
-That means a browser holding a **stale cached HTML document** is holding a
-`<link>` to an `/_astro/<oldhash>.css` that no longer exists → the stylesheet
+That meant a browser holding a **stale cached HTML document** was holding a
+`<link>` to an `/_astro/<oldhash>.css` that no longer existed → the stylesheet
 404s → the page renders as raw, unstyled HTML, with no code change since the
 last deploy. iOS WebKit (Safari **and** every WKWebView — the Instagram /
 Facebook in-app browsers) caches top-level HTML *heuristically* and far more
-aggressively than desktop Chrome/Firefox, so it takes the hit first and hardest.
+aggressively than desktop Chrome/Firefox, so it took the hit first and hardest.
 Purging Cloudflare's **edge** cache never touched those **client-side** caches,
-which is why the bug kept coming back after "fixes."
+and `must-revalidate` HTML only helps if the client actually honors it — iOS
+WebViews demonstrably don't always — which is why the bug kept coming back after
+"fixes."
 
-The real fix is [`public/_headers`](./public/_headers): HTML is served
-`max-age=0, must-revalidate` so a browser must revalidate every navigation and
-can never render a page pointing at a deleted hash, while `/_astro/*` stays
-`immutable`. (Watch the merge gotcha documented in that file — an `/_astro`
-asset matches both rules, and wrangler *appends* duplicate `Cache-Control`
-values, so the `/_astro/*` rule must `! Cache-Control` first. `test/headers.test.js`
-guards all of this.) The post-deploy **cache purge** in `deploy-web.yml` (needs
-the `CLOUDFLARE_ZONE_ID` secret + Zone → Cache Purge on the token) stays as a
-secondary guard against a transient mid-deploy 404 cached at an edge colo.
+**The durable fix is `build.inlineStylesheets: 'always'` in
+[`astro.config.mjs`](./astro.config.mjs).** Astro inlines the bundled CSS into
+each page's `<head>`, so there is **no external main stylesheet to 404** — the
+styles travel with the document, and even a stale HTML page renders fully styled
+without fetching anything. It sidesteps the whole bug class: rendering no longer
+depends on any cache header being honored by any client. (`test/inline-css.test.js`
+fails loudly if the setting is ever dropped or weakened to `'auto'`.) The only
+external CSS left on doc pages is Expressive Code's `ec.v<version>.css` — a
+*stable*, non-per-deploy filename that isn't deleted on each build — and a
+`media="print"` sheet, which can't affect on-screen rendering.
+
+[`public/_headers`](./public/_headers) stays as belt-and-suspenders: HTML is
+served `max-age=0, must-revalidate` and `/_astro/*` stays `immutable`, which
+keeps hashed **JS** fresh (a stale script 404 degrades interactivity, e.g. the
+copy button, without unstyling the page). (Watch the merge gotcha documented in
+that file — an `/_astro` asset matches both rules, and wrangler *appends*
+duplicate `Cache-Control` values, so the `/_astro/*` rule must `! Cache-Control`
+first. `test/headers.test.js` guards all of this.) The post-deploy **cache
+purge** in `deploy-web.yml` (needs the `CLOUDFLARE_ZONE_ID` secret + Zone → Cache
+Purge on the token) stays as a secondary guard against a transient mid-deploy 404
+cached at an edge colo.
 
 To clear a stuck page by hand: Cloudflare dash → Caching → Configuration →
 **Purge Everything**, or a hard reload for a browser-only stale copy. To confirm
