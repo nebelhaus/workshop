@@ -2,25 +2,26 @@
 # read from the root of the [assets] directory, i.e. dist/_headers). Astro copies
 # public/ verbatim into dist/, so this file ships as dist/_headers on every build.
 #
-# ── Why this file exists ─────────────────────────────────────────────────────
-# THE recurring "nebelhaus.com has no CSS on iOS" bug. Every page — the custom
-# landing page and every Starlight doc — pulls its entire stylesheet from a
-# single content-hashed file (/_astro/index.<hash>.css) with no inline fallback.
-# The hash changes whenever the bundled CSS changes, so each deploy publishes a
-# NEW filename and deletes the old one.
+# ── Why this file exists (now belt-and-suspenders) ───────────────────────────
+# History: the recurring "nebelhaus.com has no CSS on iOS" bug. Every page once
+# pulled its entire stylesheet from a single content-hashed file
+# (/_astro/index.<hash>.css) with no inline fallback; each deploy published a NEW
+# filename and deleted the old one, so a browser serving a *stale cached HTML
+# document* pointed at an /_astro/<oldhash>.css that no longer existed → 404 →
+# a completely unstyled page. iOS WebKit (Safari AND every WKWebView, including
+# the Instagram/Facebook in-app browsers) caches top-level HTML heuristically and
+# far more aggressively than desktop Chrome/Firefox, so it hit this first and
+# hardest — and it kept returning because must-revalidate only works if the
+# client honors it, which those WebViews don't reliably do.
 #
-# If a browser serves a *stale cached HTML document*, that document still points
-# at the previous /_astro/<oldhash>.css — which no longer exists — so the one
-# stylesheet 404s and the page renders completely unstyled. iOS WebKit (Safari
-# AND every WKWebView, including the Instagram/Facebook in-app browsers) caches
-# top-level HTML far more aggressively than desktop Chrome/Firefox: with no
-# explicit Cache-Control it applies *heuristic* freshness and serves the old
-# document from disk without revalidating. That is the entire "works on my
-# laptop, broken on my phone, and it keeps coming back after every deploy"
-# fingerprint. Purging Cloudflare's edge cache (the previous attempt) never
-# touched these *client-side* caches, so the bug returned.
+# THE DURABLE CURE now lives in astro.config.mjs (`build.inlineStylesheets:
+# 'always'`): the CSS is inlined into every page's <head>, so there is no
+# external main stylesheet to 404 and rendering no longer depends on any cache
+# header. This file is kept as a secondary guard — it still keeps hashed JS fresh
+# (a stale script 404 degrades interactivity without unstyling the page) and
+# revalidates HTML, which is cheap and correct.
 #
-# ── The fix ──────────────────────────────────────────────────────────────────
+# ── The policy ───────────────────────────────────────────────────────────────
 # Make HTML always revalidate, and make the hashed assets truly immutable:
 #
 #   • HTML (/*)          max-age=0, must-revalidate → the browser must check with
