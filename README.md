@@ -103,6 +103,24 @@ git -C nebelung push -u origin worktree-<name> && gh pr create -R nebelhaus/nebe
 # closing the claude pane removes the worktree; the branch + PR survive until merged
 ```
 
+Activating a Mac is **serial** — one `darwin-rebuild switch` = one machine
+state — so with a stack of PRs waiting you can only feel-test one at a time.
+The trap is to merge them all to `main` first, then rebuild and tick them off:
+now unverified code is on `main` before you've felt it. `bench try-batch`
+inverts that — it merges every **open PR** onto a throwaway integration tree
+per repo, overrides the flake at those trees, and builds (or activates) the
+whole queue in ONE rebuild, `main` untouched:
+
+```sh
+./bench try-batch            # build every open PR together; prints a tick-off checklist
+./bench try-batch switch     # …and activate the combined tree on this Mac
+# verify each PR (its body carries the Verify steps), then merge only the winners.
+```
+
+Each PR's body doubles as the checklist entry, so give PRs a **What / Why /
+Verify / Watch-out** body: the session that wrote the code is gone by the time
+it's tested, so a bug found later is recoverable from `gh pr view` alone.
+
 **Catching up** — on another machine, or after shipping from elsewhere:
 
 ```sh

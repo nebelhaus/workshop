@@ -37,6 +37,13 @@ Never hand-walk that ripple; the tooling does it:
   Worktree-aware: run from inside an agent worktree, it substitutes that
   worktree for the repo it belongs to — so a branch can prove it builds
   before anyone merges it. `try switch` refuses from a worktree.
+- `./bench try-batch [switch] [repo…]` — the antidote to serial activation.
+  Instead of merging a stack of ready PRs to main and *then* rebuilding to
+  test them (unverified code on main before you've felt it), it merges every
+  **open PR** onto a throwaway integration tree per repo, overrides the flake
+  at those trees, and builds/activates the whole queue in ONE rebuild — main
+  untouched. Ends with a tick-off checklist; you merge only the PRs that pass.
+  Test-then-merge, not merge-then-test.
 - `./bench ship` — after commits exist: pushes upstream→downstream, running
   `nix flake update` + a lock-bump commit at each hop.
 
@@ -83,7 +90,12 @@ points outside your toplevel):
   (always gated).
 - **Land your work through a PR — never a direct push or a local `git merge`
   into `main`.** When the branch is ready: push it and open a PR (`gh pr
-  create`) against `main`. Do **not** `git merge` your `worktree-*` branch into
+  create`) against `main` — give it a **What / Why / Verify / Watch-out** body
+  (see the ship skill's Step 3) so the PR itself carries the distilled context.
+  The session that wrote the code is gone by the time it's feel-tested, so a bug
+  found later has to be recoverable from `gh pr view` alone — the Verify block is
+  also what `bench try-batch`'s checklist sends me back to. Do **not** `git
+  merge` your `worktree-*` branch into
   `main` yourself, and do **not** push to `main` directly — parallel agents
   doing that have clobbered each other's commits, and a PR is conflict-detected
   and atomic, so nothing gets silently overwritten. Merging the PR stays **my

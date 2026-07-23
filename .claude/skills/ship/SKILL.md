@@ -54,16 +54,40 @@ bench try            # build the machine against the LOCAL checkouts (worktree-a
 proves the branch before anyone merges. Read Nix errors bottom-up; don't proceed on a
 broken build.
 
-## Step 3 — open the PR and merge it
+## Step 3 — open the PR (with a cold-boot body) and merge it
 
 Push the branch and open the PR against `main` **in the repo you edited** (a workshop
-worktree that spawned a child-repo worktree opens the PR in that child repo):
+worktree that spawned a child-repo worktree opens the PR in that child repo). Give it a
+body a **cold thread can boot from**: the session that wrote this code will be gone by the
+time it's feel-tested (panes close, worktrees get reaped), so if a bug turns up, the
+recovery context has to live in `gh pr view` — not in a transcript that no longer exists.
+Don't `--fill` from commit messages; write the distillation:
 
 ```bash
 git push -u origin HEAD
-gh pr create --base main --fill        # real title/body when it helps
+gh pr create --base main --title "<imperative one-liner>" --body-file - <<'MD'
+## What
+<1–3 sentences: the change in plain terms>
+
+## Why
+<the bug or need this addresses — the motivation, not a diff restatement>
+
+## Verify
+- <concrete, observable step> → <expected result>
+- <…>
+
+## Watch out
+<known risks, fragile spots, edge cases, follow-ups deliberately deferred —
+and `path:line` anchors for the load-bearing bits>
+MD
 gh pr merge --squash --delete-branch
 ```
+
+The **Verify** block is the single source of truth for the test steps: Step 7's verify-list
+and `bench try-batch`'s checklist both send me back to it, so write the checks *here, once*,
+where they outlive the pane. Keep the whole body dense — it's a handoff, not a changelog.
+A fresh agent should be able to `gh pr view <n>`, read the diff, and be productive with no
+other context.
 
 Not mergeable (conflicts / non-fast-forward)? `git fetch origin && git rebase origin/main`,
 push, retry. On conflicts you can't cleanly resolve, **stop and show them** — never
@@ -135,9 +159,12 @@ Activate (idempotent, skip if the landing pane already did): `bench try switch`
 ```
 
 Rules for the list: each entry is a `[repo#N](url)` markdown link — repo-qualified, never
-the word "PR", the link itself is the highlight. Test steps are concrete and observable
-("⌘Space 5×, no filter flash"; "hover the hidden bar, pill is opaque"), never "confirm it
-works." Then **open every one of those PR URLs in Chrome** via the browser tools if they're
+the word "PR", the link itself is the highlight. The `**check:**` is a one-line echo of the
+PR body's **Verify** block (Step 3) — concrete and observable ("⌘Space 5×, no filter flash";
+"hover the hidden bar, pill is opaque"), never "confirm it works." Keep the *full* steps in
+the PR body, so a bug found after this pane is gone is recoverable from `gh pr view` alone;
+the verify-list is the convenience index, not the system of record. Then **open every one of
+those PR URLs in Chrome** via the browser tools if they're
 loadable (ToolSearch them first); skip silently in a headless/cron ship — the block above
 is the reliable copy.
 
