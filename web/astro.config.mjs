@@ -30,6 +30,16 @@ export default defineConfig({
       },
       favicon: '/favicon.png',
       customCss: ['./src/styles/nebelung.css'],
+      // Inline Expressive Code's code-block styles into each page instead of
+      // linking one shared /_astro/ec.<ver>.css. Same durability reasoning as
+      // build.inlineStylesheets above: that external sheet was the LAST
+      // stylesheet a doc page fetched, and when it fails to load in a
+      // memory-constrained iOS in-app WebView (Instagram/Facebook), code blocks
+      // render as bare, unstyled monospace — no frame, no background, no syntax
+      // colors. Inlining removes the last external stylesheet on doc pages, so
+      // code-block styling travels with the document and can never 404. Delivery
+      // only — the theme/rendering is unchanged.
+      expressiveCode: { emitExternalStylesheet: false },
       social: [
         { icon: 'github', label: 'GitHub', href: 'https://github.com/nebelhaus' },
       ],

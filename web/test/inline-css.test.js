@@ -30,4 +30,12 @@ describe("astro.config.mjs inline-CSS policy", () => {
     // >4kB bundle stays external and vulnerable) and not 'never'.
     expect(config).toMatch(/inlineStylesheets:\s*['"]always['"]/);
   });
+
+  it("inlines Expressive Code's styles instead of an external ec.<ver>.css", () => {
+    // build.inlineStylesheets does NOT cover Expressive Code — it ships code-block
+    // styles through its own emitter. Left external (the default), ec.<ver>.css is
+    // the last stylesheet a doc page fetches, and when it fails in an iOS in-app
+    // WebView the code blocks render as bare, unstyled monospace. false = inline.
+    expect(config).toMatch(/emitExternalStylesheet:\s*false/);
+  });
 });
