@@ -68,7 +68,12 @@ Notation: `⌥` Option/Alt · `⌘` Command · `⌃` Control · `⇧` Shift · `
 | `Super C` | Spawn an isolated Claude agent (own worktree) |
 | `Ctrl ⌥⇧C` | Spawn a resident Claude agent (this checkout) |
 
-Option-click a file path in the terminal to open a new tab `cd`'d there.
+**Clickable links** work across two modifiers. `⌥`-click a file path (or a
+visible URL / bare domain) in the terminal to open it — a path opens a new tab
+`cd`'d there, a link opens in the browser. `⌘`-click opens any web link,
+including **embedded hyperlinks** whose visible text isn't the URL (e.g. Claude
+Code's `/tui` session and PR links) — those only respond to `⌘`-click, since the
+URL is hidden in the terminal escape sequence rather than shown on screen.
 
 ## Pounce — ⌘Space
 
