@@ -66,8 +66,23 @@ The one editor the rice uses everywhere: `$EDITOR` / `$VISUAL` **and** what ever
 
 When `true`, makes `hearth.editor` the default opener for `.json`/`.md`/`.ts`/`.nix`/… via `duti`. Opt-in; changes double-click behaviour.
 
+### `nebelhaus.hearth.obsidianVaults`
+`listOf str` · default `[]`
+
+Home-relative paths to existing Obsidian vaults that should use the full
+Nebelung theme. On each rebuild, Hearth copies the generated theme into every
+listed vault, selects its dark appearance, and removes the obsolete `nebelung`
+CSS snippet from the enabled list. Other `appearance.json` settings are
+preserved.
+
+Paths must be relative, may not contain `..`, and must already contain an
+`.obsidian` directory. Missing vaults are skipped with a warning.
+
 ```nix
 nebelhaus.hearth.editor = "nvim";
+nebelhaus.hearth.obsidianVaults = [
+  "Library/Mobile Documents/iCloud~md~obsidian/Documents/notes"
+];
 ```
 
 ## nebelhaus.prowl
