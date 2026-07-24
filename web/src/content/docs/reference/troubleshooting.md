@@ -49,12 +49,12 @@ launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/org.nixos.aerospace.plis
 Other quick fixes:
 
 - **Windows scrambled after sleep?** They self-heal after a couple seconds; force
-  it with `⌥⇧R`.
+  it by tapping ⇪, then `Backtick`.
 - **A binding you changed didn't take?** A rebuild rewrites the config but the
   live daemon caches the old one — normally auto-reloaded, but you can force it:
   `aerospace reload-config`.
-- **A window landed on the wrong workspace?** `⌥⇧R` re-sorts everything to its
-  roster home.
+- **A window landed on the wrong workspace?** Tap ⇪, then `Backtick` to re-sort
+  everything to its roster home.
 
 ## The bar (SketchyBar) is blank or missing
 
