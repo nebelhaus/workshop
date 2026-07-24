@@ -225,8 +225,9 @@ hack ──► test ──► PR ──► batch-test ──► merge ──► 
 ## setting up this workshop on a fresh machine
 
 ```sh
-git clone https://github.com/nebelhaus/workshop.git ~/code/nebelhaus
-cd ~/code/nebelhaus && ./bench clone
+git clone https://github.com/nebelhaus/workshop.git
+cd workshop
+./bench clone
 ```
 
 (Your private `~/.config/nix` is restored separately — see its own README.)

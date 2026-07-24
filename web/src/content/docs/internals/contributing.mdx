@@ -17,8 +17,9 @@ different tool from the [end-user `haus`](/reference/haus/)). Clone it and pull
 the family:
 
 ```sh
-git clone https://github.com/nebelhaus/workshop.git ~/code/nebelhaus
-cd ~/code/nebelhaus && ./bench clone
+git clone https://github.com/nebelhaus/workshop.git
+cd workshop
+./bench clone
 ```
 
 You end up with `nebelung/`, `pounce/`, `nebelhaus/`, and friends as independent
@@ -80,9 +81,17 @@ Two things matter specifically when the repo is a *family* one:
   body, and merge it from GitHub. `bench status` lists every agent worktree and
   unmerged `worktree-*` branch so nothing rots silently.
 
-Working from the workshop on a task that belongs to a *sub*-repo? Make its
-worktree with `cd "$(wt child ~/code/nebelhaus/<repo>)"` — that registers it so
-its PR shows in the statusline, which a raw `git worktree add` would not.
+Working from the workshop on a task that belongs to a *sub*-repo? Resolve the
+workshop's main checkout from Git, then make the child worktree — this works no
+matter where you cloned the workshop:
+
+```sh
+workshop_root="$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"
+cd "$(wt child "$workshop_root/nebelung")" # replace nebelung with the repo you need
+```
+
+That registers the child so its PR shows in the statusline, which a raw
+`git worktree add` would not.
 
 ## Feel-testing the whole PR queue (try-batch)
 

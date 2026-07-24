@@ -15,7 +15,7 @@ description: >-
 The nebelhaus repos form a chain of pinned flake inputs
 (`nebelung → pounce → nebelhaus → ~/.config/nix`). A commit is invisible downstream until
 each downstream `flake.lock` is bumped — `bench ship` does that ripple. Never hand-walk it.
-`bench` lives at `~/code/nebelhaus/bench` (aliased `bench`); run it from anywhere.
+`bench` lives at the workshop root and is available as `bench`; run it from anywhere.
 
 End-state: the work is merged **through a PR**, the locks are rippled, every worktree this
 session created is gone, and — if there's nothing worth my attention — the pane is closed.
@@ -111,9 +111,10 @@ wt reap        # removes every LANDED worktree across all repos: parked ones + c
 
 `wt reap` is idempotent and safe — it only touches checkouts whose PR has merged and whose
 tree is clean, so it can't drop live work. Fall back to a targeted
-`git -C ~/code/nebelhaus/<repo> worktree remove <path>` only if you need to force-remove a
-child you *know* is clean. `wt` lists every agent worktree across all repos — run it after to
-confirm nothing you created is left. Don't delete worktrees you didn't create.
+`git -C <child-repo-main-checkout> worktree remove <path>` only if you need to
+force-remove a child you *know* is clean. `wt` lists every agent worktree across all
+repos — run it after to confirm nothing you created is left. Don't delete worktrees you
+didn't create.
 
 ## Step 5 — ripple the locks
 
@@ -187,7 +188,8 @@ is the reliable copy.
   the last pane in the *only* tab — as a subset, since we always spawn before closing it):
 
   ```bash
-  main="$(dirname "$(git rev-parse --git-common-dir)")"          # e.g. ~/code/nebelhaus
+  common_dir="$(git rev-parse --path-format=absolute --git-common-dir)"
+  main="$(dirname "$common_dir")"
   if [ -n "$ZELLIJ_PANE_ID" ]; then
     # real panes in THIS tab only: the focus=true block, stopping before swap_tiled_layout
     panes=$(zellij action dump-layout \

@@ -39,8 +39,8 @@
 # worktrees and unmerged agent branches; `bench ship` warns about them.
 set -euo pipefail
 
-# ROOT is the workshop MAIN checkout (~/code/nebelhaus) — the dir holding the
-# family repos as subdirs. Derive it from the script's git-common-dir, NOT just
+# ROOT is the workshop's MAIN checkout — the dir holding the family repos as
+# subdirs. Derive it from the script's git-common-dir, NOT just
 # dirname(BASH_SOURCE): a workshop *worktree* checks out its own copy of this
 # script, so dirname would point at the worktree (which has NO child repos),
 # silently breaking status/ship (an unguarded `git -C <missing>` under `set -e`

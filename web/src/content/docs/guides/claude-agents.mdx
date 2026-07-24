@@ -79,12 +79,14 @@ session in the workshop that has to touch a sub-repo. Don't reach for a raw
 track it and its PR goes invisible. Use `wt child` instead:
 
 ```sh
-cd "$(wt child ~/code/nebelhaus/nebelung)"
+workshop_root="$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")"
+cd "$(wt child "$workshop_root/nebelung")"
 ```
 
 That creates a worktree of the *other* repo, **registers it as a child of your
 current pane** (so its PR shows up in the statusline where you're working), and
-prints only the new checkout path — hence the `cd "$(…)"`.
+prints only the new checkout path — hence the `cd "$(…)"`. Resolving the
+workshop root through Git keeps the command independent of where you cloned it.
 
 ## Cleaning up
 

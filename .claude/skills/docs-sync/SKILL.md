@@ -22,7 +22,7 @@ site wins and the repo doc gets corrected — never the reverse.
 ## Step 1 — what landed?
 
 ```bash
-cd ~/code/nebelhaus && ./bench docs-since
+bench docs-since
 ```
 
 This prints, per repo, every commit past the last reconciled watermark plus the files
@@ -193,7 +193,7 @@ If nothing needed changing and there is nothing to report anywhere, open no PR.
 **Only after the PRs are open**, and only then:
 
 ```bash
-./bench docs-since --mark
+bench docs-since --mark
 ```
 
 This records where the next sweep starts. Marking before landing loses the day's work
