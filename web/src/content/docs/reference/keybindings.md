@@ -22,7 +22,6 @@ Notation: `⌥` Option/Alt · `⌘` Command · `⌃` Control · `⇧` Shift · `
 | `⌥Tab` | Previous workspace (back-and-forth) |
 | `⌥⇧Tab` | Move workspace to next monitor |
 | `⌥⇧;` | Enter service mode |
-| `⌥⇧R` | Re-sort windows (wake recovery) |
 | `⌘Space` | Open Pounce |
 
 ## Launch mode — tap ⇪ (prowl)
@@ -37,6 +36,7 @@ Notation: `⌥` Option/Alt · `⌘` Command · `⌃` Control · `⇧` Shift · `
 | `E` | Emoji picker (Pounce) |
 | `Z` | Reopen the last closed app (the ⌘⇧T analog) |
 | `,` | Open macOS System Settings (mirrors the ⌘, convention) |
+| `Backtick` | Re-sort every window to its workspace (wake recovery) |
 | `/` | Show the cheatsheet |
 | `Esc` | Exit launch mode |
 

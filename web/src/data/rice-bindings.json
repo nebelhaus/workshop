@@ -161,13 +161,6 @@
         {
           "action": "Command Palette",
           "keys": "⌘ Space"
-        },
-        {
-          "action": "Resort windows",
-          "binds": {
-            "alt-shift-r": "exec-and-forget @HOME@/.config/aerospace/resort-windows.sh"
-          },
-          "keys": "⌥ ⇧ r"
         }
       ],
       "title": "System"
@@ -184,6 +177,7 @@
     "e",
     "z",
     "comma",
+    "backtick",
     "minus",
     "equal",
     "left",
