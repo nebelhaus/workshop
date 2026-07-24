@@ -51,6 +51,30 @@ can also switch it between `nebelung` and stock `mocha` in its own
 [config](/reference/pounce/#config-file).
 </Aside>
 
+## Obsidian vaults
+
+Obsidian keeps themes and appearance settings **inside each vault**, so the rice
+doesn't guess which folders are yours. List the vaults you want Nebelung to
+manage as home-relative paths:
+
+```nix
+nebelhaus.hearth.obsidianVaults = [
+  "Library/Mobile Documents/iCloud~md~obsidian/Documents/notes"
+];
+```
+
+Then `haus rebuild`. For every listed vault, Hearth:
+
+- copies the generated full Nebelung theme into
+  `.obsidian/themes/Nebelung/`;
+- selects Nebelung's dark appearance; and
+- disables the obsolete `nebelung` CSS snippet if it was enabled.
+
+The rest of `appearance.json` is merged and preserved. A path is skipped with a
+warning unless it already contains `.obsidian`, so a typo won't create an empty
+lookalike vault. List multiple paths to keep several vaults in sync; the default
+`[]` touches none.
+
 ## Why bake, not load at runtime?
 
 Colours are generated at **build time** from a single source, not loaded from
