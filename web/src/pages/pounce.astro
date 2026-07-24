@@ -1,0 +1,79 @@
+---
+import ProductLanding from '../layouts/ProductLanding.astro';
+
+const features = [
+  {
+    category: 'launch',
+    title: 'Apps + actions',
+    blurb:
+      'Fuzzy-find installed apps and your own commands in one list, ranked around how you work.',
+    accent: '#f5b58e',
+  },
+  {
+    category: 'scripts',
+    title: 'Every command is a file',
+    blurb:
+      'Drop a shell script into one folder. No plugin API, extension store, account, or restart.',
+    accent: '#f2c4e5',
+  },
+  {
+    category: 'memory',
+    title: 'Clipboard history',
+    blurb:
+      'Search recent copies, keep private apps out, and optionally paste back into the app you left.',
+    accent: '#9be0d5',
+  },
+  {
+    category: 'files',
+    title: 'Find it before Finder',
+    blurb:
+      'Search the Spotlight index live; open, reveal, or copy a path without leaving the keyboard.',
+    accent: '#8db4f3',
+  },
+  {
+    category: 'built-ins',
+    title: 'The useful little things',
+    blurb:
+      'Emoji, screenshots, camera, system settings, force quit, ports, Wi-Fi, and more ship ready.',
+    accent: '#c9a8f1',
+  },
+  {
+    category: 'ranking',
+    title: 'Learns what you reach for',
+    blurb:
+      'Fuzzy quality, frecency, and a boost for freshly installed apps put the likely answer first.',
+    accent: '#abe1a6',
+  },
+];
+---
+
+<ProductLanding
+  product="pounce"
+  accent="#f5b58e"
+  accentHover="#f8c8aa"
+  logo="/logos/pounce-peeking.png"
+  eyebrow="native · keyboard-first · scriptable · macos"
+  titleLead="The command palette"
+  titleAccent="with claws."
+  lede="Summon, aim, pounce. Apps, commands, files, and the useful little things — one hotkey away."
+  description="Pounce is a native, keyboard-first, scriptable command palette for macOS. Install it standalone with Homebrew or get it wired into the nebelhaus rice."
+  install="brew install nebelhaus/tap/pounce"
+  installMarkup={{
+    command: 'brew install',
+    formula: 'nebelhaus/tap/pounce',
+  }}
+  standaloneCopy="This installs only Pounce — no Nix or other nebelhaus changes. Then run brew services start pounce to keep ⌘Space ready."
+  riceCopy="Pounce is included and wired for you: daemon, ⌘Space, and permission survival all live in the rice."
+  riceHref="/start/what-is-nebelhaus/"
+  guideHref="/guides/pounce/"
+  repoHref="https://github.com/nebelhaus/pounce"
+  featuresLabel="one palette, whatever you need"
+  featuresTitle="Fast by instinct. Open by design."
+  featuresCopy="A native launcher when you want one, a tiny dmenu-style building block when you do not."
+  features={features}
+  closerStatus="ready to pounce"
+  closerTitle="Make the command you wish existed."
+  closerCopy="A name, a description, an SF Symbol, and a shell script. Put the file in ~/.config/pounce/commands and it appears on the next summon."
+  closerPrimaryLabel="Write a command"
+  closerPrimaryHref="/guides/pounce-commands/"
+/>
