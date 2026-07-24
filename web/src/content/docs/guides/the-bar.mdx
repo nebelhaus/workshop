@@ -55,8 +55,9 @@ extras below default **off**. Set only the ones you want to change:
 
 ```nix
 nebelhaus.sill.items = {
-  weather = false;   # drop a default-on core pill
-  cpu = true;        # add an off-by-default readout
+  weather = false;      # drop a default-on core pill
+  cpu = true;           # add an off-by-default readout
+  caffeinate = true;    # add the keep-awake controller
 };
 ```
 
@@ -70,6 +71,24 @@ A pill set `false` is never created — its update script doesn't even run.
 - **`calendar`** — your next timed event, with a click-popup of the next five.
   Pulls in `ical-buddy` automatically and reads Calendar, so macOS prompts for
   Calendar access on first run.
+- **`caffeinate`** — a coffee pill for preventing idle system sleep. Click it
+  to choose 1, 2, 4, or 8 hours, enter a custom number of hours, keep the Mac
+  awake until stopped, or allow sleep again; right-click stops immediately.
+  While active, the pill shows the time remaining. The assertion is owned by
+  launchd, not SketchyBar, so it survives a bar reload and resumes with the
+  correct remaining time after a rebuild or login. It uses macOS's built-in
+  `caffeinate`—no package or permission prompt. The display can still turn off,
+  and closing a MacBook lid still sleeps it.
+
+The same keep-awake engine is available without the pill:
+
+```sh
+awake 3h
+awake 90m
+awake indefinitely
+awake status
+awake off
+```
 
 **Personal extras** — each targets one person's hardware, service, or workflow:
 
